@@ -21,6 +21,22 @@ struct processStruct {
     int state; //10 - init ,11- "0" ,12- "1",13 - "-" karsilik
 };
 
+void decideProcessPriorityQueue(vector<queue<processStruct>>& queueArray, processStruct& pcTmp, int newPriority)
+{
+
+    if (newPriority > 0)
+    {
+        queue<processStruct> tmp = queueArray[newPriority - 1];
+        tmp.push(pcTmp);
+        queueArray[newPriority - 1] = tmp;
+        cout << endl;
+    }
+    else
+    {
+        printf("newPriority not valid");
+    }
+}
+
 VOID CALLBACK TimerRoutineRest(PVOID lpParam, BOOLEAN TimerOrWaitFired)
 {
     if (lpParam == NULL)
@@ -57,7 +73,11 @@ VOID CALLBACK TimerRoutine1(PVOID lpParam, BOOLEAN TimerOrWaitFired)
     }
     else
     {
-        queue<processStruct> q = *(queue<processStruct>*) lpParam;
+
+        vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
+        //queue<processStruct> q = *(queue<processStruct>*) lpParam;
+        queue<processStruct> q = qArray[0];
+
         if (q.empty())
         {
             printf("OOOO111 LLLLL\n");
@@ -107,7 +127,11 @@ VOID CALLBACK TimerRoutine2(PVOID lpParam, BOOLEAN TimerOrWaitFired)
     }
     else
     {
-        queue<processStruct> q = *(queue<processStruct>*) lpParam;
+
+        vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
+        //queue<processStruct> q = *(queue<processStruct>*) lpParam;
+        queue<processStruct> q = qArray[1];
+
         if (q.empty())
         {
             printf("OOOO222 LLLLL\n");
@@ -157,7 +181,11 @@ VOID CALLBACK TimerRoutine3(PVOID lpParam, BOOLEAN TimerOrWaitFired)
     }
     else
     {
-        queue<processStruct> q = *(queue<processStruct>*) lpParam;
+
+        vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
+        //queue<processStruct> q = *(queue<processStruct>*) lpParam;
+        queue<processStruct> q = qArray[2];
+
         if (q.empty())
         {
             printf("OOOO3 LLLLL\n");
@@ -207,32 +235,32 @@ VOID CALLBACK TimerRoutine4(PVOID lpParam, BOOLEAN TimerOrWaitFired)
     }
     else
     {
-        queue<processStruct> q = *(queue<processStruct>*) lpParam;
-        if (q.empty())
+        vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
+        //queue<processStruct> q = *(queue<processStruct>*) lpParam;
+        queue<processStruct>* q = &qArray[3];
+
+        if (q->empty())
         {
             printf("OOOO44 LLLLL\n");
         }
         else
         {
-            int size = q.size();
+            int size = q->size();
             for (int i = 0; i < size; i++)
             {
-                if (!q.empty())
+                if (!q->empty())
                 {
-                    processStruct tmp = q.front();
+                    processStruct tmp = q->front();
                     queue<string> tmpProcessValue = tmp.processValues;
                     int tmpSize = tmpProcessValue.size();
                     cout << "Oku bakalim4=";
-                    for (int j = 0; j < tmpSize; j++)
-                    {
-                        if (!tmpProcessValue.empty())
-                        {
-                            string val = tmpProcessValue.front();
-                            tmpProcessValue.pop();
-                            cout <<  val;
-                        }
-                    }
-                    q.pop();
+                    
+                    string val = tmpProcessValue.front();
+                    tmpProcessValue.pop();
+                    cout << val << endl;
+                    decideProcessPriorityQueue(qArray, tmp, tmp.priority - 1);
+
+                    q->pop();
                     cout << endl;
                 }
             }
@@ -300,7 +328,6 @@ void setQueueValues(processStruct& PC,int val)
         std::string line;
         while (getline(file, line)) {    
             PC.processValues.push(line);
-            printf("%s\n", line.c_str());
         }
         file.close();
     }
@@ -316,20 +343,7 @@ void updateProcessStructPriority(processStruct& PC, int val)
     PC.priority = val;
 }
 
-void decideProcessPriorityQueue(vector<queue<processStruct>>& queueArray,processStruct& pcTmp,int newPriority)
-{
-    
-    if (newPriority > 0)
-    {
-        queue<processStruct> tmp = queueArray[newPriority - 1];
-        tmp.push(pcTmp);
-        queueArray[newPriority - 1] = tmp;
-    }
-    else
-    {
-        printf("newPriority not valid");
-    }
-}
+
 
 
 int main()
@@ -384,10 +398,7 @@ int main()
     // Use an event object to track the TimerRoutine execution
     
     createEvent(gDoneRestEvent);
-    createEvent(gDoneEvent1);
-    createEvent(gDoneEvent2);
-    createEvent(gDoneEvent3);
-    createEvent(gDoneEvent4);
+
 
     createEventQueue(hTimerQueueRest);
     createEventQueue(hTimerQueue);
@@ -400,24 +411,44 @@ int main()
     }
 
     //------------------------------ QUEUE ------------------------------------
-    
-    if (!CreateTimerQueueTimer(&hTimer1, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine1, &queueArray[0], 100, 0, 0))
+    for (int p = 0; p < 3; p++)
     {
-        return 3;
+        createEvent(gDoneEvent1);
+        createEvent(gDoneEvent2);
+        createEvent(gDoneEvent3);
+        createEvent(gDoneEvent4);
+
+        if (!CreateTimerQueueTimer(&hTimer1, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine1, &queueArray, 100, 0, 0))
+        {
+            return 3;
+        }
+        if (!CreateTimerQueueTimer(&hTimer2, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine2, &queueArray, 200, 0, 0))
+        {
+            return 3;
+        }
+        if (!CreateTimerQueueTimer(&hTimer3, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine3, &queueArray, 300, 0, 0))
+        {
+            return 3;
+        }
+        //Priority FIRST
+        if (!CreateTimerQueueTimer(&hTimer4, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine4, &queueArray, 400, 0, 0))
+        {
+            return 3;
+        }
+
+        waitSignalEvent(gDoneEvent1, "");
+        CloseHandle(gDoneEvent1);
+
+        waitSignalEvent(gDoneEvent2, "");
+        CloseHandle(gDoneEvent2);
+
+        waitSignalEvent(gDoneEvent3, "");
+        CloseHandle(gDoneEvent3);
+
+        waitSignalEvent(gDoneEvent4, "");
+        CloseHandle(gDoneEvent4);
     }
-    if (!CreateTimerQueueTimer(&hTimer2, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine2, &queueArray[1], 200, 0, 0))
-    {
-        return 3;
-    }
-    if (!CreateTimerQueueTimer(&hTimer3, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine3, &queueArray[2], 300, 0, 0))
-    {
-        return 3;
-    }
-    //Priority FIRST
-    if (!CreateTimerQueueTimer(&hTimer4, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine4, &queueArray[3], 400, 0, 0))
-    {
-        return 3;
-    }
+
     
 
 
@@ -426,17 +457,7 @@ int main()
     // Wait for the timer-queue thread to complete using an event 
     // object. The thread will signal the event at that time.
 
-    waitSignalEvent(gDoneEvent1,"");
-    CloseHandle(gDoneEvent1);
 
-    waitSignalEvent(gDoneEvent2, "");
-    CloseHandle(gDoneEvent2);
-
-    waitSignalEvent(gDoneEvent3, "");
-    CloseHandle(gDoneEvent3);
-
-    waitSignalEvent(gDoneEvent4, "");
-    CloseHandle(gDoneEvent4);
 
     waitSignalEvent(gDoneRestEvent, "");
     CloseHandle(gDoneRestEvent);
