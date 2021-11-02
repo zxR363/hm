@@ -16,6 +16,7 @@ HANDLE gDoneEvent4;
 
 
 struct processStruct {
+    string name;
     queue<string> processValues;
     int priority;
     int state; //10 - init ,11- "0" ,12- "1",13 - "-" karsilik
@@ -76,32 +77,30 @@ VOID CALLBACK TimerRoutine1(PVOID lpParam, BOOLEAN TimerOrWaitFired)
 
         vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
-        queue<processStruct> q = qArray[0];
+        queue<processStruct>* q = &qArray[3];
 
-        if (q.empty())
+        if (q->empty())
         {
-            printf("OOOO111 LLLLL\n");
+            printf("OOOO11 LLLLL\n");
         }
         else
         {
-            int size = q.size();
+            int size = q->size();
             for (int i = 0; i < size; i++)
             {
-                if (!q.empty())
+                if (!q->empty())
                 {
-                    processStruct tmp = q.front();
+                    processStruct tmp = q->front();
                     queue<string> tmpProcessValue = tmp.processValues;
                     int tmpSize = tmpProcessValue.size();
-                    for (int j = 0; j < tmpSize; j++)
-                    {
-                        if (!tmpProcessValue.empty())
-                        {
-                            string val = tmpProcessValue.front();
-                            tmpProcessValue.pop();
-                            cout << "Oku bakalim1=" << val;
-                        }
-                    }
-                    q.pop();
+                    cout << "Oku bakalim1=";
+
+                    string val = tmpProcessValue.front();
+                    tmpProcessValue.pop();
+                    cout << val << endl;
+                    decideProcessPriorityQueue(qArray, tmp, tmp.priority - 1);
+
+                    q->pop();
                     cout << endl;
                 }
             }
@@ -130,32 +129,30 @@ VOID CALLBACK TimerRoutine2(PVOID lpParam, BOOLEAN TimerOrWaitFired)
 
         vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
-        queue<processStruct> q = qArray[1];
+        queue<processStruct>* q = &qArray[3];
 
-        if (q.empty())
+        if (q->empty())
         {
-            printf("OOOO222 LLLLL\n");
+            printf("OOOO22 LLLLL\n");
         }
         else
         {
-            int size = q.size();
+            int size = q->size();
             for (int i = 0; i < size; i++)
             {
-                if (!q.empty())
+                if (!q->empty())
                 {
-                    processStruct tmp = q.front();
+                    processStruct tmp = q->front();
                     queue<string> tmpProcessValue = tmp.processValues;
                     int tmpSize = tmpProcessValue.size();
-                    for (int j = 0; j < tmpSize; j++)
-                    {
-                        if (!tmpProcessValue.empty())
-                        {
-                            string val = tmpProcessValue.front();
-                            tmpProcessValue.pop();
-                            cout << "Oku bakalim2=" << val;
-                        }
-                    }
-                    q.pop();
+                    cout << "Oku bakalim2=";
+
+                    string val = tmpProcessValue.front();
+                    tmpProcessValue.pop();
+                    cout << val << endl;
+                    decideProcessPriorityQueue(qArray, tmp, tmp.priority - 1);
+
+                    q->pop();
                     cout << endl;
                 }
             }
@@ -184,32 +181,30 @@ VOID CALLBACK TimerRoutine3(PVOID lpParam, BOOLEAN TimerOrWaitFired)
 
         vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
-        queue<processStruct> q = qArray[2];
+        queue<processStruct>* q = &qArray[3];
 
-        if (q.empty())
+        if (q->empty())
         {
-            printf("OOOO3 LLLLL\n");
+            printf("OOOO33 LLLLL\n");
         }
         else
         {
-            int size = q.size();
+            int size = q->size();
             for (int i = 0; i < size; i++)
             {
-                if (!q.empty())
+                if (!q->empty())
                 {
-                    processStruct tmp = q.front();
+                    processStruct tmp = q->front();
                     queue<string> tmpProcessValue = tmp.processValues;
                     int tmpSize = tmpProcessValue.size();
-                    for (int j = 0; j < tmpSize; j++)
-                    {
-                        if (!tmpProcessValue.empty())
-                        {
-                            string val = tmpProcessValue.front();
-                            tmpProcessValue.pop();
-                            cout << "Oku bakalim3=" << val;
-                        }
-                    }
-                    q.pop();
+                    cout << "Oku bakalim3=";
+
+                    string val = tmpProcessValue.front();
+                    tmpProcessValue.pop();
+                    cout << val << endl;
+                    decideProcessPriorityQueue(qArray, tmp, tmp.priority - 1);
+
+                    q->pop();
                     cout << endl;
                 }
             }
@@ -250,17 +245,46 @@ VOID CALLBACK TimerRoutine4(PVOID lpParam, BOOLEAN TimerOrWaitFired)
             {
                 if (!q->empty())
                 {
-                    processStruct tmp = q->front();
-                    queue<string> tmpProcessValue = tmp.processValues;
-                    int tmpSize = tmpProcessValue.size();
-                    cout << "Oku bakalim4=";
+                    processStruct* tmp = &q->front();
+                    queue<string>* tmpProcessValue = &(*tmp).processValues;
+                    int tmpSize = tmpProcessValue->size();
+                        
+                    if (!tmpProcessValue->empty())
+                    {
+                        string val = tmpProcessValue->front();
+                        int processValSize = tmpProcessValue->size();
+                        tmpProcessValue->pop();
+                        if (processValSize == 1)
+                        {
+                            if (val.compare("-")) // Process bitiyor
+                            {
+                                cout << "E" << "," << tmp->name << ",QX" << endl;
+                                q->pop();
+                            }
+                        }
+                        else
+                        {
+                            if (val == "1")
+                            {
+                                cout << val << "," << tmp->name << ",Q4" << endl;
+                                decideProcessPriorityQueue(qArray, *tmp, (*tmp).priority - 1);
+                            }
+                            else if(val == "0")
+                            {
+                                cout << val << "," << tmp->name << ",Q4" << endl;
+                            }
+                            q->push(*tmp);
+                            q->pop();
+                            
+                        }
+                        
+                    }
+                    else
+                    {
+                        q->pop(); //Process Bittiyse
+                    }
                     
-                    string val = tmpProcessValue.front();
-                    tmpProcessValue.pop();
-                    cout << val << endl;
-                    decideProcessPriorityQueue(qArray, tmp, tmp.priority - 1);
 
-                    q->pop();
                     cout << endl;
                 }
             }
@@ -368,6 +392,11 @@ int main()
     processStruct PC3;
     processStruct PC4;
     processStruct PC5;
+    PC1.name = "PC1";
+    PC2.name = "PC2";
+    PC3.name = "PC3";
+    PC4.name = "PC4";
+    PC5.name = "PC5";
     setQueueValues(PC1, 1);
     setQueueValues(PC2, 2);
     setQueueValues(PC3, 3);
@@ -411,7 +440,7 @@ int main()
     }
 
     //------------------------------ QUEUE ------------------------------------
-    for (int p = 0; p < 3; p++)
+    for (int p = 0; p < 10; p++)
     {
         createEvent(gDoneEvent1);
         createEvent(gDoneEvent2);
