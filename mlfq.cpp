@@ -74,14 +74,14 @@ VOID CALLBACK TimerRoutine1(PVOID lpParam, BOOLEAN TimerOrWaitFired)
     }
     else
     {
-
-        vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
+        vector<queue<processStruct>>* qArray = (vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
-        queue<processStruct>* q = &qArray[3];
+        vector<queue<processStruct>>& tmp = *qArray;
+        queue<processStruct>* q = &tmp[3];
 
         if (q->empty())
         {
-            printf("OOOO11 LLLLL\n");
+
         }
         else
         {
@@ -90,21 +90,51 @@ VOID CALLBACK TimerRoutine1(PVOID lpParam, BOOLEAN TimerOrWaitFired)
             {
                 if (!q->empty())
                 {
-                    processStruct tmp = q->front();
-                    queue<string> tmpProcessValue = tmp.processValues;
-                    int tmpSize = tmpProcessValue.size();
-                    cout << "Oku bakalim1=";
+                    processStruct* tmp = &q->front();
+                    queue<string>* tmpProcessValue = &(*tmp).processValues;
+                    int tmpSize = tmpProcessValue->size();
 
-                    string val = tmpProcessValue.front();
-                    tmpProcessValue.pop();
-                    cout << val << endl;
-                    decideProcessPriorityQueue(qArray, tmp, tmp.priority - 1);
+                    if (!tmpProcessValue->empty())
+                    {
+                        string val = tmpProcessValue->front();
+                        int processValSize = tmpProcessValue->size();
+                        tmpProcessValue->pop();
+                        if (processValSize == 1)
+                        {
+                            if (val == "-") // Process bitiyor
+                            {
+                                cout << "E" << "," << tmp->name << ",QX" << endl;
+                                q->pop();
+                            }
+                        }
+                        else
+                        {
+                            if (val == "1")
+                            {
+                                cout << val << "," << tmp->name << ",Q1" << endl;
+                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
+                            }
+                            else if (val == "0")
+                            {
+                                cout << val << "," << tmp->name << ",Q1" << endl;
+                            }
+                            q->push(*tmp);
+                            q->pop();
 
-                    q->pop();
+                        }
+
+                    }
+                    else
+                    {
+                        q->pop(); //Process Bittiyse
+                    }
+
+
                     cout << endl;
                 }
             }
         }
+
 
         if (TimerOrWaitFired)
         {
@@ -127,13 +157,14 @@ VOID CALLBACK TimerRoutine2(PVOID lpParam, BOOLEAN TimerOrWaitFired)
     else
     {
 
-        vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
+        vector<queue<processStruct>>* qArray = (vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
-        queue<processStruct>* q = &qArray[3];
+        vector<queue<processStruct>>& tmp = *qArray;
+        queue<processStruct>* q = &tmp[3];
 
         if (q->empty())
         {
-            printf("OOOO22 LLLLL\n");
+            
         }
         else
         {
@@ -142,17 +173,46 @@ VOID CALLBACK TimerRoutine2(PVOID lpParam, BOOLEAN TimerOrWaitFired)
             {
                 if (!q->empty())
                 {
-                    processStruct tmp = q->front();
-                    queue<string> tmpProcessValue = tmp.processValues;
-                    int tmpSize = tmpProcessValue.size();
-                    cout << "Oku bakalim2=";
+                    processStruct* tmp = &q->front();
+                    queue<string>* tmpProcessValue = &(*tmp).processValues;
+                    int tmpSize = tmpProcessValue->size();
 
-                    string val = tmpProcessValue.front();
-                    tmpProcessValue.pop();
-                    cout << val << endl;
-                    decideProcessPriorityQueue(qArray, tmp, tmp.priority - 1);
+                    if (!tmpProcessValue->empty())
+                    {
+                        string val = tmpProcessValue->front();
+                        int processValSize = tmpProcessValue->size();
+                        tmpProcessValue->pop();
+                        if (processValSize == 1)
+                        {
+                            if (val == "-") // Process bitiyor
+                            {
+                                cout << "E" << "," << tmp->name << ",QX" << endl;
+                                q->pop();
+                            }
+                        }
+                        else
+                        {
+                            if (val == "1")
+                            {
+                                cout << val << "," << tmp->name << ",Q2" << endl;
+                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
+                            }
+                            else if (val == "0")
+                            {
+                                cout << val << "," << tmp->name << ",Q2" << endl;
+                            }
+                            q->push(*tmp);
+                            q->pop();
 
-                    q->pop();
+                        }
+
+                    }
+                    else
+                    {
+                        q->pop(); //Process Bittiyse
+                    }
+
+
                     cout << endl;
                 }
             }
@@ -179,13 +239,14 @@ VOID CALLBACK TimerRoutine3(PVOID lpParam, BOOLEAN TimerOrWaitFired)
     else
     {
 
-        vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
+        vector<queue<processStruct>>* qArray = (vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
-        queue<processStruct>* q = &qArray[3];
+        vector<queue<processStruct>>& tmp = *qArray;
+        queue<processStruct>* q = &tmp[3];
 
         if (q->empty())
         {
-            printf("OOOO33 LLLLL\n");
+            
         }
         else
         {
@@ -194,21 +255,51 @@ VOID CALLBACK TimerRoutine3(PVOID lpParam, BOOLEAN TimerOrWaitFired)
             {
                 if (!q->empty())
                 {
-                    processStruct tmp = q->front();
-                    queue<string> tmpProcessValue = tmp.processValues;
-                    int tmpSize = tmpProcessValue.size();
-                    cout << "Oku bakalim3=";
+                    processStruct* tmp = &q->front();
+                    queue<string>* tmpProcessValue = &(*tmp).processValues;
+                    int tmpSize = tmpProcessValue->size();
 
-                    string val = tmpProcessValue.front();
-                    tmpProcessValue.pop();
-                    cout << val << endl;
-                    decideProcessPriorityQueue(qArray, tmp, tmp.priority - 1);
+                    if (!tmpProcessValue->empty())
+                    {
+                        string val = tmpProcessValue->front();
+                        int processValSize = tmpProcessValue->size();
+                        tmpProcessValue->pop();
+                        if (processValSize == 1)
+                        {
+                            if (val == "-") // Process bitiyor
+                            {
+                                cout << "E" << "," << tmp->name << ",QX" << endl;
+                                q->pop();
+                            }
+                        }
+                        else
+                        {
+                            if (val == "1")
+                            {
+                                cout << val << "," << tmp->name << ",Q3" << endl;
+                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
+                            }
+                            else if (val == "0")
+                            {
+                                cout << val << "," << tmp->name << ",Q3" << endl;
+                            }
+                            q->push(*tmp);
+                            q->pop();
 
-                    q->pop();
+                        }
+
+                    }
+                    else
+                    {
+                        q->pop(); //Process Bittiyse
+                    }
+
+
                     cout << endl;
                 }
             }
         }
+
 
         if (TimerOrWaitFired)
         {
@@ -230,13 +321,14 @@ VOID CALLBACK TimerRoutine4(PVOID lpParam, BOOLEAN TimerOrWaitFired)
     }
     else
     {
-        vector<queue<processStruct>> qArray = *(vector<queue<processStruct>>*) lpParam;
+        vector<queue<processStruct>>* qArray = (vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
-        queue<processStruct>* q = &qArray[3];
+        vector<queue<processStruct>>&tmp = *qArray;
+        queue<processStruct>* q = &tmp[3];
 
         if (q->empty())
         {
-            printf("OOOO44 LLLLL\n");
+            
         }
         else
         {
@@ -256,7 +348,7 @@ VOID CALLBACK TimerRoutine4(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                         tmpProcessValue->pop();
                         if (processValSize == 1)
                         {
-                            if (val.compare("-")) // Process bitiyor
+                            if (val == "-") // Process bitiyor
                             {
                                 cout << "E" << "," << tmp->name << ",QX" << endl;
                                 q->pop();
@@ -267,7 +359,7 @@ VOID CALLBACK TimerRoutine4(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                             if (val == "1")
                             {
                                 cout << val << "," << tmp->name << ",Q4" << endl;
-                                decideProcessPriorityQueue(qArray, *tmp, (*tmp).priority - 1);
+                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
                             }
                             else if(val == "0")
                             {
