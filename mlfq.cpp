@@ -28,10 +28,11 @@ void decideProcessPriorityQueue(vector<queue<processStruct>>& queueArray, proces
     if (newPriority > 0)
     {
         queue<processStruct> tmp = queueArray[newPriority - 1];
+        pcTmp.priority = newPriority;
         tmp.push(pcTmp);
         queueArray[newPriority - 1] = tmp;
         cout << endl;
-    }
+    } 
     else
     {
         printf("newPriority not valid");
@@ -77,7 +78,7 @@ VOID CALLBACK TimerRoutine1(PVOID lpParam, BOOLEAN TimerOrWaitFired)
         vector<queue<processStruct>>* qArray = (vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
         vector<queue<processStruct>>& tmp = *qArray;
-        queue<processStruct>* q = &tmp[3];
+        queue<processStruct>* q = &tmp[0];
 
         if (q->empty())
         {
@@ -112,15 +113,19 @@ VOID CALLBACK TimerRoutine1(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                             if (val == "1")
                             {
                                 cout << val << "," << tmp->name << ",Q1" << endl;
-                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
+                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority); //En state
+                                q->pop();
                             }
                             else if (val == "0")
                             {
                                 cout << val << "," << tmp->name << ",Q1" << endl;
+                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority);
+                                //q->push(*tmp);
+                                q->pop();
                             }
-                            q->push(*tmp);
-                            q->pop();
 
+
+                            cout << "";
                         }
 
                     }
@@ -160,11 +165,11 @@ VOID CALLBACK TimerRoutine2(PVOID lpParam, BOOLEAN TimerOrWaitFired)
         vector<queue<processStruct>>* qArray = (vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
         vector<queue<processStruct>>& tmp = *qArray;
-        queue<processStruct>* q = &tmp[3];
+        queue<processStruct>* q = &tmp[1];
 
         if (q->empty())
         {
-            
+
         }
         else
         {
@@ -196,14 +201,18 @@ VOID CALLBACK TimerRoutine2(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                             {
                                 cout << val << "," << tmp->name << ",Q2" << endl;
                                 decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
+                                q->pop();
                             }
                             else if (val == "0")
                             {
                                 cout << val << "," << tmp->name << ",Q2" << endl;
+                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority);
+                                //q->push(*tmp);
+                                q->pop();
                             }
-                            q->push(*tmp);
-                            q->pop();
 
+
+                            cout << "";
                         }
 
                     }
@@ -242,11 +251,11 @@ VOID CALLBACK TimerRoutine3(PVOID lpParam, BOOLEAN TimerOrWaitFired)
         vector<queue<processStruct>>* qArray = (vector<queue<processStruct>>*) lpParam;
         //queue<processStruct> q = *(queue<processStruct>*) lpParam;
         vector<queue<processStruct>>& tmp = *qArray;
-        queue<processStruct>* q = &tmp[3];
+        queue<processStruct>* q = &tmp[2];
 
         if (q->empty())
         {
-            
+
         }
         else
         {
@@ -278,14 +287,18 @@ VOID CALLBACK TimerRoutine3(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                             {
                                 cout << val << "," << tmp->name << ",Q3" << endl;
                                 decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
+                                q->pop();
                             }
                             else if (val == "0")
                             {
                                 cout << val << "," << tmp->name << ",Q3" << endl;
+                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority);
+                                //q->push(*tmp);
+                                q->pop();
                             }
-                            q->push(*tmp);
-                            q->pop();
 
+
+                            cout << "";
                         }
 
                     }
@@ -360,14 +373,18 @@ VOID CALLBACK TimerRoutine4(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                             {
                                 cout << val << "," << tmp->name << ",Q4" << endl;
                                 decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
+                                q->pop();
                             }
                             else if(val == "0")
                             {
                                 cout << val << "," << tmp->name << ",Q4" << endl;
+                                decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority);
+                                //q->push(*tmp);
+                                q->pop();
                             }
-                            q->push(*tmp);
-                            q->pop();
                             
+                            
+                            cout << "";
                         }
                         
                     }
