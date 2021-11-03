@@ -234,7 +234,7 @@ VOID CALLBACK TimerRoutine2(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                         {
                             if (val == "1")
                             {
-                                cout << val << "," << tmp->name << ",Q2" << endl;
+                                cout << val << "," << tmp->name << ",Q1" << endl;
                                 decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
                                 q->pop();
                             }
@@ -316,7 +316,7 @@ VOID CALLBACK TimerRoutine3(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                         {
                             if (val == "1")
                             {
-                                cout << val << "," << tmp->name << ",Q3" << endl;
+                                cout << val << "," << tmp->name << ",Q2" << endl;
                                 decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
                                 q->pop();
                             }
@@ -397,7 +397,7 @@ VOID CALLBACK TimerRoutine4(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                         {
                             if (val == "1")
                             {
-                                cout << val << "," << tmp->name << ",Q4" << endl;
+                                cout << val << "," << tmp->name << ",Q3" << endl;
                                 decideProcessPriorityQueue(*qArray, *tmp, (*tmp).priority - 1);
                                 q->pop();
                             }
@@ -583,84 +583,11 @@ int main()
     //------------------------------ QUEUE ------------------------------------
     while( !(queueArray[0].empty() && queueArray[1].empty() && queueArray[2].empty() && queueArray[3].empty()))
     {
-
-        if (!(queueArray[0].empty()))
-        {
-            int tmp = queueArray[0].size();
-            for (int k = 0; k < tmp; k++)
-            {
-                if (countProcess != 7)
-                {
-                    createEvent(gDoneEvent1);
-                    if (!CreateTimerQueueTimer(&hTimer1, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine1, &queueArray, 100, 0, 0))
-                    {
-                        return 3;
-                    }
-                    waitSignalEvent(gDoneEvent1, "");
-                    CloseHandle(gDoneEvent1);
-                    createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
-                }
-                if (countProcess == 7)
-                {
-                    countProcess = 0;
-                    tmp = queueArray[0].size();
-                    k--;
-                }
-
-            }
-        }
-        if (!(queueArray[1].empty()))
-        {
-            int tmp = queueArray[1].size();
-            for (int k = 0; k < tmp; k++)
-            {
-                if (countProcess != 7)
-                {
-                    createEvent(gDoneEvent2);
-                    if (!CreateTimerQueueTimer(&hTimer2, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine2, &queueArray, 100, 0, 0))
-                    {
-                        return 3;
-                    }
-                    waitSignalEvent(gDoneEvent2, "");
-                    CloseHandle(gDoneEvent2);
-                    createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
-                }
-                if(countProcess==7)
-                {
-                    countProcess = 0;
-                    tmp = queueArray[1].size();
-                    k--;
-                }
-            }
-        }
-        if (!(queueArray[2].empty()))
-        {
-            int tmp = queueArray[2].size();
-            for (int k = 0; k < tmp; k++)
-            {
-                if (countProcess != 7)
-                {
-                    createEvent(gDoneEvent3);
-                    if (!CreateTimerQueueTimer(&hTimer3, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine3, &queueArray, 100, 0, 0))
-                    {
-                        return 3;
-                    }
-                    waitSignalEvent(gDoneEvent3, "");
-                    CloseHandle(gDoneEvent3);
-                    createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
-                }
-                if (countProcess == 7)
-                {
-                    countProcess = 0;
-                    tmp = queueArray[2].size();
-                    k--;
-                }
-            }
-        }
         //Priority FIRST
         if (!(queueArray[3].empty()))
         {
             int tmp = queueArray[3].size();
+            bool flag = false;
             for (int k = 0; k < tmp; k++)
             {
                 if (countProcess != 7)
@@ -680,8 +607,126 @@ int main()
                     tmp = queueArray[3].size();
                     k--;
                 }
+                if (k == tmp - 1)
+                {
+                    flag = true;
+                    continue;
+                }
+            }
+            if (flag == true)
+            {
+                continue;
             }
         }
+
+        if (!(queueArray[2].empty()))
+        {
+            int tmp = queueArray[2].size();
+            bool flag = false;
+            for (int k = 0; k < tmp; k++)
+            {
+                if (countProcess != 7)
+                {
+                    createEvent(gDoneEvent3);
+                    if (!CreateTimerQueueTimer(&hTimer3, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine3, &queueArray, 100, 0, 0))
+                    {
+                        return 3;
+                    }
+                    waitSignalEvent(gDoneEvent3, "");
+                    CloseHandle(gDoneEvent3);
+                    createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
+                }
+                if (countProcess == 7)
+                {
+                    countProcess = 0;
+                    tmp = queueArray[2].size();
+                    k--;
+                }
+                if (k == tmp - 1)
+                {
+                    flag = true;
+                    continue;
+                }
+            }
+            if (flag == true)
+            {
+                continue;
+            }
+        }
+
+        if (!(queueArray[1].empty()))
+        {
+            int tmp = queueArray[1].size();
+            bool flag = false;
+            for (int k = 0; k < tmp; k++)
+            {
+                if (countProcess != 7)
+                {
+                    createEvent(gDoneEvent2);
+                    if (!CreateTimerQueueTimer(&hTimer2, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine2, &queueArray, 100, 0, 0))
+                    {
+                        return 3;
+                    }
+                    waitSignalEvent(gDoneEvent2, "");
+                    CloseHandle(gDoneEvent2);
+                    createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
+                }
+                if (countProcess == 7)
+                {
+                    countProcess = 0;
+                    tmp = queueArray[1].size();
+                    k--;
+                }
+                if (k == tmp - 1)
+                {
+                    flag = true;
+                    continue;
+                }
+            }
+            if (flag == true)
+            {
+                continue;
+            }
+        }
+
+        if (!(queueArray[0].empty()))
+        {
+            int tmp = queueArray[0].size();
+            bool flag = false;
+            for (int k = 0; k < tmp; k++)
+            {
+                if (countProcess != 7)
+                {
+                    createEvent(gDoneEvent1);
+                    if (!CreateTimerQueueTimer(&hTimer1, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine1, &queueArray, 100, 0, 0))
+                    {
+                        return 3;
+                    }
+                    waitSignalEvent(gDoneEvent1, "");
+                    CloseHandle(gDoneEvent1);
+                    createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
+                }
+                if (countProcess == 7)
+                {
+                    countProcess = 0;
+                    tmp = queueArray[0].size();
+                    k--;
+                }
+                if (k == tmp - 1)
+                {
+                    flag = true;
+                    continue;
+                }
+            }
+            if (flag == true)
+            {
+                continue;
+            }
+
+        }
+       
+        
+        
     }
 
     // Delete all timers in the timer queue.
