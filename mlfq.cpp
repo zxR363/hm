@@ -505,7 +505,6 @@ void createCounterOne(int val,int* count, vector<queue<processStruct>>* queueArr
     *count = *count + val;
     if (*count == 7)
     {
-        *count = 0;
         createEvent(gDoneRestEvent);
         //--------------------------- REST VALUES---------------------------------
         if (!CreateTimerQueueTimer(restTimer, *hTimerQueueRest, (WAITORTIMERCALLBACK)TimerRoutineRest, queueArray, 10, 0, 0))
@@ -601,8 +600,10 @@ int main()
                     CloseHandle(gDoneEvent1);
                     createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
                 }
-                else
+                if (countProcess == 7)
                 {
+                    countProcess = 0;
+                    tmp = queueArray[0].size();
                     k--;
                 }
 
@@ -624,8 +625,10 @@ int main()
                     CloseHandle(gDoneEvent2);
                     createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
                 }
-                else
+                if(countProcess==7)
                 {
+                    countProcess = 0;
+                    tmp = queueArray[1].size();
                     k--;
                 }
             }
@@ -646,8 +649,10 @@ int main()
                     CloseHandle(gDoneEvent3);
                     createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
                 }
-                else
+                if (countProcess == 7)
                 {
+                    countProcess = 0;
+                    tmp = queueArray[2].size();
                     k--;
                 }
             }
@@ -669,8 +674,10 @@ int main()
                     CloseHandle(gDoneEvent4);
                     createCounterOne(1, &countProcess, &queueArray, &restTimer, &hTimerQueueRest);
                 }
-                else
+                if (countProcess == 7)
                 {
+                    countProcess = 0;
+                    tmp = queueArray[3].size();
                     k--;
                 }
             }
