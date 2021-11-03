@@ -47,12 +47,47 @@ VOID CALLBACK TimerRoutineRest(PVOID lpParam, BOOLEAN TimerOrWaitFired)
     }
     else
     {
-        int* ptr = (int*)lpParam;
-        //printf("Timer routine called. Parameter is %d.\n",
-        //    *(int*)lpParam);
-        printf("Timer routine called. Parameter is %d.\n",*ptr);
-        ptr++;
-        printf("Timer routine called. Parameter is %d.\n", *ptr);
+        /*
+        vector<queue<processStruct>>* qArray = (vector<queue<processStruct>>*) lpParam;        
+        vector<queue<processStruct>>& tmp = *qArray;
+        for (int i = 0; i < tmp.size(); i++)
+        {
+            queue<processStruct>* q = &tmp[i];
+            queue<processStruct>& tmpQ = *q;
+            for (int j = 0; j < tmpQ.size(); j++)
+            {
+                processStruct* tmp = &tmpQ->front();
+                q->pop();
+            }
+        }
+        */
+        vector<queue<processStruct>>* qArray = (vector<queue<processStruct>>*) lpParam;
+        //queue<processStruct> q = *(queue<processStruct>*) lpParam;
+        vector<queue<processStruct>>& tmp = *qArray;
+        for (int j = 0; j < tmp.size(); j++)
+        {
+            queue<processStruct>* q = &tmp[j];
+
+            if (q->empty())
+            {
+
+            }
+            else
+            {
+                int size = q->size();
+                for (int i = 0; i < size; i++)
+                {
+                    if (!q->empty())
+                    {
+                        processStruct* tmp = &q->front();
+                        decideProcessPriorityQueue(*qArray, *tmp, 4);
+                        q->pop();
+                    }
+                }
+            }
+        }
+        cout << "Refresh Priority" << endl;
+
 
         if (TimerOrWaitFired)
         {
@@ -133,9 +168,6 @@ VOID CALLBACK TimerRoutine1(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                     {
                         q->pop(); //Process Bittiyse
                     }
-
-
-                    cout << endl;
                 }
             }
         }
@@ -220,9 +252,6 @@ VOID CALLBACK TimerRoutine2(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                     {
                         q->pop(); //Process Bittiyse
                     }
-
-
-                    cout << endl;
                 }
             }
         }
@@ -307,8 +336,6 @@ VOID CALLBACK TimerRoutine3(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                         q->pop(); //Process Bittiyse
                     }
 
-
-                    cout << endl;
                 }
             }
         }
@@ -392,9 +419,7 @@ VOID CALLBACK TimerRoutine4(PVOID lpParam, BOOLEAN TimerOrWaitFired)
                     {
                         q->pop(); //Process Bittiyse
                     }
-                    
 
-                    cout << endl;
                 }
             }
         }
@@ -535,41 +560,41 @@ int main()
 
     // Use an event object to track the TimerRoutine execution
     
-    createEvent(gDoneRestEvent);
+    
 
 
     createEventQueue(hTimerQueueRest);
     createEventQueue(hTimerQueue);
 
-    //--------------------------- REST VALUES---------------------------------
-    if (!CreateTimerQueueTimer(&restTimer, hTimerQueueRest, (WAITORTIMERCALLBACK)TimerRoutineRest, &arg, 2000, 0, 0))
-    {
-        printf("CreateTimerQueueTimer failed (%d)\n", GetLastError());
-        return 3;
-    }
-
     //------------------------------ QUEUE ------------------------------------
-    for (int p = 0; p < 10; p++)
+    while( !(queueArray[0].empty() && queueArray[1].empty() && queueArray[2].empty() && queueArray[3].empty()))
     {
+        createEvent(gDoneRestEvent);
         createEvent(gDoneEvent1);
         createEvent(gDoneEvent2);
         createEvent(gDoneEvent3);
         createEvent(gDoneEvent4);
 
-        if (!CreateTimerQueueTimer(&hTimer1, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine1, &queueArray, 100, 0, 0))
+        //--------------------------- REST VALUES---------------------------------
+        if (!CreateTimerQueueTimer(&restTimer, hTimerQueueRest, (WAITORTIMERCALLBACK)TimerRoutineRest, &queueArray, 700, 0, 0))
         {
             return 3;
         }
-        if (!CreateTimerQueueTimer(&hTimer2, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine2, &queueArray, 200, 0, 0))
+
+        if (!CreateTimerQueueTimer(&hTimer1, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine1, &queueArray, 0, 0, 0))
         {
             return 3;
         }
-        if (!CreateTimerQueueTimer(&hTimer3, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine3, &queueArray, 300, 0, 0))
+        if (!CreateTimerQueueTimer(&hTimer2, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine2, &queueArray, 100, 0, 0))
+        {
+            return 3;
+        }
+        if (!CreateTimerQueueTimer(&hTimer3, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine3, &queueArray, 200, 0, 0))
         {
             return 3;
         }
         //Priority FIRST
-        if (!CreateTimerQueueTimer(&hTimer4, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine4, &queueArray, 400, 0, 0))
+        if (!CreateTimerQueueTimer(&hTimer4, hTimerQueue, (WAITORTIMERCALLBACK)TimerRoutine4, &queueArray, 300, 0, 0))
         {
             return 3;
         }
@@ -585,21 +610,11 @@ int main()
 
         waitSignalEvent(gDoneEvent4, "");
         CloseHandle(gDoneEvent4);
+
+        waitSignalEvent(gDoneRestEvent, "");
+        CloseHandle(gDoneRestEvent);
+
     }
-
-    
-
-
-    printf("Call timer routine in 10 seconds...\n");
-
-    // Wait for the timer-queue thread to complete using an event 
-    // object. The thread will signal the event at that time.
-
-
-
-    waitSignalEvent(gDoneRestEvent, "");
-    CloseHandle(gDoneRestEvent);
-
 
     // Delete all timers in the timer queue.
     if (!DeleteTimerQueue(hTimerQueue))
