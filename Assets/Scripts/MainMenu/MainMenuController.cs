@@ -5,17 +5,12 @@ public class MainMenuController : MonoBehaviour
 {
     public void StartGame()
     {
-        SceneManager.LoadScene("BuildingSelectionScene");
+        SceneLoader.LoadSceneWithTransition("BuildingSelectionScene");
     }
 
     public void OpenSettings()
     {
-        Debug.Log("Ayarlar açıldı.");
-        // Ayarlar panelini aktif et
+        SceneLoader.LoadSceneWithTransition("SettingsScene");
     }
 
-    public void OpenCharacterCreator()
-    {
-        SceneManager.LoadScene("CharacterCreationScene");
-    }
 }
