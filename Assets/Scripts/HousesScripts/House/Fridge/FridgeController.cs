@@ -48,9 +48,11 @@ public class FridgeController : MonoBehaviour
 
     private void animationFridgeIsOpen()
     {
+        Debug.Log("TEST");
         if (fridgeAnimator != null)
         {
             isOpen = fridgeAnimator.GetBool("IsOpen");
+            Debug.Log("isOpen durumu=" + isOpen);
             fridgeAnimator.SetBool("IsOpen", !isOpen);
         }
     }

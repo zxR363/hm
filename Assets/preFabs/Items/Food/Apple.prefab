@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7254480867655853713}
   - component: {fileID: 642908467741047808}
   - component: {fileID: 6221154368597558426}
-  - component: {fileID: 119955305655614782}
+  - component: {fileID: 1618540907541594691}
   m_Layer: 5
   m_Name: Apple
   m_TagString: Untagged
@@ -102,7 +102,7 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
---- !u!114 &119955305655614782
+--- !u!114 &1618540907541594691
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -111,6 +111,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 5516632561663398482}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c790b19e25f152349995ad0fa8d87783, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b0f452c1c7dc604184e3919a3364ed7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
