@@ -5,6 +5,12 @@ public class ContainedItemController : MonoBehaviour
     private CanvasGroup canvasGroup;
     private Vector3 originalScale;
 
+    public bool isAttachedToContainer = true;
+    public ContainerController containerController;
+
+    private bool hasInitialized = false;
+
+
     void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
@@ -14,8 +20,60 @@ public class ContainedItemController : MonoBehaviour
         }           
 
         originalScale = transform.localScale;
-        HideCompletely();
+        //HideCompletely();
     }
+
+    void Update()
+    {
+        if (!hasInitialized || containerController == null || containerController.containerAreaCollider == null)
+            return;
+
+        bool isInside = IsInsideContainerArea();
+
+        if (isAttachedToContainer && !isInside)
+        {
+            DetachFromContainer();
+        }
+        else if (!isAttachedToContainer && isInside)
+        {
+            ReattachToContainer();
+        }
+    }
+
+    //private bool IsInsideContainerArea()
+    //{
+    //    return containerController != null &&
+    //           containerController.containerAreaCollider != null &&
+    //           containerController.containerAreaCollider.bounds.Contains(transform.position);
+    //}
+
+
+    private bool IsInsideContainerArea()
+    {
+        bool result = containerController != null &&
+               containerController.containerAreaCollider != null &&
+               containerController.containerAreaCollider.bounds.Contains(transform.position);
+        //Debug.Log($"{gameObject.name} is inside container area: {result}");
+        return result;
+    }
+
+
+
+    private void DetachFromContainer()
+    {
+        isAttachedToContainer = false;
+        transform.SetParent(null);
+        Debug.Log($"{gameObject.name} dolaptan ayrıldı.");
+    }
+
+    private void ReattachToContainer()
+    {
+        isAttachedToContainer = true;
+        transform.SetParent(containerController.spawnParent);
+        transform.localPosition = Vector3.zero;
+        Debug.Log($"{gameObject.name} dolaba geri döndü.");
+    }
+
 
     public void ShowFully()
     {       
@@ -28,12 +86,13 @@ public class ContainedItemController : MonoBehaviour
                 return;
             }
         }
-
+        Debug.Log("ShowFully calisiyor.");
         gameObject.SetActive(true);
         canvasGroup.alpha = 1f;
         canvasGroup.interactable = true;
         canvasGroup.blocksRaycasts = true;
         transform.localScale = originalScale;
+        hasInitialized = true;
     }
 
     public void HideCompletely()
