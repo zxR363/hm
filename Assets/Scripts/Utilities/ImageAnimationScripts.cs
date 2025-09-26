@@ -9,7 +9,7 @@ public class ImageAnimationScripts : MonoBehaviour
     public void OnContainerClosing()
     {
         itemButtonEvent.OnContainerClosing();
-        Debug.Log("ImageAnimation closing animation event triggered.");
+        //Debug.Log("ImageAnimation closing animation event triggered.");
         // Buraya animasyon sonrası yapılacak işlemleri yazabilirsin
     }
 
@@ -17,7 +17,7 @@ public class ImageAnimationScripts : MonoBehaviour
     public void OnContainerOpened()
     {
         itemButtonEvent.OnContainerOpened();
-        Debug.Log("ImageAnimation opening animation event triggered.");
+        //Debug.Log("ImageAnimation opening animation event triggered.");
     }
 
 

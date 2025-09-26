@@ -19,7 +19,6 @@ public class ContainerController : MonoBehaviour
 
     public BoxCollider2D containerAreaCollider; // Dolap alanı
 
-
     public void ToggleContainer()
     {
         containerAnimator = imageFridge.GetComponent<Animator>();
