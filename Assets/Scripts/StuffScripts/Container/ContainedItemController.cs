@@ -86,7 +86,6 @@ public class ContainedItemController : MonoBehaviour
                 return;
             }
         }
-        Debug.Log("ShowFully calisiyor.");
         gameObject.SetActive(true);
         canvasGroup.alpha = 1f;
         canvasGroup.interactable = true;

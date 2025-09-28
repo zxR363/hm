@@ -68,33 +68,11 @@ public class ContainerController : MonoBehaviour
                 RectTransform spawnRT = spawnParent.GetComponent<RectTransform>();
                 GameObject item = Instantiate(prefab, spawnRT);
 
-                ////-------item, spawnParent objesinin tam merkezine yerleşir.--///
-
-                //item.transform.SetParent(spawnParent, false); // UI için local pozisyonu korur
-
-                //// UI objesi ise:
-                //RectTransform rt = item.GetComponent<RectTransform>();
-
-
-                //if (rt != null)
-                //{
-                //    rt.anchoredPosition = Vector2.zero;
-                //}
-                //else
-                //{
-                //    item.transform.localPosition = Vector3.zero;
-                //}
-
-                //item.transform.position = spawnParent.position;
-
                 SpawnItem(item, spawnRT);
 
-
-                Debug.Log("Item position=" + item.transform.position);
-                Debug.Log("Spawn position=" + spawnParent.transform.position);
-                Debug.Log("Fridge position=" + this.transform.position);
-                //// Pozisyonu dolap alanının merkezine sabitle
-                //item.transform.position = containerAreaCollider.bounds.center;
+                // Debug.Log("Item position=" + item.transform.position);
+                // Debug.Log("Spawn position=" + spawnParent.transform.position);
+                // Debug.Log("Fridge position=" + this.transform.position);
 
                 //-------item, spawnParent objesinin tam merkezine yerleşir.--///
 
@@ -104,8 +82,6 @@ public class ContainerController : MonoBehaviour
                     spawnedItems.Add(controller);
                     controller.containerController = this; // Referansı ver
                     controller.ShowFully();
-                    Debug.Log($"{controller.gameObject.name} için ShowFully çağrıldı");
-
                 }
             }
         }
