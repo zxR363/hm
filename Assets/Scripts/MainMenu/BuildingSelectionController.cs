@@ -14,5 +14,10 @@ public class BuildingSelectionController : MonoBehaviour
         SceneLoader.LoadSceneWithTransition("HouseScene");
     }
 
+    public void BuildingSelectionScene()
+    {
+        SceneLoader.LoadSceneWithTransition("BuildingSelectionScene");
+    }
+
 
 }
