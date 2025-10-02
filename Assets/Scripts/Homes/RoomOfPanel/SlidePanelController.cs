@@ -6,6 +6,7 @@ public class SlidePanelController : MonoBehaviour
     [SerializeField] private RectTransform panel;
     [SerializeField] private float slideDistance = 300f;
     [SerializeField] private float duration = 0.3f;
+    [SerializeField] private GameObject itemSelectionPanel;
 
     public bool IsOpen = false;
     private Vector2 closedPos;
@@ -28,6 +29,9 @@ public class SlidePanelController : MonoBehaviour
         }
         else
         {
+            panel.DOAnchorPos(closedPos, (duration*0.4f)).SetEase(Ease.InCubic)
+                .OnComplete(() => itemSelectionPanel.SetActive(false)); // Animasyon sonrası kapat
+
             panel.DOAnchorPos(closedPos, duration).SetEase(Ease.InCubic)
                 .OnComplete(() => panel.gameObject.SetActive(false)); // Animasyon sonrası kapat
         }
