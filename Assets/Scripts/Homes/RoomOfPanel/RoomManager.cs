@@ -5,7 +5,7 @@ public class RoomManager : MonoBehaviour
 {
     public static RoomManager Instance;
 
-    [SerializeField] private List<RoomPanel> roomPanels;
+    [SerializeField] public List<RoomPanel> roomPanelsList;
 
     private void Awake()
     {
@@ -14,7 +14,7 @@ public class RoomManager : MonoBehaviour
 
     public void LoadRoom(RoomType roomType)
     {
-        RoomLoader.Load(roomType,roomPanels); // ← sadece tetikler
+        RoomLoader.Load(roomType,roomPanelsList); // ← sadece tetikler
     }
 
 

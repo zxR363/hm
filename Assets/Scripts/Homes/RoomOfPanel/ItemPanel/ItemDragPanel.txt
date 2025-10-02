@@ -1,8 +1,9 @@
-﻿﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Linq;
 
-public class UIDragItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+
+public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
