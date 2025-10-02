@@ -7,7 +7,7 @@ public class SlidePanelController : MonoBehaviour
     [SerializeField] private float slideDistance = 300f;
     [SerializeField] private float duration = 0.3f;
 
-    private bool isOpen = false;
+    public bool IsOpen = false;
     private Vector2 closedPos;
     private Vector2 openedPos;
 
@@ -20,7 +20,7 @@ public class SlidePanelController : MonoBehaviour
 
     public void TogglePanel()
     {
-        if (!isOpen)
+        if (!IsOpen)
         {
             panel.gameObject.SetActive(true); // Açmadan önce aktif hale getir
             panel.anchoredPosition = closedPos; // Pozisyonu sıfırla
@@ -32,6 +32,19 @@ public class SlidePanelController : MonoBehaviour
                 .OnComplete(() => panel.gameObject.SetActive(false)); // Animasyon sonrası kapat
         }
 
-        isOpen = !isOpen;
+        IsOpen = !IsOpen;
+    }
+
+    public void ClosePanel()
+    {
+        if (!IsOpen)
+        {
+             return;
+        }
+
+        panel.DOAnchorPos(closedPos, duration).SetEase(Ease.InCubic)
+            .OnComplete(() => panel.gameObject.SetActive(false));
+
+        IsOpen = false;
     }
 }

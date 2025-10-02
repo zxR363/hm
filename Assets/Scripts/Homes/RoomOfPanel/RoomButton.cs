@@ -4,11 +4,12 @@ using UnityEngine;
 public class RoomButton : MonoBehaviour
 {
     public RoomType targetRoom;
+    
 
     public void OnClick()
     {
-        Debug.Log("RoomButton clicked");
-        RoomManager.Instance.SwitchToRoom(targetRoom);
+        Debug.Log("RoomButton clicked");        
+        RoomManager.Instance.LoadRoom(targetRoom);
     }
 
     public void test()

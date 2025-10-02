@@ -12,13 +12,10 @@ public class RoomManager : MonoBehaviour
         Instance = this;
     }
 
-    public void SwitchToRoom(RoomType target)
+    public void LoadRoom(RoomType roomType)
     {
-        foreach (var panel in roomPanels)
-        {
-            panel.gameObject.SetActive(panel.roomType == target);
-        }
-
-        Debug.Log("Switched to room: " + target);
+        RoomLoader.Load(roomType,roomPanels); // ← sadece tetikler
     }
+
+
 }
