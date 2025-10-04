@@ -13,6 +13,11 @@ public class BuildingSelectionController : MonoBehaviour
     {
         SceneLoader.LoadSceneWithTransition("HouseScene");
     }
+    
+    public void LoadSchool()
+    {
+        SceneLoader.LoadSceneWithTransition("TestHouse");
+    }
 
     public void BuildingSelectionScene()
     {
