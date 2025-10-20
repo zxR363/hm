@@ -23,6 +23,7 @@ public class RoomPanel : MonoBehaviour
         }
     }
 
+    //Odadaki objeleri kaydediyor (Oda felan değiştiğinde kaybolmaması için)
     public void RegisterObject(GameObject obj)
     {
         RoomObjectData data = new RoomObjectData
@@ -82,6 +83,7 @@ public class RoomPanel : MonoBehaviour
         Debug.Log("Objede değişiklik algılandı: " + data.objectID);
     }
 
+    //Mevcut objeleri geri yüklüyor.
     public void UpdateAllObjectsRecursive(Transform parent)
     {
         foreach (Transform child in parent)

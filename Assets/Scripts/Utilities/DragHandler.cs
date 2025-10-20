@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -17,15 +17,24 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         {
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
+
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        // Sadece root RectTransform alanı içinde tıklama varsa drag başlasın
+        if (!RectTransformUtility.RectangleContainsScreenPoint(rectTransform, eventData.position, eventData.pressEventCamera))
+        {
+            eventData.pointerDrag = null;
+            return;
+        }
+
         canvasGroup.blocksRaycasts = false;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
+
         rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
     }
 
