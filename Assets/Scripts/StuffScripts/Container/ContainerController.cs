@@ -120,7 +120,7 @@ public class ContainerController : MonoBehaviour
                 {
                     spawnedItems.Add(controller);
                     controller.containerController = this; // Referansı ver
-                    controller.HideCompletely();
+                    item.SetActive(false);
                 }
             }
         }
