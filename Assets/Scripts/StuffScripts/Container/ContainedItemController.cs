@@ -28,6 +28,7 @@ public class ContainedItemController : MonoBehaviour
         if (!hasInitialized || containerController == null || containerController.containerAreaCollider == null)
             return;
 
+        // Dolap alanı içinde mi?
         bool isInside = IsInsideContainerArea();
 
         if (isAttachedToContainer && !isInside)
@@ -38,22 +39,14 @@ public class ContainedItemController : MonoBehaviour
         {
             ReattachToContainer();
         }
+
     }
-
-    //private bool IsInsideContainerArea()
-    //{
-    //    return containerController != null &&
-    //           containerController.containerAreaCollider != null &&
-    //           containerController.containerAreaCollider.bounds.Contains(transform.position);
-    //}
-
 
     private bool IsInsideContainerArea()
     {
         bool result = containerController != null &&
                containerController.containerAreaCollider != null &&
                containerController.containerAreaCollider.bounds.Contains(transform.position);
-        //Debug.Log($"{gameObject.name} is inside container area: {result}");
         return result;
     }
 
@@ -63,7 +56,14 @@ public class ContainedItemController : MonoBehaviour
     {
         isAttachedToContainer = false;
         transform.SetParent(null);
-        Debug.Log($"{gameObject.name} dolaptan ayrıldı.");
+        
+        // Artık dolapla ilişki yok
+        if (containerController != null)
+        {
+            containerController.spawnedItems.Remove(this); // Listeden çıkar
+        }
+
+        //Debug.Log($"{gameObject.name} dolaptan ayrıldı.");
     }
 
     private void ReattachToContainer()
@@ -71,7 +71,14 @@ public class ContainedItemController : MonoBehaviour
         isAttachedToContainer = true;
         transform.SetParent(containerController.spawnParent);
         transform.localPosition = Vector3.zero;
-        Debug.Log($"{gameObject.name} dolaba geri döndü.");
+
+        // Listeye tekrar ekle (daha önce çıkarılmış olabilir)
+        if (!containerController.spawnedItems.Contains(this))
+        {
+            containerController.spawnedItems.Add(this);
+        }
+
+        //Debug.Log($"{gameObject.name} dolaba geri döndü.");
     }
 
 

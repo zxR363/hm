@@ -19,12 +19,18 @@ public class ContainerController : MonoBehaviour
 
     public BoxCollider2D containerAreaCollider; // Dolap alanı
 
+
+    private void Start()
+    {
+        initSpawnItem();
+    }
+
     public void ToggleContainer()
     {
         containerAnimator = imageFridge.GetComponent<Animator>();
         if (containerAnimator != null)
         {
-            Debug.Log("ANİMATOR TRIGGER");
+            //Debug.Log("ANİMATOR TRIGGER");
             isOpen = !isOpen;
             containerAnimator.SetBool(animatorBoolName, isOpen);
         }
@@ -60,37 +66,9 @@ public class ContainerController : MonoBehaviour
 
     private void ShowItems()
     {
-        if (spawnedItems.Count == 0)
+        foreach (var item in spawnedItems)
         {
-            foreach (var prefab in itemPrefabs)
-            {
-
-                RectTransform spawnRT = spawnParent.GetComponent<RectTransform>();
-                GameObject item = Instantiate(prefab, spawnRT);
-
-                SpawnItem(item, spawnRT);
-
-                // Debug.Log("Item position=" + item.transform.position);
-                // Debug.Log("Spawn position=" + spawnParent.transform.position);
-                // Debug.Log("Fridge position=" + this.transform.position);
-
-                //-------item, spawnParent objesinin tam merkezine yerleşir.--///
-
-                var controller = item.GetComponent<ContainedItemController>();
-                if (controller != null)
-                {
-                    spawnedItems.Add(controller);
-                    controller.containerController = this; // Referansı ver
-                    controller.ShowFully();
-                }
-            }
-        }
-        else
-        {
-            foreach (var item in spawnedItems)
-            {
-                item.ShowFully();
-            }
+            item.ShowFully();
         }
     }
 
@@ -118,4 +96,33 @@ public class ContainerController : MonoBehaviour
         }
     }
 
+
+    public void initSpawnItem()
+    {
+        if (spawnedItems.Count == 0)
+        {
+            foreach (var prefab in itemPrefabs)
+            {
+
+                RectTransform spawnRT = spawnParent.GetComponent<RectTransform>();
+                GameObject item = Instantiate(prefab, spawnRT);
+
+                SpawnItem(item, spawnRT);
+
+                // Debug.Log("Item position=" + item.transform.position);
+                // Debug.Log("Spawn position=" + spawnParent.transform.position);
+                // Debug.Log("Fridge position=" + this.transform.position);
+
+                //-------item, spawnParent objesinin tam merkezine yerleşir.--///
+
+                var controller = item.GetComponent<ContainedItemController>();
+                if (controller != null)
+                {
+                    spawnedItems.Add(controller);
+                    controller.containerController = this; // Referansı ver
+                    controller.HideCompletely();
+                }
+            }
+        }
+    }
 }
