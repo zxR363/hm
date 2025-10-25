@@ -66,18 +66,25 @@ public class CharacterCreationManager : MonoBehaviour
 
     public void SelectSkinColor(int index)
     {
-        if (previewInstance == null)
-        {
-            return;
-        }
+        if (previewInstance == null) return;
 
-        var skinImage = previewInstance.transform.Find("Skin").GetComponent<Image>();
-        Debug.Log("SELECT SKIN KISMINA GELDIK");
+        Transform skinRoot = previewInstance.transform.Find("Skin");
+        if (skinRoot == null) return;
+
         Color selectedColor = skinColors[index];
+        selectedColor.a = 1f; // Şeffaflık önlemi
 
-        // Alpha'yı zorla 1 yap
-        selectedColor.a = 1f;
-        skinImage.color = selectedColor;
+        Image rootImage = skinRoot.GetComponent<Image>();
+        //if (rootImage != null)
+        //    rootImage.color = selectedColor;
+
+        // Tüm child'lara uygula
+        foreach (Transform child in skinRoot)
+        {
+            Image childImage = child.GetComponent<Image>();
+            if (childImage != null)
+                childImage.color = selectedColor;
+        }
     }
 
     public void SelectOutfit(int index)
