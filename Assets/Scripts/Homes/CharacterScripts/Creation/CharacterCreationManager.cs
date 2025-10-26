@@ -51,8 +51,6 @@ public class CharacterCreationManager : MonoBehaviour
         //previewInstance.transform.localPosition = characterPrefab.transform.localPosition;
         //previewInstance.transform.localScale = characterPrefab.transform.localScale;
         //previewInstance.SetActive(true);
-
-
         previewInstance = characterPrefab;
     }
 
@@ -153,7 +151,7 @@ public class CharacterCreationManager : MonoBehaviour
             OptionItem option = item.GetComponent<OptionItem>();
 
             Sprite icon = skinColorIcons[i]; // Hazır ikon kullan
-
+            
             option.Setup(icon, i, this);
 
             item.SetActive(true);

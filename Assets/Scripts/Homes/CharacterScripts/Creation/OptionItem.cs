@@ -30,6 +30,29 @@ public class OptionItem : MonoBehaviour
         optionIndex = index;
         manager = creationManager;
         managerCategory = manager.currentCategory;
+
+        Color fixedColor;
+        // Kategoriye göre davran
+        switch (managerCategory)
+        {
+            case EnumCharacterCustomizationCategory.Skin:
+                iconImage.sprite = icon;
+                iconImage.color = manager.skinColors[index]; // ✅ Sadece Skin için renk uygula
+                fixedColor = iconImage.color;
+                fixedColor.a = 1f;
+                iconImage.color = fixedColor;
+                break;
+
+            default:
+                iconImage.sprite = icon;
+                iconImage.color = Color.white; // Diğer kategorilerde sprite'ı tam göster
+                fixedColor = iconImage.color;
+                fixedColor.a = 1f;
+                iconImage.color = fixedColor;
+                break;
+        }
+
+
         GetComponent<Button>().onClick.AddListener(OnClick);
     }
 
