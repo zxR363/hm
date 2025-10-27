@@ -72,12 +72,30 @@ public class OptionItem : MonoBehaviour
             case EnumCharacterCustomizationCategory.Hair_Mixed:
                 manager.SelectHair(optionIndex,"mixed");
                 break;
-            case EnumCharacterCustomizationCategory.Outfit:
+            case EnumCharacterCustomizationCategory.Beard:
+                manager.SelectOutfit(optionIndex);
+                break;
+            case EnumCharacterCustomizationCategory.Eyes:
+                manager.SelectAccessory(optionIndex);
+                break;
+            case EnumCharacterCustomizationCategory.Noise:
+                manager.SelectOutfit(optionIndex);
+                break;
+            case EnumCharacterCustomizationCategory.EyeBrown:
+                manager.SelectAccessory(optionIndex);
+                break;                
+            case EnumCharacterCustomizationCategory.Freckle:
+                manager.SelectOutfit(optionIndex);
+                break;
+            case EnumCharacterCustomizationCategory.Clothes:
+                manager.SelectAccessory(optionIndex);
+                break;                
+            case EnumCharacterCustomizationCategory.Hats:
                 manager.SelectOutfit(optionIndex);
                 break;
             case EnumCharacterCustomizationCategory.Accessories:
                 manager.SelectAccessory(optionIndex);
-                break;
+                break;                
         }
     }
 }

@@ -23,10 +23,14 @@ public class CharacterCreationManager : MonoBehaviour
     public List<Sprite> hairGirl_Sprites;
     public List<Sprite> hairMixed_Sprites;
 
-    public List<Sprite> outfitSprites;
+    public List<Sprite> beardSprites;
+    public List<Sprite> eyesSprites;
+    public List<Sprite> noiseSprites;
+    public List<Sprite> eyeBrownSprites;
+    public List<Sprite> freckleSprites;
+    public List<Sprite> clothesSprites;
+    public List<Sprite> hatsSprites;
     public List<Sprite> accessorySprites;
-
-
 
     public EnumCharacterCustomizationCategory currentCategory;
 
@@ -39,9 +43,14 @@ public class CharacterCreationManager : MonoBehaviour
         hairBoy_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair/BoyHair");
         hairGirl_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair/GirlHair");
         hairMixed_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair/MixedHair");
-        outfitSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
+        beardSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
+        eyesSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
+        noiseSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
+        eyeBrownSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
+        freckleSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
+        clothesSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
+        hatsSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
         accessorySprites = LoadSpritesFromResources("Images/Character/Style/Accessories");
-        
 
         SpawnPreviewCharacter();
         SetCategory(0); // Varsayılan olarak "Skin" kategorisini seç
@@ -127,6 +136,8 @@ public class CharacterCreationManager : MonoBehaviour
 
     //--------------PREVIEW AREA-------------------
 
+    //------------------------------------------------------------------------------------
+    //-------***********************************************************-------------------
     //--------------SELECTION TAB And OptionGRID-------------------
 
     public void SetCategory(int currentCategoryR)
@@ -254,15 +265,15 @@ public class CharacterCreationManager : MonoBehaviour
     }
 
 
-    private void ClearOptionGrid()
+    //------------------------------------------------------------------------------------
+    //-------***********************************************************-------------------
+    //--------------SELECTION TAB And OptionGRID-------------------
+
+        private void ClearOptionGrid()
     {
         foreach (Transform child in optionGridParent)
             Destroy(child.gameObject);
     }
-
-
-    //--------------SELECTION TAB And OptionGRID-------------------
-
 
     //-------
     private List<Sprite> LoadSpritesFromResources(string path)

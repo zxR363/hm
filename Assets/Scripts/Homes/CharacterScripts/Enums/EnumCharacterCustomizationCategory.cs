@@ -4,6 +4,12 @@ public enum EnumCharacterCustomizationCategory
     Hair_Boy,
     Hair_Girl,
     Hair_Mixed,
-    Outfit,
-    Accessories
+    Beard,
+    Eyes,
+    Noise,
+    EyeBrown,
+    Freckle,
+    Clothes,
+    Hats,
+    Accessories,
 }
