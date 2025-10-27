@@ -73,13 +73,6 @@ public class OptionItem : MonoBehaviour
             iconImage.color = fixedColor;
             this.colorFlag = true;
         }
-        else
-        {
-            if(index == 0)
-            {
-                //OnClick();
-            }   
-        }
         //Palette seçildiyse uygulanır.
 
     }

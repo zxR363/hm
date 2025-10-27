@@ -15,6 +15,8 @@ public class DynamicCategoryManager : MonoBehaviour
 
     public GameObject colorSelectButtonPrefab;
 
+    //CategoryButonlarının olduğu seçimlerde ilk Buton otomatik olarak aktif ediliyor. Bu sayede OptionItem'lar otomatik gelmiş oluyor
+    private bool initialCategoryButtonFlag = false;
 
     /// <summary>
     /// Belirtilen ana kategori altında yer alan alt klasörleri bulur ve buton oluşturur
@@ -24,6 +26,8 @@ public class DynamicCategoryManager : MonoBehaviour
     {
         ClearGrid(categoryGridParent);
 
+        initialCategoryButtonFlag = false;
+
         string fullPath = Path.Combine(Application.dataPath, "Resources", "Images/Character/Style", categoryKey);
         if (!Directory.Exists(fullPath))
         {
@@ -32,6 +36,8 @@ public class DynamicCategoryManager : MonoBehaviour
         }
 
         string[] folders = Directory.GetDirectories(fullPath);
+
+        
         foreach (string folder in folders)
         {
             string folderName = Path.GetFileName(folder);
@@ -53,6 +59,13 @@ public class DynamicCategoryManager : MonoBehaviour
             {
                 PopulateOptionGrid(categoryKey, folderName);
             });
+
+            //CategoryButonlarının olduğu seçimlerde ilk Buton otomatik olarak aktif ediliyor. Bu sayede OptionItem'lar otomatik gelmiş oluyor
+            if(initialCategoryButtonFlag == false)
+            {
+                initialCategoryButtonFlag = true;
+                PopulateOptionGrid(categoryKey, folderName);
+            }
 
         }
 
