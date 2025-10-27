@@ -46,6 +46,12 @@ public class CharacterCreationManager : MonoBehaviour
     public List<Sprite> hairColorIcons; // Her renk için bir ikon (örneğin renkli daireler)
     public List<Color> hairColors;      // Gerçek renk değerleri (karaktere uygulanacak)
 
+    public List<Sprite> beardColorIcons; // Her renk için bir ikon (örneğin renkli daireler)
+    public List<Color> beardColors;      // Gerçek renk değerleri (karaktere uygulanacak)
+
+    public List<Sprite> eyesColorIcons; // Her renk için bir ikon (örneğin renkli daireler)
+    public List<Color> eyesColors;      // Gerçek renk değerleri (karaktere uygulanacak)
+
     public List<Sprite> noiseColorIcons; // Her renk için bir ikon (örneğin renkli daireler)
     public List<Color> noiseColors;      // Gerçek renk değerleri (karaktere uygulanacak)
 
@@ -240,32 +246,39 @@ public class CharacterCreationManager : MonoBehaviour
 
             case EnumCharacterCustomizationCategory.Hair_Girl:
                 colorRoot = previewInstance.transform.Find("Hair");
+                dynamicCategoryManager.PopulateOptionColorPalette();
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "GirlHair");
                 break;
 
             case EnumCharacterCustomizationCategory.Hair_Mixed:
                 colorRoot = previewInstance.transform.Find("Hair");
+                dynamicCategoryManager.PopulateOptionColorPalette();
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "MixedHair");
                 break;
             
             case EnumCharacterCustomizationCategory.Beard:
                 colorRoot = previewInstance.transform.Find("Beard");
+                dynamicCategoryManager.PopulateOptionColorPalette();
                 dynamicCategoryManager.PopulateOptionGrid("Beard_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Eyes:
                 colorRoot = previewInstance.transform.Find("Eyes");
+                dynamicCategoryManager.PopulateOptionColorPalette();
                 dynamicCategoryManager.PopulateOptionGrid("Eyes_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Noise:
                 colorRoot = previewInstance.transform.Find("Noise");
+                dynamicCategoryManager.PopulateOptionColorPalette();
                 dynamicCategoryManager.PopulateOptionGrid("Noise_Image", "");
                 break;    
             case EnumCharacterCustomizationCategory.EyeBrown:
                 colorRoot = previewInstance.transform.Find("EyeBrown");
+                dynamicCategoryManager.PopulateOptionColorPalette();
                 dynamicCategoryManager.PopulateOptionGrid("EyeBrown_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Freckle:
                 colorRoot = previewInstance.transform.Find("Freckle");
+                dynamicCategoryManager.PopulateOptionColorPalette();
                 dynamicCategoryManager.PopulateOptionGrid("Freckle_Image", "");
                 break;                                                            
             
@@ -449,6 +462,14 @@ public class CharacterCreationManager : MonoBehaviour
         var hairColorAsset = Resources.Load<ItemsColorList>("Images/Character/Style/ItemColors/HairColorList");
         hairColors = hairColorAsset != null ? hairColorAsset.colors : new List<Color>();
 
+        beardColorIcons = LoadSpritesFromResources("Images/Character/Style/Items_Image/Item_Beard");
+        var beardColorsAsset = Resources.Load<ItemsColorList>("Images/Character/Style/ItemColors/BeardColorList");
+        beardColors = beardColorsAsset != null ? beardColorsAsset.colors : new List<Color>();
+
+        eyesColorIcons = LoadSpritesFromResources("Images/Character/Style/Items_Image/Item_Eyes");
+        var eyesColorsAsset = Resources.Load<ItemsColorList>("Images/Character/Style/ItemColors/EyesColorList");
+        eyesColors = eyesColorsAsset != null ? eyesColorsAsset.colors : new List<Color>();
+
         noiseColorIcons = LoadSpritesFromResources("Images/Character/Style/Items_Image/Item_Noise");
         var noiseColorsAsset = Resources.Load<ItemsColorList>("Images/Character/Style/ItemColors/NoiseColorList");
         noiseColors = noiseColorsAsset != null ? noiseColorsAsset.colors : new List<Color>();
@@ -460,6 +481,8 @@ public class CharacterCreationManager : MonoBehaviour
         freckleColorIcons = LoadSpritesFromResources("Images/Character/Style/Items_Image/Item_Freckle");
         var freckleColorsAsset = Resources.Load<ItemsColorList>("Images/Character/Style/ItemColors/FreckleColorList");
         freckleColors = freckleColorsAsset != null ? freckleColorsAsset.colors : new List<Color>();
+
+        
 
         Debug.Log("hairColors="+hairColors.Count);
     }
