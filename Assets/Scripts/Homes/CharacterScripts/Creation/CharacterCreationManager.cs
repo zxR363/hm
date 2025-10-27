@@ -74,30 +74,30 @@ public class CharacterCreationManager : MonoBehaviour
         previewInstance = characterPrefab;
     }
 
-    public void SelectHair(int index,string style)
-    {
+    // public void SelectHair(int index,string style)
+    // {
 
-        if (previewInstance == null) return;
+    //     if (previewInstance == null) return;
 
-        var hairImage = previewInstance.transform.Find("Hair").GetComponent<Image>();
+    //     var hairImage = previewInstance.transform.Find("Hair").GetComponent<Image>();
 
-        switch(style)
-        {
-            case "boy":
-                hairImage.sprite = hairBoy_Sprites[index];
-                break;
-            case "girl":
-                hairImage.sprite = hairGirl_Sprites[index];
-                break;
-            case "mixed":
-                hairImage.sprite = hairMixed_Sprites[index];
-                break;
-            default:
-                Debug.Log("Select Hair ERROR!!!!");
-                break;
-        }
+    //     switch(style)
+    //     {
+    //         case "boy":
+    //             hairImage.sprite = hairBoy_Sprites[index];
+    //             break;
+    //         case "girl":
+    //             hairImage.sprite = hairGirl_Sprites[index];
+    //             break;
+    //         case "mixed":
+    //             hairImage.sprite = hairMixed_Sprites[index];
+    //             break;
+    //         default:
+    //             Debug.Log("Select Hair ERROR!!!!");
+    //             break;
+    //     }
         
-    }
+    // }
 
     public void SelectSkinColor(int index)
     {
@@ -120,6 +120,18 @@ public class CharacterCreationManager : MonoBehaviour
             if (childImage != null)
                 childImage.color = selectedColor;
         }
+    }
+
+        //Dinamik olarak seciyor
+    public void SelectHair(int index, string style)
+    {
+        if (previewInstance == null) return;
+
+        var hairImage = previewInstance.transform.Find("Hair").GetComponent<Image>();
+        var sprites = LoadSpritesFromResources($"Images/Character/Style/Hair_Image/{style}");
+
+        if (index >= 0 && index < sprites.Count)
+            hairImage.sprite = sprites[index];
     }
 
     //Dinamik olarak clothes'u seçiyor. Diğer yapılarıda burdan referans alarak yapabiliriz(Örn. hats,accessory)
@@ -151,11 +163,11 @@ public class CharacterCreationManager : MonoBehaviour
     {
         if (previewInstance == null) return;
 
-        var clothesImage = previewInstance.transform.Find("Accessory").GetComponent<Image>();
+        var accessoryImage = previewInstance.transform.Find("Accessory").GetComponent<Image>();
         var sprites = LoadSpritesFromResources($"Images/Character/Style/Accessory_Image/{style}");
 
         if (index >= 0 && index < sprites.Count)
-            clothesImage.sprite = sprites[index];
+            accessoryImage.sprite = sprites[index];
     }
 
     //--------------PREVIEW AREA-------------------
@@ -185,11 +197,11 @@ public class CharacterCreationManager : MonoBehaviour
                 break;
 
             case EnumCharacterCustomizationCategory.Hats:
-                dynamicCategoryManager.PopulateOptionGrid("Hats_Image", "Default");
+                dynamicCategoryManager.PopulateCategoryButtons("Accessories_Image");
                 break;
 
             case EnumCharacterCustomizationCategory.Hair_Boy:
-                dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "BoyHair");
+                dynamicCategoryManager.PopulateOptionGrid("Hair_Image","BoyHair");
                 break;
 
             case EnumCharacterCustomizationCategory.Hair_Girl:
