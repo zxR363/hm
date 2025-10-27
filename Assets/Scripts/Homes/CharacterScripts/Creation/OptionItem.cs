@@ -60,14 +60,20 @@ public class OptionItem : MonoBehaviour
     {
         switch (managerCategory)
         {
-            case EnumCharacterCustomizationCategory.Hair:
-                manager.SelectHair(optionIndex);
+            case EnumCharacterCustomizationCategory.Skin:
+                manager.SelectSkinColor(optionIndex);
+                break;
+            case EnumCharacterCustomizationCategory.Hair_Boy:
+                manager.SelectHair(optionIndex,"boy");
+                break;
+            case EnumCharacterCustomizationCategory.Hair_Girl:
+                manager.SelectHair(optionIndex,"girl");
+                break;
+            case EnumCharacterCustomizationCategory.Hair_Mixed:
+                manager.SelectHair(optionIndex,"mixed");
                 break;
             case EnumCharacterCustomizationCategory.Outfit:
                 manager.SelectOutfit(optionIndex);
-                break;
-            case EnumCharacterCustomizationCategory.Skin:
-                manager.SelectSkinColor(optionIndex);
                 break;
             case EnumCharacterCustomizationCategory.Accessories:
                 manager.SelectAccessory(optionIndex);

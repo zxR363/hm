@@ -15,11 +15,16 @@ public class CharacterCreationManager : MonoBehaviour
     public Transform optionGridParent;
 
     [Header("Customization Options")]
-    public List<Sprite> hairSprites;
-    public List<Sprite> outfitSprites;
-    public List<Sprite> accessorySprites;
+
     public List<Sprite> skinColorIcons; // Her renk için bir ikon (örneğin renkli daireler)
     public List<Color> skinColors;      // Gerçek renk değerleri (karaktere uygulanacak)
+
+    public List<Sprite> hairBoy_Sprites;
+    public List<Sprite> hairGirl_Sprites;
+    public List<Sprite> hairMixed_Sprites;
+
+    public List<Sprite> outfitSprites;
+    public List<Sprite> accessorySprites;
 
 
 
@@ -28,16 +33,18 @@ public class CharacterCreationManager : MonoBehaviour
 
     void Start()
     {
-
-        hairSprites = LoadSpritesFromResources("Images/Character/Style/Hair");
-        outfitSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
-        accessorySprites = LoadSpritesFromResources("Images/Character/Style/Accessories");
         skinColorIcons = LoadSpritesFromResources("Images/Character/Style/Skin");
-
         skinColors = LoadSkinColors(); // Aşağıda açıklanıyor
 
+        hairBoy_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair/BoyHair");
+        hairGirl_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair/GirlHair");
+        hairMixed_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair/MixedHair");
+        outfitSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
+        accessorySprites = LoadSpritesFromResources("Images/Character/Style/Accessories");
+        
+
         SpawnPreviewCharacter();
-        SetCategory(currentCategory); // Varsayılan olarak "Skin" kategorisini seç
+        SetCategory(0); // Varsayılan olarak "Skin" kategorisini seç
     }
 
     //--------------PREVIEW AREA-------------------
@@ -54,12 +61,29 @@ public class CharacterCreationManager : MonoBehaviour
         previewInstance = characterPrefab;
     }
 
-    public void SelectHair(int index)
+    public void SelectHair(int index,string style)
     {
+
         if (previewInstance == null) return;
 
         var hairImage = previewInstance.transform.Find("Hair").GetComponent<Image>();
-        hairImage.sprite = hairSprites[index];
+
+        switch(style)
+        {
+            case "boy":
+                hairImage.sprite = hairBoy_Sprites[index];
+                break;
+            case "girl":
+                hairImage.sprite = hairGirl_Sprites[index];
+                break;
+            case "mixed":
+                hairImage.sprite = hairMixed_Sprites[index];
+                break;
+            default:
+                Debug.Log("Select Hair ERROR!!!!");
+                break;
+        }
+        
     }
 
     public void SelectSkinColor(int index)
@@ -105,43 +129,37 @@ public class CharacterCreationManager : MonoBehaviour
 
     //--------------SELECTION TAB And OptionGRID-------------------
 
-    public void SetCategory(EnumCharacterCustomizationCategory currentCategory)
+    public void SetCategory(int currentCategoryR)
     {
-
-        switch (currentCategory)
+        EnumCharacterCustomizationCategory tmpCurrentCategory = (EnumCharacterCustomizationCategory) currentCategoryR;
+        currentCategory = tmpCurrentCategory;
+        switch (tmpCurrentCategory)
         {
             case EnumCharacterCustomizationCategory.Skin:
-                Debug.Log("RRWREWQEQWEQ");
-                PopulateSkinOptions();
+                Populate_Skin_Options();
                 break;
-            case EnumCharacterCustomizationCategory.Hair:
-                PopulateHairOptions();
+            case EnumCharacterCustomizationCategory.Hair_Boy:
+                Populate_HairBoy_Options();
+                break;
+            case EnumCharacterCustomizationCategory.Hair_Girl:
+                Populate_HairGirl_Options();
+                break;
+            case EnumCharacterCustomizationCategory.Hair_Mixed:
+                Populate_HairMixed_Options();
                 break;
             case EnumCharacterCustomizationCategory.Outfit:
-                PopulateOutfitOptions();
+                Populate_Outfit_Options();
                 break;
             case EnumCharacterCustomizationCategory.Accessories:
-                PopulateAccessoryOptions();
+                Populate_Accessory_Options();
                 break;
         }
+        Debug.Log("currentCategory="+currentCategory);
     }
 
 
 
-    public void PopulateHairOptions()
-    {
-        ClearOptionGrid(); // Önce eski öğeleri sil
-
-        for (int i = 0; i < hairSprites.Count; i++)
-        {
-            GameObject item = Instantiate(optionItemPrefab, optionGridParent);
-            OptionItem option = item.GetComponent<OptionItem>();
-            option.Setup(hairSprites[i], i, this);
-
-            item.GetComponent<Button>().onClick.AddListener(option.OnClick);
-        }
-    }
-    public void PopulateSkinOptions()
+    public void Populate_Skin_Options()
     {
         ClearOptionGrid();
 
@@ -159,8 +177,53 @@ public class CharacterCreationManager : MonoBehaviour
         }
     }
 
+    public void Populate_HairBoy_Options()
+    {
+        ClearOptionGrid(); // Önce eski öğeleri sil
 
-    public void PopulateOutfitOptions()
+        for (int i = 0; i < hairBoy_Sprites.Count; i++)
+        {
+            GameObject item = Instantiate(optionItemPrefab, optionGridParent);
+            OptionItem option = item.GetComponent<OptionItem>();
+            option.Setup(hairBoy_Sprites[i], i, this);
+
+            item.SetActive(true);
+            item.GetComponent<Button>().onClick.AddListener(option.OnClick);
+        }
+    }
+
+    public void Populate_HairGirl_Options()
+    {
+        ClearOptionGrid(); // Önce eski öğeleri sil
+
+        for (int i = 0; i < hairGirl_Sprites.Count; i++)
+        {
+            GameObject item = Instantiate(optionItemPrefab, optionGridParent);
+            OptionItem option = item.GetComponent<OptionItem>();
+            option.Setup(hairGirl_Sprites[i], i, this);
+
+            item.SetActive(true);
+            item.GetComponent<Button>().onClick.AddListener(option.OnClick);
+        }
+    }
+
+        public void Populate_HairMixed_Options()
+    {
+        ClearOptionGrid(); // Önce eski öğeleri sil
+
+        for (int i = 0; i < hairMixed_Sprites.Count; i++)
+        {
+            GameObject item = Instantiate(optionItemPrefab, optionGridParent);
+            OptionItem option = item.GetComponent<OptionItem>();
+            option.Setup(hairMixed_Sprites[i], i, this);
+
+            item.SetActive(true);
+            item.GetComponent<Button>().onClick.AddListener(option.OnClick);
+        }
+    }
+
+
+    public void Populate_Outfit_Options()
     {
         ClearOptionGrid();
 
@@ -170,11 +233,12 @@ public class CharacterCreationManager : MonoBehaviour
             OptionItem option = item.GetComponent<OptionItem>();
             option.Setup(outfitSprites[i], i, this);
 
+            item.SetActive(true);
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);
         }
     }
 
-    public void PopulateAccessoryOptions()
+    public void Populate_Accessory_Options()
     {
         ClearOptionGrid();
 
@@ -184,6 +248,7 @@ public class CharacterCreationManager : MonoBehaviour
             OptionItem option = item.GetComponent<OptionItem>();
             option.Setup(accessorySprites[i], i, this);
 
+            item.SetActive(true);
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);
         }
     }
