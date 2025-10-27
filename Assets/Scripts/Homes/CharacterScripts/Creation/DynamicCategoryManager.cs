@@ -13,6 +13,9 @@ public class DynamicCategoryManager : MonoBehaviour
     public GameObject optionItemPrefab;       // Sprite gösterimi için OptionItem prefab
     public CharacterCreationManager creationManager;
 
+    public GameObject colorSelectButtonPrefab;
+
+
     /// <summary>
     /// Belirtilen ana kategori altında yer alan alt klasörleri bulur ve buton oluşturur
     /// Örn: "Clothes_Image" → Casual, Formal, Man
@@ -54,6 +57,29 @@ public class DynamicCategoryManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Seçili kategorideki colorları OptionGrid’e yükler
+    /// </summary>
+    public void PopulateOptionColorPalette()
+    {
+        ClearGrid(categoryGridParent);
+
+        //-----------------COLOR
+         // 🔥 İlk olarak Color Select butonunu ekle
+        GameObject colorBtn = Instantiate(colorSelectButtonPrefab, categoryGridParent);
+
+        Button colorButton = colorBtn.GetComponent<Button>();
+        colorBtn.SetActive(true);
+        if (colorButton != null)
+        {
+            colorButton.onClick.AddListener(() =>
+            {
+                creationManager.Populate_ColorPalette_Options();
+            });
+        }
+        //-----------------COLOR
+    }
+
+    /// <summary>
     /// Seçilen alt klasördeki sprite’ları OptionGrid’e yükler
     /// Örn: "Clothes_Image", "Formal"
     /// </summary>
@@ -73,6 +99,18 @@ public class DynamicCategoryManager : MonoBehaviour
             GameObject item = Instantiate(optionItemPrefab, optionGridParent);
             OptionItem option = item.GetComponent<OptionItem>();
             option.Setup(sprites[i], i, creationManager, styleKey);
+
+
+            //!!!!!!!!!!!!!!----OZEL DURUM-----!!!!!!!!!
+            // Yeni bir CharacterPreview Item seçilirse
+            // (Aynı Item ise rengi koruması için yapılıyor)
+            //if(previewItemName == creationManager.colorRoot.name) //Seçilmiş son 
+            {                
+                option.updateNewItemUpdateColorPalette(creationManager.colorRoot);
+            }
+            //!!!!!!!!!!!!!!----OZEL DURUM-----!!!!!!!!!
+            // Yeni bir CharacterPreview Item seçilirse
+            // (Aynı Item ise rengi koruması için yapılıyor)
 
             item.SetActive(true);
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);

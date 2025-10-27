@@ -11,5 +11,5 @@ public enum EnumCharacterCustomizationCategory
     Freckle,
     Clothes,
     Hats,
-    Accessories,
+    Accessory,
 }

@@ -38,11 +38,30 @@ public class CharacterCreationManager : MonoBehaviour
 
     public EnumCharacterCustomizationCategory currentCategory;
 
+    //--------------Item Color
+    public List<Sprite> colorIcons;
+    public List<Color> colorValue;
+    public Transform colorRoot;
+
+    public List<Sprite> hairColorIcons; // Her renk için bir ikon (örneğin renkli daireler)
+    public List<Color> hairColors;      // Gerçek renk değerleri (karaktere uygulanacak)
+
+    public List<Sprite> noiseColorIcons; // Her renk için bir ikon (örneğin renkli daireler)
+    public List<Color> noiseColors;      // Gerçek renk değerleri (karaktere uygulanacak)
+
+    public List<Sprite> eyeBrownColorIcons; // Her renk için bir ikon (örneğin renkli daireler)
+    public List<Color> eyeBrownColors;      // Gerçek renk değerleri (karaktere uygulanacak)
+
+    public List<Sprite> freckleColorIcons; // Her renk için bir ikon (örneğin renkli daireler)
+    public List<Color> freckleColors;      // Gerçek renk değerleri (karaktere uygulanacak)
+    //--------------Item Color
 
     void Start()
     {
         skinColorIcons = LoadSpritesFromResources("Images/Character/Style/Skin_Image");
         skinColors = LoadSkinColors(); // Aşağıda açıklanıyor
+
+        LoadItemColors();
 
         hairBoy_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair_Image/BoyHair");
         hairGirl_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair_Image/GirlHair");
@@ -72,6 +91,33 @@ public class CharacterCreationManager : MonoBehaviour
         //previewInstance.transform.localScale = characterPrefab.transform.localScale;
         //previewInstance.SetActive(true);
         previewInstance = characterPrefab;
+    }
+
+    //Secilen renk ilgili GameObject'in rengini güncelliyor(Skin haric. Örn:Hair,EyeBrown)
+    public void SelectColorPalette(int index)
+    {
+        // Debug.Log("ColorPalette1111 = "+colorRoot + "  "+index);
+        // Debug.Log("AAAAAA="+colorValue.Count);
+
+        if (previewInstance == null) return;
+
+        if (colorRoot == null) return;
+
+        Color selectedColor = colorValue[index];
+        selectedColor.a = 1f; // Şeffaflık önlemi
+
+        Image rootImage = colorRoot.GetComponent<Image>();
+
+        if (rootImage != null)
+            rootImage.color = selectedColor;
+
+        // Tüm child'lara uygula
+        foreach (Transform child in colorRoot)
+        {
+            Image childImage = child.GetComponent<Image>();
+            if (childImage != null)
+                childImage.color = selectedColor;
+        }
     }
 
     public void SelectSkinColor(int index)
@@ -187,43 +233,55 @@ public class CharacterCreationManager : MonoBehaviour
             
             //Direkt Buton ile açılanlar
             case EnumCharacterCustomizationCategory.Hair_Boy:
+                colorRoot = previewInstance.transform.Find("Hair");
+                dynamicCategoryManager.PopulateOptionColorPalette();
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image","BoyHair");
                 break;
 
             case EnumCharacterCustomizationCategory.Hair_Girl:
+                colorRoot = previewInstance.transform.Find("Hair");
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "GirlHair");
                 break;
 
             case EnumCharacterCustomizationCategory.Hair_Mixed:
+                colorRoot = previewInstance.transform.Find("Hair");
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "MixedHair");
                 break;
             
             case EnumCharacterCustomizationCategory.Beard:
+                colorRoot = previewInstance.transform.Find("Beard");
                 dynamicCategoryManager.PopulateOptionGrid("Beard_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Eyes:
+                colorRoot = previewInstance.transform.Find("Eyes");
                 dynamicCategoryManager.PopulateOptionGrid("Eyes_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Noise:
+                colorRoot = previewInstance.transform.Find("Noise");
                 dynamicCategoryManager.PopulateOptionGrid("Noise_Image", "");
                 break;    
             case EnumCharacterCustomizationCategory.EyeBrown:
+                colorRoot = previewInstance.transform.Find("EyeBrown");
                 dynamicCategoryManager.PopulateOptionGrid("EyeBrown_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Freckle:
+                colorRoot = previewInstance.transform.Find("Freckle");
                 dynamicCategoryManager.PopulateOptionGrid("Freckle_Image", "");
                 break;                                                            
             
             //Alt seçim yapılarak açılanlar
             case EnumCharacterCustomizationCategory.Clothes:
+                colorRoot = previewInstance.transform.Find("Clothes");
                 dynamicCategoryManager.PopulateCategoryButtons("Clothes_Image");
                 break;
 
             case EnumCharacterCustomizationCategory.Hats:
+                colorRoot = previewInstance.transform.Find("Hats");
                 dynamicCategoryManager.PopulateCategoryButtons("Hats_Image");
                 break;
 
-            case EnumCharacterCustomizationCategory.Accessories:
+            case EnumCharacterCustomizationCategory.Accessory:
+                colorRoot = previewInstance.transform.Find("Accessory");
                 dynamicCategoryManager.PopulateCategoryButtons("Accessory_Image");
                 break;
 
@@ -231,7 +289,56 @@ public class CharacterCreationManager : MonoBehaviour
         }
     }
 
+    //Seçilen Renklerin uygulanabilmesi için yapılıyor.
+    public void Populate_ColorPalette_Options()
+    {
+        ClearOptionGrid();
+        switch (currentCategory)
+        {
+            case EnumCharacterCustomizationCategory.Hair_Boy:
+            case EnumCharacterCustomizationCategory.Hair_Girl:
+            case EnumCharacterCustomizationCategory.Hair_Mixed:
+                colorValue = hairColors;
+                colorIcons = hairColorIcons;
+                colorRoot = previewInstance.transform.Find("Hair");
+                break;
+            
+            case EnumCharacterCustomizationCategory.Beard:
+                break;
+            case EnumCharacterCustomizationCategory.Eyes:
+                break;
+            case EnumCharacterCustomizationCategory.Noise:
+                colorValue = noiseColors;
+                colorIcons = noiseColorIcons;
+                colorRoot = previewInstance.transform.Find("Noise");
+                break;    
+            case EnumCharacterCustomizationCategory.EyeBrown:
+                colorValue = eyeBrownColors;
+                colorIcons = eyeBrownColorIcons;
+                colorRoot = previewInstance.transform.Find("EyeBrown");
+                break;
+            case EnumCharacterCustomizationCategory.Freckle:
+                colorValue = freckleColors;
+                colorIcons = freckleColorIcons;
+                colorRoot = previewInstance.transform.Find("Freckle");
+                break;                                                            
+        }
 
+        //Debug.Log("PALETTE TIKLANDI="+colorRoot+ "  "+colorValue.Count);
+
+        for (int i = 0; i < colorValue.Count; i++)
+        {
+            GameObject item = Instantiate(optionItemPrefab, optionGridParent);
+            OptionItem option = item.GetComponent<OptionItem>();
+
+            Sprite icon = colorIcons[i]; // Hazır ikon kullan
+            
+            option.Setup(icon, i, this,null,1);
+
+            item.SetActive(true);
+            item.GetComponent<Button>().onClick.AddListener(option.OnClick);
+        }
+    }
 
     public void Populate_Skin_Options()
     {
@@ -244,7 +351,7 @@ public class CharacterCreationManager : MonoBehaviour
 
             Sprite icon = skinColorIcons[i]; // Hazır ikon kullan
             
-            option.Setup(icon, i, this);
+            option.Setup(icon, i, this,null,0);
 
             item.SetActive(true);
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);
@@ -259,7 +366,7 @@ public class CharacterCreationManager : MonoBehaviour
         {
             GameObject item = Instantiate(optionItemPrefab, optionGridParent);
             OptionItem option = item.GetComponent<OptionItem>();
-            option.Setup(hairBoy_Sprites[i], i, this);
+            option.Setup(hairBoy_Sprites[i], i, this,null,0);
 
             item.SetActive(true);
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);
@@ -274,7 +381,7 @@ public class CharacterCreationManager : MonoBehaviour
         {
             GameObject item = Instantiate(optionItemPrefab, optionGridParent);
             OptionItem option = item.GetComponent<OptionItem>();
-            option.Setup(hairGirl_Sprites[i], i, this);
+            option.Setup(hairGirl_Sprites[i], i, this,null,0);
 
             item.SetActive(true);
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);
@@ -305,7 +412,7 @@ public class CharacterCreationManager : MonoBehaviour
         {
             GameObject item = Instantiate(optionItemPrefab, optionGridParent);
             OptionItem option = item.GetComponent<OptionItem>();
-            option.Setup(accessorySprites[i], i, this);
+            option.Setup(accessorySprites[i], i, this,null,0);
 
             item.SetActive(true);
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);
@@ -334,6 +441,27 @@ public class CharacterCreationManager : MonoBehaviour
     {
         var skinColorAsset = Resources.Load<SkinColorList>("Images/Character/Style/SkinColors/SkinColorList");
         return skinColorAsset != null ? skinColorAsset.colors : new List<Color>();
+    }
+
+    private void LoadItemColors()
+    {
+        hairColorIcons = LoadSpritesFromResources("Images/Character/Style/Items_Image/Item_Hair");
+        var hairColorAsset = Resources.Load<ItemsColorList>("Images/Character/Style/ItemColors/HairColorList");
+        hairColors = hairColorAsset != null ? hairColorAsset.colors : new List<Color>();
+
+        noiseColorIcons = LoadSpritesFromResources("Images/Character/Style/Items_Image/Item_Noise");
+        var noiseColorsAsset = Resources.Load<ItemsColorList>("Images/Character/Style/ItemColors/NoiseColorList");
+        noiseColors = noiseColorsAsset != null ? noiseColorsAsset.colors : new List<Color>();
+
+        eyeBrownColorIcons = LoadSpritesFromResources("Images/Character/Style/Items_Image/Item_EyeBrown");
+        var eyeBrownColorsAsset = Resources.Load<ItemsColorList>("Images/Character/Style/ItemColors/EyeBrownColorList");
+        eyeBrownColors = eyeBrownColorsAsset != null ? eyeBrownColorsAsset.colors : new List<Color>();
+
+        freckleColorIcons = LoadSpritesFromResources("Images/Character/Style/Items_Image/Item_Freckle");
+        var freckleColorsAsset = Resources.Load<ItemsColorList>("Images/Character/Style/ItemColors/FreckleColorList");
+        freckleColors = freckleColorsAsset != null ? freckleColorsAsset.colors : new List<Color>();
+
+        Debug.Log("hairColors="+hairColors.Count);
     }
 
 

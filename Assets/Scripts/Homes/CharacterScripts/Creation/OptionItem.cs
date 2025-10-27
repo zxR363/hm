@@ -10,6 +10,7 @@ public class OptionItem : MonoBehaviour
     private EnumCharacterCustomizationCategory managerCategory;
     private string styleKey; // 🔑 Alt klasör adı (örneğin: "casual", "glasses", "crowns")
 
+    private bool colorFlag = false;
 
     void Awake()
     {
@@ -25,7 +26,7 @@ public class OptionItem : MonoBehaviour
     /// OptionItem'ı başlatır ve gerekli bilgileri atar
     /// </summary>
 
-    public void Setup(Sprite icon, int index, CharacterCreationManager creationManager, string style = null)
+    public void Setup(Sprite icon, int index, CharacterCreationManager creationManager, string style = null,int palette = 0)
     {
         if (iconImage == null)
         {
@@ -50,7 +51,7 @@ public class OptionItem : MonoBehaviour
                 fixedColor.a = 1f;
                 iconImage.color = fixedColor;
                 break;
-
+            
             default:
                 iconImage.sprite = icon;
                 iconImage.color = Color.white; // Diğer kategorilerde sprite'ı tam göster
@@ -60,7 +61,26 @@ public class OptionItem : MonoBehaviour
                 break;
         }
 
+        //Palette seçildiyse uygulanır.
+        if(palette == 1)
+        {
+            iconImage.sprite = icon;
+            iconImage.color = manager.colorValue[index]; // ✅ secilen Item için renk uygulanır
+            fixedColor = iconImage.color;
+            fixedColor.a = 1f;
+            iconImage.color = fixedColor;
+            this.colorFlag = true;
+        }
+        //Palette seçildiyse uygulanır.
+
         Debug.Log("OptionItem Setup → currentCategory: " + manager.currentCategory);
+        GetComponent<Button>().onClick.AddListener(OnClick);
+    }
+
+    public void colorSetup()
+    {   
+        Debug.Log("colorSTUP FUNC");
+
         GetComponent<Button>().onClick.AddListener(OnClick);
     }
 
@@ -70,6 +90,15 @@ public class OptionItem : MonoBehaviour
 
     public void OnClick()
     {
+        if(this.colorFlag == true)
+        {
+            Debug.Log("Color Secme alani");
+            Debug.Log("ColorSheme → currentCategory: " + manager.currentCategory);
+            //this.colorFlag = false;
+            manager.SelectColorPalette(optionIndex);
+            return;
+        }
+
         switch (managerCategory)
         {
             case EnumCharacterCustomizationCategory.Skin:
@@ -89,7 +118,7 @@ public class OptionItem : MonoBehaviour
                 manager.SelectClothes(optionIndex, styleKey);
                 break;
 
-            case EnumCharacterCustomizationCategory.Accessories:
+            case EnumCharacterCustomizationCategory.Accessory:
                 manager.SelectAccessory(optionIndex, styleKey);
                 break;
 
@@ -113,5 +142,17 @@ public class OptionItem : MonoBehaviour
                 break;
         }
 
+    }
+
+    // Yeni bir CharacterPreview Item seçilirse (Aynı Item ise rengi koruması için yapılıyor)
+    public void updateNewItemUpdateColorPalette(Transform colorRoot)
+    {
+        Color fixedColor;
+        
+        Image rootImage = colorRoot.GetComponent<Image>();
+        iconImage.color = rootImage.color; // ✅renk uygula
+        fixedColor = iconImage.color;
+        fixedColor.a = 1f;
+        iconImage.color = fixedColor;
     }
 }
