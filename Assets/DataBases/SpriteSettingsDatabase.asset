@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6655bb21cf5f1ca49a6664f435a71099, type: 3}
+  m_Name: SpriteSettingsDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteSettingsDatabase
+  settings:
+  - sprite: {fileID: -7844956883000455557, guid: 6fc946838aae88748aafe75461662363, type: 3}
+    position: {x: 0.52, y: 0.337, z: -0}
+    scale: {x: 1, y: 0.9615385, z: 1}
+  - sprite: {fileID: -2218136010918068860, guid: 230a8983728518e4a94ee8e1a13a445a, type: 3}
+    position: {x: -0.056, y: 0.248, z: -0}
+    scale: {x: 0.9615385, y: 0.9615385, z: 1}
+  - sprite: {fileID: -6260108502035436031, guid: b471307d212bf9b41b9f54d6659b36ea, type: 3}
+    position: {x: 1, y: -92, z: 0}
+    scale: {x: 1, y: 1, z: 1}
