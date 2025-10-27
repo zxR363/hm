@@ -37,7 +37,10 @@ public class DynamicCategoryManager : MonoBehaviour
             string folderName = Path.GetFileName(folder);
 
             GameObject btn = Instantiate(categoryButtonPrefab, categoryGridParent);
+
             Debug.Log("BUTONLAR OLUSTURULUYOR="+folderName);
+            Debug.Log("BUTONLAR OLUSTURULUYOR KATEGORI="+categoryKey);
+            btn.SetActive(true);
 
             Button buttonComponent = btn.GetComponent<Button>();
             if (buttonComponent == null)
@@ -103,11 +106,8 @@ public class DynamicCategoryManager : MonoBehaviour
 
             //!!!!!!!!!!!!!!----OZEL DURUM-----!!!!!!!!!
             // Yeni bir CharacterPreview Item seçilirse
-            // (Aynı Item ise rengi koruması için yapılıyor)
-            //if(previewItemName == creationManager.colorRoot.name) //Seçilmiş son 
-            {                
-                option.updateNewItemUpdateColorPalette(creationManager.colorRoot);
-            }
+            // (Aynı Item ise rengi koruması için yapılıyor)             
+            option.updateNewItemUpdateColorPalette(creationManager.colorRoot);
             //!!!!!!!!!!!!!!----OZEL DURUM-----!!!!!!!!!
             // Yeni bir CharacterPreview Item seçilirse
             // (Aynı Item ise rengi koruması için yapılıyor)

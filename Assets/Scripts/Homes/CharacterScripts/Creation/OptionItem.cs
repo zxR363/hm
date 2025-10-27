@@ -60,6 +60,8 @@ public class OptionItem : MonoBehaviour
                 iconImage.color = fixedColor;
                 break;
         }
+        Debug.Log("OptionItem Setup → currentCategory: " + manager.currentCategory);
+        GetComponent<Button>().onClick.AddListener(OnClick);
 
         //Palette seçildiyse uygulanır.
         if(palette == 1)
@@ -71,17 +73,15 @@ public class OptionItem : MonoBehaviour
             iconImage.color = fixedColor;
             this.colorFlag = true;
         }
+        else
+        {
+            if(index == 0)
+            {
+                //OnClick();
+            }   
+        }
         //Palette seçildiyse uygulanır.
 
-        Debug.Log("OptionItem Setup → currentCategory: " + manager.currentCategory);
-        GetComponent<Button>().onClick.AddListener(OnClick);
-    }
-
-    public void colorSetup()
-    {   
-        Debug.Log("colorSTUP FUNC");
-
-        GetComponent<Button>().onClick.AddListener(OnClick);
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ public class OptionItem : MonoBehaviour
     public void updateNewItemUpdateColorPalette(Transform colorRoot)
     {
         Color fixedColor;
-        
+
         Image rootImage = colorRoot.GetComponent<Image>();
         iconImage.color = rootImage.color; // ✅renk uygula
         fixedColor = iconImage.color;
