@@ -82,7 +82,7 @@ public class DynamicCategoryManager : MonoBehaviour
     /// <summary>
     /// Grid içeriğini temizler
     /// </summary>
-    void ClearGrid(Transform grid)
+    public void ClearGrid(Transform grid)
     {
         foreach (Transform child in grid)
             Destroy(child.gameObject);

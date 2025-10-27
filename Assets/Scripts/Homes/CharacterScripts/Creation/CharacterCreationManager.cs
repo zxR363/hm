@@ -180,26 +180,18 @@ public class CharacterCreationManager : MonoBehaviour
     {
         EnumCharacterCustomizationCategory tmpCurrentCategory = (EnumCharacterCustomizationCategory) currentCategoryR;
         currentCategory = tmpCurrentCategory;
-        Debug.Log("SetcategoryIndex"+currentCategoryR);
-        Debug.Log("SetCategory called with: " + tmpCurrentCategory);
+
+        // 🔥 Her kategori değişiminde eski butonları temizle
+        dynamicCategoryManager.ClearGrid(dynamicCategoryManager.categoryGridParent);
+
+
         switch (tmpCurrentCategory)
         {
             case EnumCharacterCustomizationCategory.Skin:
                 Populate_Skin_Options();
                 break;
-
-            case EnumCharacterCustomizationCategory.Clothes:
-                dynamicCategoryManager.PopulateCategoryButtons("Clothes_Image");
-                break;
-
-            case EnumCharacterCustomizationCategory.Accessories:
-                dynamicCategoryManager.PopulateCategoryButtons("Accessories_Image");
-                break;
-
-            case EnumCharacterCustomizationCategory.Hats:
-                dynamicCategoryManager.PopulateCategoryButtons("Accessories_Image");
-                break;
-
+            
+            //Direkt Buton ile açılanlar
             case EnumCharacterCustomizationCategory.Hair_Boy:
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image","BoyHair");
                 break;
@@ -210,6 +202,35 @@ public class CharacterCreationManager : MonoBehaviour
 
             case EnumCharacterCustomizationCategory.Hair_Mixed:
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "MixedHair");
+                break;
+            
+            case EnumCharacterCustomizationCategory.Beard:
+                dynamicCategoryManager.PopulateOptionGrid("Beard_Image", "");
+                break;
+            case EnumCharacterCustomizationCategory.Eyes:
+                dynamicCategoryManager.PopulateOptionGrid("Eyes_Image", "");
+                break;
+            case EnumCharacterCustomizationCategory.Noise:
+                dynamicCategoryManager.PopulateOptionGrid("Noise_Image", "");
+                break;    
+            case EnumCharacterCustomizationCategory.EyeBrown:
+                dynamicCategoryManager.PopulateOptionGrid("EyeBrown_Image", "");
+                break;
+            case EnumCharacterCustomizationCategory.Freckle:
+                dynamicCategoryManager.PopulateOptionGrid("Freckle_Image", "");
+                break;                                                            
+            
+            //Alt seçim yapılarak açılanlar
+            case EnumCharacterCustomizationCategory.Clothes:
+                dynamicCategoryManager.PopulateCategoryButtons("Clothes_Image");
+                break;
+
+            case EnumCharacterCustomizationCategory.Hats:
+                dynamicCategoryManager.PopulateCategoryButtons("Hats_Image");
+                break;
+
+            case EnumCharacterCustomizationCategory.Accessories:
+                dynamicCategoryManager.PopulateCategoryButtons("Accessory_Image");
                 break;
 
             // Diğer kategoriler eklenebilir
