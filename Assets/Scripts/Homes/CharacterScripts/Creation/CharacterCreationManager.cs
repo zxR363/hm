@@ -74,31 +74,6 @@ public class CharacterCreationManager : MonoBehaviour
         previewInstance = characterPrefab;
     }
 
-    // public void SelectHair(int index,string style)
-    // {
-
-    //     if (previewInstance == null) return;
-
-    //     var hairImage = previewInstance.transform.Find("Hair").GetComponent<Image>();
-
-    //     switch(style)
-    //     {
-    //         case "boy":
-    //             hairImage.sprite = hairBoy_Sprites[index];
-    //             break;
-    //         case "girl":
-    //             hairImage.sprite = hairGirl_Sprites[index];
-    //             break;
-    //         case "mixed":
-    //             hairImage.sprite = hairMixed_Sprites[index];
-    //             break;
-    //         default:
-    //             Debug.Log("Select Hair ERROR!!!!");
-    //             break;
-    //     }
-        
-    // }
-
     public void SelectSkinColor(int index)
     {
         if (previewInstance == null) return;
@@ -138,23 +113,36 @@ public class CharacterCreationManager : MonoBehaviour
     public void SelectClothes(int index, string style)
     {
         if (previewInstance == null) return;
-
-        var clothesImage = previewInstance.transform.Find("Clothes").GetComponent<Image>();
+        
+        var gameObj = previewInstance.transform.Find("Clothes");
+        var clothesImage = gameObj.GetComponent<Image>();
         var sprites = LoadSpritesFromResources($"Images/Character/Style/Clothes_Image/{style}");
 
         if (index >= 0 && index < sprites.Count)
             clothesImage.sprite = sprites[index];
+
+        // 🔥 Ek olarak ImageSettingsApplier varsa → ApplySettings() çağır
+        ImageSettingsApplier applier = gameObj.GetComponent<ImageSettingsApplier>();
+        if (applier != null)
+            applier.ApplySettings();
+
     }
 
     public void SelectHat(int index, string style)
     {
         if (previewInstance == null) return;
 
-        var hatImage = previewInstance.transform.Find("Hat").GetComponent<Image>();
+        var gameObj = previewInstance.transform.Find("Hat");
+        var hatImage = gameObj.GetComponent<Image>();
         var sprites = LoadSpritesFromResources($"Images/Character/Style/Hats_Image/{style}");
 
         if (index >= 0 && index < sprites.Count)
             hatImage.sprite = sprites[index];
+        
+        // 🔥 Ek olarak ImageSettingsApplier varsa → ApplySettings() çağır
+        ImageSettingsApplier applier = gameObj.GetComponent<ImageSettingsApplier>();
+        if (applier != null)
+            applier.ApplySettings();
     }
 
 
@@ -163,11 +151,17 @@ public class CharacterCreationManager : MonoBehaviour
     {
         if (previewInstance == null) return;
 
-        var accessoryImage = previewInstance.transform.Find("Accessory").GetComponent<Image>();
+        var gameObj = previewInstance.transform.Find("Accessory");
+        var accessoryImage = gameObj.GetComponent<Image>();
         var sprites = LoadSpritesFromResources($"Images/Character/Style/Accessory_Image/{style}");
 
         if (index >= 0 && index < sprites.Count)
             accessoryImage.sprite = sprites[index];
+        
+        // 🔥 Ek olarak ImageSettingsApplier varsa → ApplySettings() çağır
+        ImageSettingsApplier applier = gameObj.GetComponent<ImageSettingsApplier>();
+        if (applier != null)
+            applier.ApplySettings();
     }
 
     //--------------PREVIEW AREA-------------------
