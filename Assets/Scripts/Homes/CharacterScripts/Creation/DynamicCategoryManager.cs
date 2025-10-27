@@ -35,12 +35,19 @@ public class DynamicCategoryManager : MonoBehaviour
 
             GameObject btn = Instantiate(categoryButtonPrefab, categoryGridParent);
             Debug.Log("BUTONLAR OLUSTURULUYOR="+folderName);
-            //btn.GetComponentInChildren<Text>().text = folderName;
 
-            btn.GetComponent<Button>().onClick.AddListener(() =>
+            Button buttonComponent = btn.GetComponent<Button>();
+            if (buttonComponent == null)
+            {
+                Debug.LogError("CategoryButtonTemplate prefab'ında Button bileşeni eksik!");
+                return;
+            }
+
+            buttonComponent.onClick.AddListener(() =>
             {
                 PopulateOptionGrid(categoryKey, folderName);
             });
+
         }
 
         Debug.Log($"Category buttons created for: {categoryKey} → {folders.Length} folders");
@@ -52,9 +59,11 @@ public class DynamicCategoryManager : MonoBehaviour
     /// </summary>
     public void PopulateOptionGrid(string categoryKey, string styleKey)
     {
+        Debug.Log("OptionGrid TETİKLENDİ");
+
         ClearGrid(optionGridParent);
 
-        string resourcePath = $"Images/CharacterStyle/{categoryKey}/{styleKey}";
+        string resourcePath = $"Images/Character/Style/{categoryKey}/{styleKey}";
         List<Sprite> sprites = creationManager.LoadSpritesFromResources(resourcePath);
 
         Debug.Log($"Loading {sprites.Count} sprites from {resourcePath}");
