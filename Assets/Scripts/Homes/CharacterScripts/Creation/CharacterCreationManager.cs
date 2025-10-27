@@ -10,9 +10,13 @@ public class CharacterCreationManager : MonoBehaviour
     public GameObject characterPrefab;
     private GameObject previewInstance;
 
+    [Header("Managers")]
+    public DynamicCategoryManager dynamicCategoryManager;
+
     [Header("Referanslar")]
     public GameObject optionItemPrefab;
     public Transform optionGridParent;
+
 
     [Header("Customization Options")]
 
@@ -37,12 +41,12 @@ public class CharacterCreationManager : MonoBehaviour
 
     void Start()
     {
-        skinColorIcons = LoadSpritesFromResources("Images/Character/Style/Skin");
+        skinColorIcons = LoadSpritesFromResources("Images/Character/Style/Skin_Image");
         skinColors = LoadSkinColors(); // Aşağıda açıklanıyor
 
-        hairBoy_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair/BoyHair");
-        hairGirl_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair/GirlHair");
-        hairMixed_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair/MixedHair");
+        hairBoy_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair_Image/BoyHair");
+        hairGirl_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair_Image/GirlHair");
+        hairMixed_Sprites = LoadSpritesFromResources("Images/Character/Style/Hair_Image/MixedHair");
         beardSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
         eyesSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
         noiseSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
@@ -118,20 +122,40 @@ public class CharacterCreationManager : MonoBehaviour
         }
     }
 
-    public void SelectOutfit(int index)
+    //Dinamik olarak clothes'u seçiyor. Diğer yapılarıda burdan referans alarak yapabiliriz(Örn. hats,accessory)
+    public void SelectClothes(int index, string style)
     {
         if (previewInstance == null) return;
 
-        var outfitImage = previewInstance.transform.Find("Outfit").GetComponent<Image>();
-        outfitImage.sprite = outfitSprites[index];
+        var clothesImage = previewInstance.transform.Find("Clothes").GetComponent<Image>();
+        var sprites = LoadSpritesFromResources($"Images/Character/Style/Clothes_Image/{style}");
+
+        if (index >= 0 && index < sprites.Count)
+            clothesImage.sprite = sprites[index];
     }
 
-    public void SelectAccessory(int index)
+    public void SelectHat(int index, string style)
     {
         if (previewInstance == null) return;
 
-        var accessoryImage = previewInstance.transform.Find("Accessory").GetComponent<Image>();
-        accessoryImage.sprite = accessorySprites[index];
+        var hatImage = previewInstance.transform.Find("Hat").GetComponent<Image>();
+        var sprites = LoadSpritesFromResources($"Images/Character/Style/Hats_Image/{style}");
+
+        if (index >= 0 && index < sprites.Count)
+            hatImage.sprite = sprites[index];
+    }
+
+
+    //Dinamik olarak seciyor
+    public void SelectAccessory(int index, string style)
+    {
+        if (previewInstance == null) return;
+
+        var clothesImage = previewInstance.transform.Find("Accessory").GetComponent<Image>();
+        var sprites = LoadSpritesFromResources($"Images/Character/Style/Accessory_Image/{style}");
+
+        if (index >= 0 && index < sprites.Count)
+            clothesImage.sprite = sprites[index];
     }
 
     //--------------PREVIEW AREA-------------------
@@ -144,28 +168,40 @@ public class CharacterCreationManager : MonoBehaviour
     {
         EnumCharacterCustomizationCategory tmpCurrentCategory = (EnumCharacterCustomizationCategory) currentCategoryR;
         currentCategory = tmpCurrentCategory;
+        Debug.Log("SetcategoryIndex"+currentCategoryR);
+        Debug.Log("SetCategory called with: " + tmpCurrentCategory);
         switch (tmpCurrentCategory)
         {
             case EnumCharacterCustomizationCategory.Skin:
                 Populate_Skin_Options();
                 break;
-            case EnumCharacterCustomizationCategory.Hair_Boy:
-                Populate_HairBoy_Options();
+
+            case EnumCharacterCustomizationCategory.Clothes:
+                dynamicCategoryManager.PopulateCategoryButtons("Clothes_Image");
                 break;
-            case EnumCharacterCustomizationCategory.Hair_Girl:
-                Populate_HairGirl_Options();
-                break;
-            case EnumCharacterCustomizationCategory.Hair_Mixed:
-                Populate_HairMixed_Options();
-                break;
-            case EnumCharacterCustomizationCategory.Outfit:
-                Populate_Outfit_Options();
-                break;
+
             case EnumCharacterCustomizationCategory.Accessories:
-                Populate_Accessory_Options();
+                dynamicCategoryManager.PopulateCategoryButtons("Accessories_Image");
                 break;
+
+            case EnumCharacterCustomizationCategory.Hats:
+                dynamicCategoryManager.PopulateOptionGrid("Hats_Image", "Default");
+                break;
+
+            case EnumCharacterCustomizationCategory.Hair_Boy:
+                dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "BoyHair");
+                break;
+
+            case EnumCharacterCustomizationCategory.Hair_Girl:
+                dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "GirlHair");
+                break;
+
+            case EnumCharacterCustomizationCategory.Hair_Mixed:
+                dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "MixedHair");
+                break;
+
+            // Diğer kategoriler eklenebilir
         }
-        Debug.Log("currentCategory="+currentCategory);
     }
 
 
@@ -234,21 +270,6 @@ public class CharacterCreationManager : MonoBehaviour
     }
 
 
-    public void Populate_Outfit_Options()
-    {
-        ClearOptionGrid();
-
-        for (int i = 0; i < outfitSprites.Count; i++)
-        {
-            GameObject item = Instantiate(optionItemPrefab, optionGridParent);
-            OptionItem option = item.GetComponent<OptionItem>();
-            option.Setup(outfitSprites[i], i, this);
-
-            item.SetActive(true);
-            item.GetComponent<Button>().onClick.AddListener(option.OnClick);
-        }
-    }
-
     public void Populate_Accessory_Options()
     {
         ClearOptionGrid();
@@ -276,7 +297,7 @@ public class CharacterCreationManager : MonoBehaviour
     }
 
     //-------
-    private List<Sprite> LoadSpritesFromResources(string path)
+    public List<Sprite> LoadSpritesFromResources(string path)
     {
         Sprite[] loaded = Resources.LoadAll<Sprite>(path);
         return new List<Sprite>(loaded);

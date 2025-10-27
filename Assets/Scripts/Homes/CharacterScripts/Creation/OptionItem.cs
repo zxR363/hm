@@ -8,6 +8,8 @@ public class OptionItem : MonoBehaviour
     private int optionIndex;
     private CharacterCreationManager manager;
     private EnumCharacterCustomizationCategory managerCategory;
+    private string styleKey; // 🔑 Alt klasör adı (örneğin: "casual", "glasses", "crowns")
+
 
     void Awake()
     {
@@ -19,7 +21,11 @@ public class OptionItem : MonoBehaviour
         }
     }
 
-    public void Setup(Sprite icon, int index, CharacterCreationManager creationManager)
+    /// <summary>
+    /// OptionItem'ı başlatır ve gerekli bilgileri atar
+    /// </summary>
+
+    public void Setup(Sprite icon, int index, CharacterCreationManager creationManager, string style = null)
     {
         if (iconImage == null)
         {
@@ -30,6 +36,8 @@ public class OptionItem : MonoBehaviour
         optionIndex = index;
         manager = creationManager;
         managerCategory = manager.currentCategory;
+        styleKey = style?.ToLower(); // null olabilir
+
 
         Color fixedColor;
         // Kategoriye göre davran
@@ -52,9 +60,13 @@ public class OptionItem : MonoBehaviour
                 break;
         }
 
-
+        Debug.Log("OptionItem Setup → currentCategory: " + manager.currentCategory);
         GetComponent<Button>().onClick.AddListener(OnClick);
     }
+
+    /// <summary>
+    /// Kullanıcı bu seçeneğe tıkladığında ilgili karakter özelliğini günceller
+    /// </summary>
 
     public void OnClick()
     {
@@ -63,39 +75,43 @@ public class OptionItem : MonoBehaviour
             case EnumCharacterCustomizationCategory.Skin:
                 manager.SelectSkinColor(optionIndex);
                 break;
+
             case EnumCharacterCustomizationCategory.Hair_Boy:
-                manager.SelectHair(optionIndex,"boy");
-                break;
             case EnumCharacterCustomizationCategory.Hair_Girl:
-                manager.SelectHair(optionIndex,"girl");
-                break;
             case EnumCharacterCustomizationCategory.Hair_Mixed:
-                manager.SelectHair(optionIndex,"mixed");
+                if (!string.IsNullOrEmpty(styleKey))
+                    manager.SelectHair(optionIndex, styleKey);
+                else
+                    Debug.LogWarning("OptionItem: styleKey is missing for hair category.");
                 break;
-            case EnumCharacterCustomizationCategory.Beard:
-                manager.SelectOutfit(optionIndex);
-                break;
-            case EnumCharacterCustomizationCategory.Eyes:
-                manager.SelectAccessory(optionIndex);
-                break;
-            case EnumCharacterCustomizationCategory.Noise:
-                manager.SelectOutfit(optionIndex);
-                break;
-            case EnumCharacterCustomizationCategory.EyeBrown:
-                manager.SelectAccessory(optionIndex);
-                break;                
-            case EnumCharacterCustomizationCategory.Freckle:
-                manager.SelectOutfit(optionIndex);
-                break;
+
             case EnumCharacterCustomizationCategory.Clothes:
-                manager.SelectAccessory(optionIndex);
-                break;                
-            case EnumCharacterCustomizationCategory.Hats:
-                manager.SelectOutfit(optionIndex);
+                manager.SelectClothes(optionIndex, styleKey);
                 break;
+
             case EnumCharacterCustomizationCategory.Accessories:
-                manager.SelectAccessory(optionIndex);
-                break;                
+                manager.SelectAccessory(optionIndex, styleKey);
+                break;
+
+            case EnumCharacterCustomizationCategory.Hats:
+                //manager.SelectHat(optionIndex, styleKey);
+                break;
+
+            case EnumCharacterCustomizationCategory.Beard:
+            case EnumCharacterCustomizationCategory.Noise:
+            case EnumCharacterCustomizationCategory.Freckle:
+                //manager.SelectOutfit(optionIndex, styleKey);
+                break;
+
+            case EnumCharacterCustomizationCategory.Eyes:
+            case EnumCharacterCustomizationCategory.EyeBrown:
+                //manager.SelectAccessory(optionIndex, styleKey);
+                break;
+
+            default:
+                Debug.LogWarning($"OptionItem: Unhandled category {managerCategory}");
+                break;
         }
+
     }
 }
