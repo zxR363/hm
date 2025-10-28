@@ -4,6 +4,13 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using UnityEngine;
+
+
 public class DynamicCategoryManager : MonoBehaviour
 {
     [Header("UI References")]
@@ -22,6 +29,13 @@ public class DynamicCategoryManager : MonoBehaviour
     //Kategori olarak açılan butonların dinamik şekilde 
     // color seçilmesi için tanımlanan renkler
     public Color[] categoryColors; // Inspector’dan tanımlanabilir
+
+    [Header("CharacterPrefab Kaydetme")]
+    public GameObject previewInstance;
+    public int characterCanvasSortOrder = 10; // 🔥 Prefabs sortingLayer değeri 
+    public float characterScaleFactor = 0.5f; // 🔥 Prefabs scaleFactor
+    public string prefabSavePath = "Assets/Resources/GeneratedCharacters/";
+
 
 
     /// <summary>
@@ -191,4 +205,52 @@ public class DynamicCategoryManager : MonoBehaviour
         foreach (Transform child in grid)
             Destroy(child.gameObject);
     }
+
+
+    //-------------KARAKTER PREFAB KAYDETME ISLEMINI YAPIYOR------------
+    public void ConfirmCharacter()
+    {
+        if (previewInstance == null)
+        {
+            Debug.LogWarning("PreviewInstance bulunamadı");
+            return;
+        }
+
+        #if UNITY_EDITOR
+                // 🔥 Orijinal scale'ı sakla
+                Vector3 originalScale = previewInstance.transform.localScale;
+
+                // 🔧 Küçültme işlemi
+                previewInstance.transform.localScale = originalScale * characterScaleFactor;
+
+                // 🔧 Canvas bileşeni ekle (yoksa)
+                Canvas canvas = previewInstance.GetComponent<Canvas>();
+                if (canvas == null)
+                    canvas = previewInstance.AddComponent<Canvas>();
+
+                canvas.overrideSorting = true;
+                canvas.sortingOrder = characterCanvasSortOrder;
+
+                // 🔧 CanvasGroup ekle (yoksa)
+                if (previewInstance.GetComponent<CanvasGroup>() == null)
+                    previewInstance.AddComponent<CanvasGroup>();
+
+
+                // 🔥 Prefab olarak kaydet
+                string prefabName = "Character";
+                string fullPath = prefabSavePath + prefabName + ".prefab";
+
+                PrefabUtility.SaveAsPrefabAsset(previewInstance, fullPath);
+                Debug.Log("Karakter prefab olarak kaydedildi: " + fullPath);
+
+                // 🔄 Scale'ı geri al (sahne içi görünüm bozulmasın)
+                previewInstance.transform.localScale = originalScale;
+        #else
+                Debug.LogWarning("Prefab kaydetme sadece Editor modunda çalışır");
+        #endif
+
+    }
+
+
+
 }
