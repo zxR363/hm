@@ -18,6 +18,12 @@ public class DynamicCategoryManager : MonoBehaviour
     //CategoryButonlarının olduğu seçimlerde ilk Buton otomatik olarak aktif ediliyor. Bu sayede OptionItem'lar otomatik gelmiş oluyor
     private bool initialCategoryButtonFlag = false;
 
+    [Header("CategoryButtons Circle Background Colors")]
+    //Kategori olarak açılan butonların dinamik şekilde 
+    // color seçilmesi için tanımlanan renkler
+    public Color[] categoryColors; // Inspector’dan tanımlanabilir
+
+
     /// <summary>
     /// Belirtilen ana kategori altında yer alan alt klasörleri bulur ve buton oluşturur
     /// Örn: "Clothes_Image" → Casual, Formal, Man
@@ -38,14 +44,57 @@ public class DynamicCategoryManager : MonoBehaviour
         string[] folders = Directory.GetDirectories(fullPath);
 
         
-        foreach (string folder in folders)
+        for(int i=0;i<folders.Length;i++)
         {
+            string folder = folders[i];
             string folderName = Path.GetFileName(folder);
 
             GameObject btn = Instantiate(categoryButtonPrefab, categoryGridParent);
 
-            Debug.Log("BUTONLAR OLUSTURULUYOR="+folderName);
-            Debug.Log("BUTONLAR OLUSTURULUYOR KATEGORI="+categoryKey);
+            //Her bir buton'a Icon'ları ekleniyor.Spesifik olarak her 
+            // klasörün altında "0.png" resmi o klasörün iconu
+
+            string previewPath = $"Images/Character/Style/{categoryKey}/{folderName}/icon";
+            Sprite previewIcon = Resources.Load<Sprite>(previewPath);
+
+            if (previewIcon != null)
+            {
+                Image img = btn.GetComponentInChildren<Image>();
+                if (img != null)
+                {
+                    if(i < categoryColors.Length)
+                    {
+                        img.color = categoryColors[i];
+                        Debug.Log("COLOR="+img.color+"   "+categoryColors.Length) ;
+                    }
+                    else
+                    {
+                        img.color = Color.white;
+                    }        
+
+                    Color fixedColor = img.color;
+                    fixedColor.a = 1f;
+                    img.color = fixedColor;           
+                }
+
+                // 🔥 Alt objede bulunan Image bileşenini bul
+                Transform imageChild = btn.transform.Find("Image"); // "Icon" alt objenin adı olmalı
+                if (imageChild != null)
+                {
+                    Image img1 = imageChild.GetComponentInChildren<Image>();
+                    if (img1 != null)
+                    {
+                        img1.sprite = previewIcon;
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log($"Preview icon not found: {previewPath}");
+            }
+            //Her bir buton'a Icon'ları ekleniyor.Spesifik olarak her 
+            // klasörün altında "0.png" resmi o klasörün iconu
+
             btn.SetActive(true);
 
             Button buttonComponent = btn.GetComponent<Button>();
@@ -68,6 +117,10 @@ public class DynamicCategoryManager : MonoBehaviour
             }
 
         }
+
+
+
+
 
         Debug.Log($"Category buttons created for: {categoryKey} → {folders.Length} folders");
     }

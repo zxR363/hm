@@ -60,7 +60,6 @@ public class OptionItem : MonoBehaviour
                 iconImage.color = fixedColor;
                 break;
         }
-        Debug.Log("OptionItem Setup → currentCategory: " + manager.currentCategory);
         GetComponent<Button>().onClick.AddListener(OnClick);
 
         //Palette seçildiyse uygulanır.

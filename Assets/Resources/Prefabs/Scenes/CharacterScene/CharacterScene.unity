@@ -1553,6 +1553,12 @@ MonoBehaviour:
   optionItemPrefab: {fileID: 2508538131594475203}
   creationManager: {fileID: 1055377643}
   colorSelectButtonPrefab: {fileID: 286999895933419379}
+  categoryColors:
+  - {r: 0.7735849, g: 0.51788163, b: 0.1788003, a: 0}
+  - {r: 0.8301887, g: 0.75739974, b: 0.254539, a: 0}
+  - {r: 0.7735849, g: 0.09852261, b: 0.09852261, a: 0}
+  - {r: 0.17986828, g: 0.34471542, b: 0.8113208, a: 0}
+  - {r: 0.08788714, g: 0.745283, b: 0.26894096, a: 0}
 --- !u!1 &499131074
 GameObject:
   m_ObjectHideFlags: 0
