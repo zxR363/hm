@@ -8,7 +8,7 @@ public class CharacterCreationManager : MonoBehaviour
     [Header("Preview")]
     public Transform previewArea;
     public GameObject characterPrefab;
-    private GameObject previewInstance;
+    public GameObject previewInstance; //Boş kalacak sonrasında otomatik doluyor
 
     [Header("Managers")]
     public DynamicCategoryManager dynamicCategoryManager;

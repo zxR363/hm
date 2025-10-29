@@ -3,8 +3,8 @@ using UnityEngine.UI;
 
 public class CharacterSlot : MonoBehaviour
 {
-    public int slotIndex;
     public Button slotButton;
+    public Transform slotVisualParent;   // slot prefab’ının konacağı alan
 
     [Header ("CharacterPrefabRefereans")]
     public GameObject characterInstance;
@@ -25,19 +25,28 @@ public class CharacterSlot : MonoBehaviour
             {
                 characterInstance = Instantiate(basePrefab, transform);
                 characterInstance.transform.localPosition = Vector3.zero;
+                //characterInstance.transform.localScale = Vector3.one;
+
             }
         }
 
         CharacterSelectionManager.Instance.SelectSlot(this);
     }
 
-    public void SetCharacter(GameObject newCharacter)
+    //Karakter previewArea'da belirlenip Confirm yapıldıktan sonra burada 
+    //Kaydedilmiş prefab objesi ilgili slot alanına yerleştiriliyor.
+    public void SetCharacter(GameObject prefab)
     {
-        if (characterInstance != null)
+        if (characterInstance != null && characterInstance.scene.IsValid())
+        {
             Destroy(characterInstance);
-
-        characterInstance = Instantiate(newCharacter, transform);
-        characterInstance.transform.localPosition = Vector3.zero;
+        }
+        else
+        {
+            Debug.LogWarning("SetCharacter: Asset referansı silinemez");
+        }
+        characterInstance = Instantiate(prefab, transform);
+        characterInstance.transform.localPosition = slotVisualParent.localPosition;
     }
 
     public void ClearSlot()
