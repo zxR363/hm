@@ -46,6 +46,7 @@ public class CharacterSlot : MonoBehaviour
         }
         characterInstance = Instantiate(prefab, transform);
         characterInstance.transform.localPosition = slotVisualParent.localPosition;
+        characterInstance.transform.position += new Vector3(0f, -28f, 0f);
     }
 
     public void ClearSlot()

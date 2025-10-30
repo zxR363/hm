@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7130968378029005258}
   - component: {fileID: 8801095183759190522}
   - component: {fileID: 3366297947223968304}
-  - component: {fileID: 9191116764157469395}
+  - component: {fileID: 7887620386900790201}
   m_Layer: 5
   m_Name: Clothes
   m_TagString: Untagged
@@ -67,7 +67,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 5179322240923292162, guid: c87c7d5cf7caddd4a86ccc0c9dfc481a, type: 3}
+  m_Sprite: {fileID: 5164930694360017000, guid: 83cad16e0fa75ca42bfdd5e0097f19fc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -90,7 +90,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   database: {fileID: 11400000, guid: 4797e5813d3a4974a86e3a47a95c4fa6, type: 2}
---- !u!225 &9191116764157469395
+--- !u!225 &7887620386900790201
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -113,7 +113,7 @@ GameObject:
   - component: {fileID: 194341824720329527}
   - component: {fileID: 7831709192809136017}
   - component: {fileID: 6100428528342390701}
-  - component: {fileID: 7402540862195170078}
+  - component: {fileID: 6670682727198031199}
   m_Layer: 5
   m_Name: LeftArm
   m_TagString: Untagged
@@ -161,7 +161,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8301887, g: 0.55798614, b: 0.3563546, a: 1}
+  m_Color: {r: 0.6886792, g: 0.44016993, b: 0.25598073, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -178,7 +178,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &7402540862195170078
+--- !u!225 &6670682727198031199
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -201,7 +201,7 @@ GameObject:
   - component: {fileID: 2227528032463593406}
   - component: {fileID: 2204450950478480197}
   - component: {fileID: 7247513881146093114}
-  - component: {fileID: 5101980507614760945}
+  - component: {fileID: 3569213811429110886}
   m_Layer: 5
   m_Name: LeftLeg
   m_TagString: Untagged
@@ -249,7 +249,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8301887, g: 0.55798614, b: 0.3563546, a: 1}
+  m_Color: {r: 0.6886792, g: 0.44016993, b: 0.25598073, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -266,7 +266,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &5101980507614760945
+--- !u!225 &3569213811429110886
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -290,7 +290,7 @@ GameObject:
   - component: {fileID: 3495847125306610768}
   - component: {fileID: 4466945118464011583}
   - component: {fileID: 3813177068543899790}
-  - component: {fileID: 671234337701942787}
+  - component: {fileID: 6169213739861161809}
   m_Layer: 5
   m_Name: Accessory
   m_TagString: Untagged
@@ -368,7 +368,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   database: {fileID: 11400000, guid: 4797e5813d3a4974a86e3a47a95c4fa6, type: 2}
---- !u!225 &671234337701942787
+--- !u!225 &6169213739861161809
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -391,7 +391,7 @@ GameObject:
   - component: {fileID: 5506233412910008044}
   - component: {fileID: 5002115151761850314}
   - component: {fileID: 8555487334258691707}
-  - component: {fileID: 9066416705823612537}
+  - component: {fileID: 6035931975598517116}
   m_Layer: 5
   m_Name: Body
   m_TagString: Untagged
@@ -439,7 +439,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8301887, g: 0.55798614, b: 0.3563546, a: 1}
+  m_Color: {r: 0.6886792, g: 0.44016993, b: 0.25598073, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -456,7 +456,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &9066416705823612537
+--- !u!225 &6035931975598517116
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -479,7 +479,7 @@ GameObject:
   - component: {fileID: 9210427315202399792}
   - component: {fileID: 233462626120491845}
   - component: {fileID: 7896768481175680644}
-  - component: {fileID: 1030965867310291469}
+  - component: {fileID: 1784336462077696750}
   m_Layer: 5
   m_Name: RightArm
   m_TagString: Untagged
@@ -527,7 +527,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8301887, g: 0.55798614, b: 0.3563546, a: 1}
+  m_Color: {r: 0.6886792, g: 0.44016993, b: 0.25598073, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -544,7 +544,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &1030965867310291469
+--- !u!225 &1784336462077696750
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -567,7 +567,7 @@ GameObject:
   - component: {fileID: 7083195955258198269}
   - component: {fileID: 3077900986643450252}
   - component: {fileID: 6086280587004662881}
-  - component: {fileID: 3617608578528225077}
+  - component: {fileID: 715305607028088984}
   m_Layer: 5
   m_Name: Skin
   m_TagString: Untagged
@@ -638,7 +638,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &3617608578528225077
+--- !u!225 &715305607028088984
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -778,7 +778,7 @@ GameObject:
   - component: {fileID: 9200615425627097955}
   - component: {fileID: 1901698758772062706}
   - component: {fileID: 898079701149760708}
-  - component: {fileID: 5818528935723129315}
+  - component: {fileID: 7026838409745691664}
   m_Layer: 5
   m_Name: Head
   m_TagString: Untagged
@@ -826,7 +826,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8301887, g: 0.55798614, b: 0.3563546, a: 1}
+  m_Color: {r: 0.6886792, g: 0.44016993, b: 0.25598073, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -843,7 +843,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &5818528935723129315
+--- !u!225 &7026838409745691664
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -866,7 +866,7 @@ GameObject:
   - component: {fileID: 1264507247776072525}
   - component: {fileID: 7523444719296719457}
   - component: {fileID: 1077365351103851372}
-  - component: {fileID: 6316521662461717798}
+  - component: {fileID: 466386067054069584}
   m_Layer: 5
   m_Name: Hair
   m_TagString: Untagged
@@ -914,14 +914,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.9245283, g: 0.09070841, b: 0.09070841, a: 1}
+  m_Color: {r: 0.090196095, g: 0.28966397, b: 0.9254902, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1305207237225021674, guid: 81145c4203e73a44888a9a9275705127, type: 3}
+  m_Sprite: {fileID: -1780285159967931358, guid: 4f7282dbb775fd447974467ce6b19a34, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -931,7 +931,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &6316521662461717798
+--- !u!225 &466386067054069584
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -955,7 +955,7 @@ GameObject:
   - component: {fileID: 3588909959377617008}
   - component: {fileID: 9173654287786347255}
   - component: {fileID: 4055308884977114505}
-  - component: {fileID: 8619167391883867081}
+  - component: {fileID: 4426218416658122277}
   m_Layer: 5
   m_Name: Hat
   m_TagString: Untagged
@@ -1033,7 +1033,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   database: {fileID: 11400000, guid: 4797e5813d3a4974a86e3a47a95c4fa6, type: 2}
---- !u!225 &8619167391883867081
+--- !u!225 &4426218416658122277
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1056,7 +1056,7 @@ GameObject:
   - component: {fileID: 5909593476599594672}
   - component: {fileID: 6270397679080303701}
   - component: {fileID: 6698530321433168454}
-  - component: {fileID: 333979602549980998}
+  - component: {fileID: 900752982244673796}
   m_Layer: 5
   m_Name: RightLeg
   m_TagString: Untagged
@@ -1104,7 +1104,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8301887, g: 0.55798614, b: 0.3563546, a: 1}
+  m_Color: {r: 0.6886792, g: 0.44016993, b: 0.25598073, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1121,7 +1121,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &333979602549980998
+--- !u!225 &900752982244673796
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
