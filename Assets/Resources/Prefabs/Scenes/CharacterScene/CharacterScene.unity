@@ -2952,6 +2952,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 901684049}
+  - component: {fileID: 901684050}
   m_Layer: 5
   m_Name: CharacterCreationPanel
   m_TagString: Untagged
@@ -2988,6 +2989,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &901684050
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 901684048}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &917331606
 GameObject:
   m_ObjectHideFlags: 0

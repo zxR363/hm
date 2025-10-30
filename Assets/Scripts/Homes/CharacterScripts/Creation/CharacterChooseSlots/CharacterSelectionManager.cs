@@ -37,6 +37,8 @@ public class CharacterSelectionManager : MonoBehaviour
     public float characterScaleFactor = 0.5f; // 🔥 Prefabs scaleFactor
     public string prefabSavePath = "Assets/Resources/GeneratedCharacters/";
 
+
+
     void Awake()
     {
         Instance = this;
@@ -47,6 +49,15 @@ public class CharacterSelectionManager : MonoBehaviour
         // 🔄 Panel geçişi
         characterSlotPanel.SetActive(false);
         characterCreationPanel.SetActive(true);
+
+        //RectTransform rt = characterCreationPanel.GetComponent<RectTransform>();
+        //StartCoroutine(AnimatePanelIn(rt)); // sağdan kayarak gelsin
+
+        RectTransform panelRT = characterCreationPanel.GetComponent<RectTransform>();
+        CanvasGroup cg = characterCreationPanel.GetComponent<CanvasGroup>();
+        if (cg == null) cg = characterCreationPanel.gameObject.AddComponent<CanvasGroup>();
+
+        StartCoroutine(SlideDiagonalAndFadeIn(panelRT, cg));
 
         selectedSlot = slot;
 
@@ -213,6 +224,97 @@ public class CharacterSelectionManager : MonoBehaviour
         // 🔄 Panel geçişi
         characterCreationPanel.SetActive(false);
         characterSlotPanel.SetActive(true);
+
+
+        // SlotPanel altındaki tüm CanvasGroup bileşenlerini topla
+        CanvasGroup[] allGroups = characterSlotPanel.GetComponentsInChildren<CanvasGroup>(true);
+        List<CanvasGroup> fadeTargets = new List<CanvasGroup>(allGroups);
+
+        // Tüm GameObject’leri tarayıp eksik olanlara CanvasGroup ekle
+        Transform[] allChildren = characterSlotPanel.GetComponentsInChildren<Transform>(true);
+        foreach (Transform child in allChildren)
+        {
+            if (child.GetComponent<CanvasGroup>() == null)
+            {
+                CanvasGroup cg = child.gameObject.AddComponent<CanvasGroup>();
+                cg.alpha = 0;
+                cg.interactable = false;
+                cg.blocksRaycasts = false;
+                fadeTargets.Add(cg);
+            }
+        }
+
+
+        StartCoroutine(FadeInAllAtOnce(fadeTargets, 0.8f));
+
     }
+
+    //----CharacterCreationPanel açılırken animasyon ile açılması
+    public IEnumerator SlideDiagonalAndFadeIn(RectTransform panelRT, CanvasGroup cg, float duration = 0.4f)
+    {
+        // Başlangıç pozisyonu: sağ alt köşe
+        Vector2 startPos = new Vector2(Screen.width, -Screen.height);
+        // Hedef pozisyon: sol üst köşe (merkezde sabitlenmiş panel için genelde (0,0))
+        Vector2 endPos = new Vector2(0, 0);
+
+        panelRT.anchoredPosition = startPos;
+        cg.alpha = 0;
+        cg.interactable = false;
+        cg.blocksRaycasts = false;
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float eased = 1 - Mathf.Pow(1 - t, 3); // EaseOutCubic
+
+            panelRT.anchoredPosition = Vector2.Lerp(startPos, endPos, eased);
+            cg.alpha = eased;
+
+            yield return null;
+        }
+
+        panelRT.anchoredPosition = endPos;
+        cg.alpha = 1;
+        cg.interactable = true;
+        cg.blocksRaycasts = true;
+    }
+
+
+    public IEnumerator FadeInAllAtOnce(List<CanvasGroup> groups, float duration = 1.5f)
+    {
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float eased = 1 - Mathf.Pow(1 - t, 3); // EaseOutCubic
+
+            foreach (CanvasGroup cg in groups)
+            {
+                if (cg != null && cg.gameObject != null && cg.gameObject.activeInHierarchy)
+                {
+                    cg.alpha = eased;
+                }
+            }
+
+            yield return null;
+        }
+
+        foreach (CanvasGroup cg in groups)
+        {
+            if (cg != null && cg.gameObject != null && cg.gameObject.activeInHierarchy)
+            {
+                cg.alpha = 1;
+                cg.interactable = true;
+                cg.blocksRaycasts = true;
+            }
+        }
+    }
+
+
+
 
 }

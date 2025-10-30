@@ -21,7 +21,7 @@ public class CharacterSlot : MonoBehaviour
         if (characterInstance == null)
         {
             // 🔥 Kullanıcı boş slot'a tıkladı → BaseCharacterPrefab ile oluştur
-            GameObject basePrefab = Resources.Load<GameObject>("GeneratedCharacters/BaseCharacterPrefab");
+            GameObject basePrefab = Resources.Load<GameObject>("GeneratedCharacters/BaseCharacterPrefab/BaseCharacterPrefab");
             if (basePrefab != null)
             {
                 characterInstance = Instantiate(basePrefab, transform);

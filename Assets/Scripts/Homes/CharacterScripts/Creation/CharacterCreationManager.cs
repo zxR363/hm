@@ -62,6 +62,7 @@ public class CharacterCreationManager : MonoBehaviour
     public List<Color> freckleColors;      // Gerçek renk değerleri (karaktere uygulanacak)
     //--------------Item Color
 
+
     void Start()
     {
         skinColorIcons = LoadSpritesFromResources("Images/Character/Style/Skin_Image");
