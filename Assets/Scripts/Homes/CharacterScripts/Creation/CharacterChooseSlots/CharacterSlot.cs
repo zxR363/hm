@@ -9,6 +9,7 @@ public class CharacterSlot : MonoBehaviour
     [Header ("CharacterPrefabRefereans")]
     public GameObject characterInstance;
 
+
     private void Start()
     {
         if (slotButton != null)
@@ -20,16 +21,14 @@ public class CharacterSlot : MonoBehaviour
         if (characterInstance == null)
         {
             // 🔥 Kullanıcı boş slot'a tıkladı → BaseCharacterPrefab ile oluştur
-            GameObject basePrefab = Resources.Load<GameObject>("BaseCharacterPrefab");
+            GameObject basePrefab = Resources.Load<GameObject>("GeneratedCharacters/BaseCharacterPrefab");
             if (basePrefab != null)
             {
                 characterInstance = Instantiate(basePrefab, transform);
                 characterInstance.transform.localPosition = Vector3.zero;
                 //characterInstance.transform.localScale = Vector3.one;
-
             }
         }
-
         CharacterSelectionManager.Instance.SelectSlot(this);
     }
 

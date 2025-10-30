@@ -34,6 +34,8 @@ public class OptionItem : MonoBehaviour
             return;
         }
 
+        //PrintHierarchy(creationManager.previewInstance);
+
         optionIndex = index;
         manager = creationManager;
         managerCategory = manager.currentCategory;
@@ -147,4 +149,19 @@ public class OptionItem : MonoBehaviour
         fixedColor.a = 1f;
         iconImage.color = fixedColor;
     }
+
+    void PrintHierarchy(GameObject obj)
+    {
+        Transform current = obj.transform;
+        string hierarchy = current.name;
+
+        while (current.parent != null)
+        {
+            current = current.parent;
+            hierarchy = current.name + " → " + hierarchy;
+        }
+
+        Debug.Log("OptionItem Tam hiyerarşi: " + hierarchy);
+    }
+
 }

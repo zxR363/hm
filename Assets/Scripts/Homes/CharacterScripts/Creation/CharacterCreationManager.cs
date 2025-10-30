@@ -437,7 +437,7 @@ public class CharacterCreationManager : MonoBehaviour
     //-------***********************************************************-------------------
     //--------------SELECTION TAB And OptionGRID-------------------
 
-        private void ClearOptionGrid()
+    private void ClearOptionGrid()
     {
         foreach (Transform child in optionGridParent)
             Destroy(child.gameObject);

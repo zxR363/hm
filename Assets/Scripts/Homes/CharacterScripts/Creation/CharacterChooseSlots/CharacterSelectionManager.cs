@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
+using System.Collections;
+using System.Collections.Generic;
 
 
 #if UNITY_EDITOR
@@ -20,15 +22,17 @@ public class CharacterSelectionManager : MonoBehaviour
     public GameObject characterSlotPanel;
     public GameObject characterCreationPanel;
 
+    [Header("OptionGridPanel-Content")]
+    public GameObject optionGridContent;
+
 
     [Header("Slot ve Preview")]
     public CharacterSlot selectedSlot;
-    public Transform previewArea;
+    public Transform previewArea; //
 
     private GameObject currentPreviewInstance;
 
      [Header("CharacterPrefab Kaydetme")]
-    //public GameObject previewInstance;
     public int characterCanvasSortOrder = 10; // 🔥 Prefabs sortingLayer değeri 
     public float characterScaleFactor = 0.5f; // 🔥 Prefabs scaleFactor
     public string prefabSavePath = "Assets/Resources/GeneratedCharacters/";
@@ -40,95 +44,68 @@ public class CharacterSelectionManager : MonoBehaviour
 
     public void SelectSlot(CharacterSlot slot)
     {
-
-        selectedSlot = slot;
-
-
-        if (characterCreationManager.previewInstance != null && characterCreationManager.previewInstance.scene.IsValid())
-        {
-            Destroy(characterCreationManager.previewInstance);
-            characterCreationManager.previewInstance = null;
-        }
-
-        // 🔄 Slot’taki prefab referansını al
-        GameObject prefab = slot.characterInstance;
-
         // 🔄 Panel geçişi
         characterSlotPanel.SetActive(false);
         characterCreationPanel.SetActive(true);
 
-        // 🔧 Önce previewArea'yı aktif et
+        selectedSlot = slot;
+
+        ResetOptionGridToDefault();
+
+        StartCoroutine(DelayedPreview(slot.characterInstance));
+    }
+
+    // !!!! DİKKAT: Dinamik olarak CharacterCreationPanel'deki PreviewArea'nın altına
+    // ilgili prefab'ı eklemeye imkan tanıyor.
+    // SetActive gibi bir durumdan kaynaklı olarak Hierarchy de gözükmüyor
+    // o sebeple Coroutine ile yapıyoruz bu işlemi 1 sonraki frame de koyuyor.
+    IEnumerator DelayedPreview(GameObject prefab)
+    {
+        characterCreationPanel.SetActive(true); // paneli aktif et
+
+        yield return null; // bir frame bekle → Unity aktifliği işlesin
+
         if (!previewArea.gameObject.activeInHierarchy)
         {
-            previewArea.gameObject.SetActive(true);
-            Debug.Log("PreviewArea aktif hale getirildi");
+            Debug.LogWarning("PreviewArea hala aktif değil!");
+            yield break;
         }
 
+        GameObject previewInstance = Instantiate(prefab);
+        previewInstance.name = "CharacterPreview";
 
-        if (prefab != null)
+        // UI bağlama
+        RectTransform rt = previewInstance.GetComponent<RectTransform>();
+        rt.SetParent(previewArea, false);
+
+        // 🔧 Pozisyon ve layout ayarları
+        rt.localScale = Vector3.one;
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = Vector2.zero;
+        rt.sizeDelta = new Vector2(400, 800); // sabit boyut
+
+        characterCreationManager.previewInstance = previewInstance;
+    }
+
+    //OptionGrid-Content içerisindeki tüm eski OptionItem'ları temizliyor.
+    public void ResetOptionGridToDefault()
+    {
+        // 1. OptionGrid içeriğini temizle
+        foreach (Transform child in optionGridContent.transform)
         {
-            Debug.Log("KONROL");
-            //GameObject previewInstance = Instantiate(prefab, previewArea);            
-            GameObject previewInstance =  Instantiate(slot.characterInstance);
-            previewInstance.name = "CharacterPreview"; // 🔥 ismini sabit tut
-
-            Canvas[] canvases = previewInstance.GetComponentsInChildren<Canvas>(true);
-            foreach (Canvas c in canvases)
-            {
-                Destroy(c);
-                Debug.Log("Canvas kaldırıldı: " + c.name);
-            }
-            
-            // Sahneye zorla taşı
-            SceneManager.MoveGameObjectToScene(previewInstance, SceneManager.GetActiveScene());
-
-            // 🔄 PreviewArea’ya bağla
-            previewInstance.transform.SetParent(previewArea, false); // worldPositionStays = false
-
-            if (previewInstance.transform.parent == previewArea.transform)
-            {
-                Debug.Log("Gerçekten previewArea altında!");
-            }
-            else
-            {
-                Debug.LogWarning("PreviewInstance başka bir parent'a bağlı: " + previewInstance.transform.parent.name);
-            }
-
-            Debug.Log("Mask var mı? " + (previewArea.GetComponent<Mask>() != null));
-            Debug.Log("RectMask2D var mı? " + (previewArea.GetComponent<RectMask2D>() != null));
-            RectTransform rt = previewInstance.GetComponent<RectTransform>();
-            rt.anchoredPosition = Vector2.zero;
-            Debug.Log("AnchoredPosition: " + rt.anchoredPosition);
-            Debug.Log("AnchorMin: " + rt.anchorMin);
-            Debug.Log("AnchorMax: " + rt.anchorMax);
-            Debug.Log("Pivot: " + rt.pivot);
-            Debug.Log("PreviewArea sizeDelta: " + rt.sizeDelta);
-
-
-
-
-
-            previewInstance.transform.localPosition = Vector3.zero;
-            previewInstance.transform.localScale = Vector3.one;
-
-            characterCreationManager.previewInstance = previewInstance;
-            characterCreationManager.previewInstance.transform.localScale = Vector3.one;
-            
-            Debug.Log("----------");
-            PrintHierarchy(previewInstance);
-            Debug.Log("----------");
-            PrintHierarchy(characterCreationManager.previewInstance);
-            Debug.Log("----------");
-
-            Debug.Log("HideFlags: " + previewInstance.hideFlags);
-            Debug.Log("Sahne adı: " + previewInstance.scene.name);
-
+            Destroy(child.gameObject);
         }
 
+        // 2. Scroll pozisyonunu sıfırla
+        ScrollRect scrollRect = optionGridContent.GetComponentInParent<ScrollRect>();
+        if (scrollRect != null)
+            scrollRect.verticalNormalizedPosition = 1f;
 
-
-
-        }
+        // 3. Default kategoriye set et (örneğin “Skin”)
+        characterCreationManager.SetCategory(0);
+    }
 
 
     void PrintHierarchy(GameObject obj)
@@ -153,19 +130,10 @@ public class CharacterSelectionManager : MonoBehaviour
             return;
         }
 
-        // // Preview'dan yeni prefab oluştur
-        // GameObject updated = Instantiate(characterCreationManager.previewInstance, selectedSlot.slotVisualParent);
-        // updated.transform.localPosition = Vector3.zero;
-        // updated.transform.localScale = Vector3.one;
-
-        // selectedSlot.characterInstance = updated;
-
-
         // 🔥 Karakteri kaydet
         SaveConfirmButtonCharacterPrefab();
 
         // 🔥 Preview’ı sahneden kaldır
-        //Destroy(characterCreationManager.previewInstance);
         if (characterCreationManager.previewInstance != null && characterCreationManager.previewInstance.scene.IsValid())
         {
             Destroy(characterCreationManager.previewInstance);
@@ -175,8 +143,6 @@ public class CharacterSelectionManager : MonoBehaviour
             Debug.LogWarning("SetCharacter: Asset referansı silinemez");
         }
         characterCreationManager.previewInstance = null;
-
-        // 🔥 İsteğe bağlı: SaveSystem ile karakteri kaydet
     }
 
 
