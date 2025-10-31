@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class CharacterSlot : MonoBehaviour
 {
     public Button slotButton;
-    public Transform slotVisualParent;   // slot prefab’ının konacağı alan
+    private Vector3 slotVisualParent;   // slot prefab’ının konacağı alan
 
     [Header ("CharacterPrefabRefereans")]
     public GameObject characterInstance;
@@ -17,6 +17,8 @@ public class CharacterSlot : MonoBehaviour
 
     private void Awake()
     {
+        //TODO: Koordinat kontrol edilecek
+        slotVisualParent = new Vector3(0f, 150f, 0f);
         // "ShowArea" altındaki "characterImage" objesini bul
         Transform showArea = transform.Find("ShowArea");
         if (showArea != null)
@@ -79,7 +81,7 @@ public class CharacterSlot : MonoBehaviour
             if (basePrefab != null)
             {
                 characterInstance = Instantiate(basePrefab, transform);
-                characterInstance.transform.localPosition = Vector3.zero;
+                characterInstance.transform.localPosition = slotVisualParent;
                 //characterInstance.transform.localScale = Vector3.one;
             }
         }
@@ -93,7 +95,7 @@ public class CharacterSlot : MonoBehaviour
             if (slotPrefab != null)
             {
                 characterInstance = Instantiate(slotPrefab, transform);
-                characterInstance.transform.localPosition = Vector3.zero;
+                characterInstance.transform.localPosition = slotVisualParent;
             }
             else
             {
@@ -129,14 +131,14 @@ public class CharacterSlot : MonoBehaviour
                 ClearCharacterArea();
                 Debug.Log("CCCCCC");
                 characterInstance = Instantiate(prefab, transform);
-                characterInstance.transform.localPosition = slotVisualParent.localPosition;
+                characterInstance.transform.localPosition = slotVisualParent;
                 characterInstance.transform.position += new Vector3(0f, -28f, 0f);
             }
             else
             {
                 Debug.Log("TTTTTT");
                 characterInstance = Instantiate(prefab, transform);
-                characterInstance.transform.localPosition = slotVisualParent.localPosition;
+                characterInstance.transform.localPosition = slotVisualParent;
                 characterInstance.transform.position += new Vector3(0f, -28f, 0f);
             }
             //Bu alan SlotIndex'ine göre ilgili pozisyon ve boyut ayarlaması yapıyor.
