@@ -84,7 +84,7 @@ public class CharacterSelectionManager : MonoBehaviour
     public void ShowInCharacterArea(GameObject prefab)
     {
         // PreviewArea’ya gösterim
-        //ClearCharacterArea();
+        ClearCharacterArea();
         GameObject preview = Instantiate(prefab, characterArea.transform);
         preview.transform.localPosition = Vector3.zero;
         preview.transform.localScale = Vector3.one;
@@ -95,7 +95,10 @@ public class CharacterSelectionManager : MonoBehaviour
     {
         foreach (Transform child in characterArea.transform)
         {
-            Destroy(child.gameObject);
+            if (child.GetComponent<ICharacterPrefab>() != null)
+            {
+                Destroy(child.gameObject);
+            }
         }
     }
 

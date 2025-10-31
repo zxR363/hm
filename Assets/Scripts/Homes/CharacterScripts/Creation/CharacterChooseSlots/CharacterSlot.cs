@@ -13,6 +13,7 @@ public class CharacterSlot : MonoBehaviour
     private GameObject activeCharacter;
 
     public int slotIndex; // 0–6
+    private int constSlotAreaIndex = 6;
 
     private void Awake()
     {
@@ -41,7 +42,7 @@ public class CharacterSlot : MonoBehaviour
 
         if(name == "CharacterArea")
         {
-            slotIndex = 6;
+            slotIndex = constSlotAreaIndex;
             return;
         }
 
@@ -61,9 +62,6 @@ public class CharacterSlot : MonoBehaviour
         {
             Debug.LogWarning($"CharacterSlot: Geçersiz isim formatı → {name}");
         }
-
-
-
     }
 
     private void Start()
@@ -85,6 +83,23 @@ public class CharacterSlot : MonoBehaviour
                 //characterInstance.transform.localScale = Vector3.one;
             }
         }
+        else
+        {
+            // 🎯 Slot ismine göre prefab yükle
+            string slotName = gameObject.name; // örn: "CharacterSlot_3"
+            string prefabPath = $"GeneratedCharacters/{slotName}/{slotName}";
+
+            GameObject slotPrefab = Resources.Load<GameObject>(prefabPath);
+            if (slotPrefab != null)
+            {
+                characterInstance = Instantiate(slotPrefab, transform);
+                characterInstance.transform.localPosition = Vector3.zero;
+            }
+            else
+            {
+                Debug.LogWarning($"❌ Prefab bulunamadı: {prefabPath}");
+            }
+        }
         CharacterSelectionManager.Instance.SelectSlot(this);
     }
 
@@ -104,59 +119,55 @@ public class CharacterSlot : MonoBehaviour
         //characterInstance.transform.localPosition = slotVisualParent.localPosition;
         //characterInstance.transform.position += new Vector3(0f, -28f, 0f);
 
-        //RefreshSlotVisual();
-
-        if (characterImage != null)
+        if (characterImage != null && characterImage.scene.IsValid())
             characterImage.SetActive(!prefab); // prefab varsa gizle, yoksa göster
 
         if (prefab)
         {
-            if (activeCharacter != null)
-                //Destroy(activeCharacter);
-
+            if(slotIndex == constSlotAreaIndex)
+            {
+                ClearCharacterArea();
+                Debug.Log("CCCCCC");
+                characterInstance = Instantiate(prefab, transform);
+                characterInstance.transform.localPosition = slotVisualParent.localPosition;
+                characterInstance.transform.position += new Vector3(0f, -28f, 0f);
+            }
+            else
+            {
+                Debug.Log("TTTTTT");
+                characterInstance = Instantiate(prefab, transform);
+                characterInstance.transform.localPosition = slotVisualParent.localPosition;
+                characterInstance.transform.position += new Vector3(0f, -28f, 0f);
+            }
             //Bu alan SlotIndex'ine göre ilgili pozisyon ve boyut ayarlaması yapıyor.
-            characterInstance = Instantiate(prefab, transform);
-            activeCharacter = characterInstance;
-            activeCharacter.transform.localPosition = Vector3.zero;
-            activeCharacter.transform.localScale = Vector3.one;
+            //characterInstance = Instantiate(prefab, transform);
+            //activeCharacter = characterInstance;
+            //activeCharacter.transform.localPosition = Vector3.zero;
+            //activeCharacter.transform.localScale = Vector3.one;
+            //characterInstance = Instantiate(prefab, transform);
+            //characterInstance.transform.localPosition = slotVisualParent.localPosition;
+            //characterInstance.transform.position += new Vector3(0f, -28f, 0f);
         }
         else
         {
-            if (activeCharacter != null)
+            if (characterInstance != null)
             {
-                //Destroy(activeCharacter);
-                //activeCharacter = null;
+                Destroy(characterInstance);
+                characterInstance = null;
             }
         }
     }
 
-    //------------Gorsel Image-Prefab switch-----
-    public void RefreshSlotVisual()
+    public void ClearCharacterArea()
     {
-        bool hasValidPrefab = characterInstance != null && characterInstance.GetComponent<ICharacterPrefab>() != null;
-
-        if (characterImage != null)
-            characterImage.SetActive(!hasValidPrefab); // prefab varsa gizle, yoksa göster
-
-        if (hasValidPrefab)
+        foreach (Transform child in transform)
         {
-            if (activeCharacter != null)
-                Destroy(activeCharacter);
-
-            activeCharacter = Instantiate(characterInstance, transform);
-            activeCharacter.transform.localPosition = Vector3.zero;
-            activeCharacter.transform.localScale = Vector3.one;
-        }
-        else
-        {
-            if (activeCharacter != null)
+            if (child.GetComponent<ICharacterPrefab>() != null)
             {
-                Destroy(activeCharacter);
-                activeCharacter = null;
+                Destroy(child.gameObject);
             }
         }
     }
-    //------------Gorsel Image-Prefab switch-----
 
     public void ClearSlot()
     {

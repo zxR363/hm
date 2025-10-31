@@ -371,7 +371,6 @@ MonoBehaviour:
   slotButton: {fileID: 41810800}
   slotVisualParent: {fileID: 1635185001}
   characterInstance: {fileID: 8190065812634275876, guid: ae1eff57c62463243b527e963a81e042, type: 3}
-  characterImage: {fileID: 0}
   slotIndex: 0
 --- !u!1 &81981733
 GameObject:
@@ -3494,7 +3493,7 @@ MonoBehaviour:
   characterSlotPanel: {fileID: 243332426}
   characterCreationPanel: {fileID: 901684048}
   optionGridContent: {fileID: 1257217004}
-  characterArea: {fileID: 840784841}
+  characterArea: {fileID: 840784843}
   selectedSlot: {fileID: 0}
   allSlots:
   - {fileID: 1513896285}
@@ -3981,7 +3980,7 @@ RectTransform:
   m_GameObject: {fileID: 840784841}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.3, y: 1.3, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1308603828}
@@ -4008,7 +4007,6 @@ MonoBehaviour:
   slotButton: {fileID: 1136946701}
   slotVisualParent: {fileID: 1420965802}
   characterInstance: {fileID: 8190065812634275876, guid: ae1eff57c62463243b527e963a81e042, type: 3}
-  characterImage: {fileID: 0}
   slotIndex: 0
 --- !u!1 &857275335
 GameObject:
@@ -4388,7 +4386,6 @@ MonoBehaviour:
   slotButton: {fileID: 655915559}
   slotVisualParent: {fileID: 352706894}
   characterInstance: {fileID: 8190065812634275876, guid: ae1eff57c62463243b527e963a81e042, type: 3}
-  characterImage: {fileID: 0}
   slotIndex: 0
 --- !u!1 &950611586
 GameObject:
@@ -6091,7 +6088,6 @@ MonoBehaviour:
   slotButton: {fileID: 205040836}
   slotVisualParent: {fileID: 554848887}
   characterInstance: {fileID: 8190065812634275876, guid: ae1eff57c62463243b527e963a81e042, type: 3}
-  characterImage: {fileID: 0}
   slotIndex: 0
 --- !u!1 &1418178831
 GameObject:
@@ -6226,7 +6222,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1420965801}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -6518,7 +6514,6 @@ MonoBehaviour:
   slotButton: {fileID: 701467444}
   slotVisualParent: {fileID: 950611587}
   characterInstance: {fileID: 8190065812634275876, guid: ae1eff57c62463243b527e963a81e042, type: 3}
-  characterImage: {fileID: 0}
   slotIndex: 0
 --- !u!1 &1468435604
 GameObject:
@@ -6723,7 +6718,6 @@ MonoBehaviour:
   slotButton: {fileID: 1401506962}
   slotVisualParent: {fileID: 457863105}
   characterInstance: {fileID: 8190065812634275876, guid: ae1eff57c62463243b527e963a81e042, type: 3}
-  characterImage: {fileID: 0}
   slotIndex: 0
 --- !u!1 &1531778740
 GameObject:
@@ -8559,7 +8553,6 @@ MonoBehaviour:
   slotButton: {fileID: 1744386230}
   slotVisualParent: {fileID: 552483968}
   characterInstance: {fileID: 8190065812634275876, guid: ae1eff57c62463243b527e963a81e042, type: 3}
-  characterImage: {fileID: 0}
   slotIndex: 0
 --- !u!1 &2030229791
 GameObject:
