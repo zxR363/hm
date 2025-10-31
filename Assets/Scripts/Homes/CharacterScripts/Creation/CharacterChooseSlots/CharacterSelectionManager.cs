@@ -26,9 +26,12 @@ public class CharacterSelectionManager : MonoBehaviour
     public GameObject optionGridContent;
 
 
-    [Header("Slot ve Preview")]
+    [Header("Character Slot ve Area")]
+    public CharacterSlot characterArea; //Seçilen karakterin gösterileceği yer
     public CharacterSlot selectedSlot;
+    public CharacterSlot[] allSlots; // 0–6
     public Transform previewArea; //
+    private int activeSlotIndex = -1; //Seçilmiş olunan slot indexi
 
     private GameObject currentPreviewInstance;
 
@@ -37,7 +40,7 @@ public class CharacterSelectionManager : MonoBehaviour
     public float characterScaleFactor = 0.5f; // 🔥 Prefabs scaleFactor
     public string prefabSavePath = "Assets/Resources/GeneratedCharacters/";
 
-
+    private GameObject activeCharacter;
 
     void Awake()
     {
@@ -46,25 +49,59 @@ public class CharacterSelectionManager : MonoBehaviour
 
     public void SelectSlot(CharacterSlot slot)
     {
-        // 🔄 Panel geçişi
-        characterSlotPanel.SetActive(false);
-        characterCreationPanel.SetActive(true);
 
-        //RectTransform rt = characterCreationPanel.GetComponent<RectTransform>();
-        //StartCoroutine(AnimatePanelIn(rt)); // sağdan kayarak gelsin
+        if (slot.slotIndex < 6)
+        {
+            // Slot 1–6 → Preview’a göster
+            activeSlotIndex = slot.slotIndex;
+            ShowInCharacterArea(slot.characterInstance);
+        }
 
-        RectTransform panelRT = characterCreationPanel.GetComponent<RectTransform>();
-        CanvasGroup cg = characterCreationPanel.GetComponent<CanvasGroup>();
-        if (cg == null) cg = characterCreationPanel.gameObject.AddComponent<CanvasGroup>();
+        else if(slot.slotIndex == 6)
+        {
+            // 🔄 Panel geçişi
+            characterSlotPanel.SetActive(false);
+            characterCreationPanel.SetActive(true);
 
-        StartCoroutine(SlideDiagonalAndFadeIn(panelRT, cg));
+            //RectTransform rt = characterCreationPanel.GetComponent<RectTransform>();
+            //StartCoroutine(AnimatePanelIn(rt)); // sağdan kayarak gelsin
 
-        selectedSlot = slot;
+            RectTransform panelRT = characterCreationPanel.GetComponent<RectTransform>();
+            CanvasGroup cg = characterCreationPanel.GetComponent<CanvasGroup>();
+            if (cg == null) cg = characterCreationPanel.gameObject.AddComponent<CanvasGroup>();
 
-        ResetOptionGridToDefault();
+            StartCoroutine(SlideDiagonalAndFadeIn(panelRT, cg));
 
-        StartCoroutine(DelayedPreview(slot.characterInstance));
+            selectedSlot = allSlots[activeSlotIndex];
+
+            ResetOptionGridToDefault();
+
+            StartCoroutine(DelayedPreview(slot.characterInstance));
+        }        
     }
+
+    //--------------------CharacterAREA---------------------
+    public void ShowInCharacterArea(GameObject prefab)
+    {
+        // PreviewArea’ya gösterim
+        //ClearCharacterArea();
+        GameObject preview = Instantiate(prefab, characterArea.transform);
+        preview.transform.localPosition = Vector3.zero;
+        preview.transform.localScale = Vector3.one;
+        Debug.Log("AA");
+    }
+
+    public void ClearCharacterArea()
+    {
+        foreach (Transform child in characterArea.transform)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+
+    //--------------------CharacterAREA---------------------
+
+    //----------------------CHARACTER PANEL AYARLAMA ISLEMLERI-------
 
     // !!!! DİKKAT: Dinamik olarak CharacterCreationPanel'deki PreviewArea'nın altına
     // ilgili prefab'ı eklemeye imkan tanıyor.
@@ -193,18 +230,19 @@ public class CharacterSelectionManager : MonoBehaviour
                 string fullPath = prefabSavePath + prefabName + ".prefab";
 
                 PrefabUtility.SaveAsPrefabAsset(characterCreationManager.previewInstance, fullPath);
-                Debug.Log("Karakter prefab olarak kaydedildi: " + fullPath);
 
                 // 🔄 Scale'ı geri al (sahne içi görünüm bozulmasın)
                 characterCreationManager.previewInstance.transform.localScale = originalScale;
 
                 // 🔄 Prefab’ı tekrar yükle ve slot’a ata
                 string resourcePath = "GeneratedCharacters/" + prefabName;
-                Debug.Log("RSC PATH="+resourcePath);
                 GameObject loadedPrefab = Resources.Load<GameObject>(resourcePath);
                 if (loadedPrefab != null)
                 {
-                    selectedSlot.SetCharacter(loadedPrefab);
+                    allSlots[activeSlotIndex].SetCharacter(loadedPrefab);
+                    Debug.Log("ActiveSlot =" + activeSlotIndex);
+                    Debug.Log("CharacterArae=" + characterArea.slotIndex);
+                    characterArea.SetCharacter(loadedPrefab);
                 }
                 else
                 {
@@ -224,7 +262,6 @@ public class CharacterSelectionManager : MonoBehaviour
         // 🔄 Panel geçişi
         characterCreationPanel.SetActive(false);
         characterSlotPanel.SetActive(true);
-
 
         // SlotPanel altındaki tüm CanvasGroup bileşenlerini topla
         CanvasGroup[] allGroups = characterSlotPanel.GetComponentsInChildren<CanvasGroup>(true);
@@ -248,6 +285,11 @@ public class CharacterSelectionManager : MonoBehaviour
         StartCoroutine(FadeInAllAtOnce(fadeTargets, 0.8f));
 
     }
+
+
+    //----------------------CHARACTER PANEL AYARLAMA ISLEMLERI-------
+
+    //--------------ANIMATION----------------------------
 
     //----CharacterCreationPanel açılırken animasyon ile açılması
     public IEnumerator SlideDiagonalAndFadeIn(RectTransform panelRT, CanvasGroup cg, float duration = 0.4f)
@@ -314,7 +356,7 @@ public class CharacterSelectionManager : MonoBehaviour
         }
     }
 
-
+    //--------------ANIMATION----------------------------
 
 
 }
