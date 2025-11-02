@@ -117,10 +117,6 @@ public class CharacterSlot : MonoBehaviour
         {
             Debug.LogWarning("SetCharacter: Asset referansı silinemez");
         }
-        //characterInstance = Instantiate(prefab, transform);
-        //characterInstance.transform.localPosition = slotVisualParent.localPosition;
-        //characterInstance.transform.position += new Vector3(0f, -28f, 0f);
-
         if (characterImage != null && characterImage.scene.IsValid())
             characterImage.SetActive(!prefab); // prefab varsa gizle, yoksa göster
 
@@ -132,23 +128,15 @@ public class CharacterSlot : MonoBehaviour
                 Debug.Log("CCCCCC");
                 characterInstance = Instantiate(prefab, transform);
                 characterInstance.transform.localPosition = slotVisualParent;
-                characterInstance.transform.position += new Vector3(0f, -28f, 0f);
+                //characterInstance.transform.position += new Vector3(0f, -28f, 0f);
             }
             else
             {
                 Debug.Log("TTTTTT");
                 characterInstance = Instantiate(prefab, transform);
                 characterInstance.transform.localPosition = slotVisualParent;
-                characterInstance.transform.position += new Vector3(0f, -28f, 0f);
+                //characterInstance.transform.position += new Vector3(0f, -28f, 0f);
             }
-            //Bu alan SlotIndex'ine göre ilgili pozisyon ve boyut ayarlaması yapıyor.
-            //characterInstance = Instantiate(prefab, transform);
-            //activeCharacter = characterInstance;
-            //activeCharacter.transform.localPosition = Vector3.zero;
-            //activeCharacter.transform.localScale = Vector3.one;
-            //characterInstance = Instantiate(prefab, transform);
-            //characterInstance.transform.localPosition = slotVisualParent.localPosition;
-            //characterInstance.transform.position += new Vector3(0f, -28f, 0f);
         }
         else
         {

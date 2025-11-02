@@ -29,9 +29,10 @@ public class CharacterSelectionManager : MonoBehaviour
     [Header("Character Slot ve Area")]
     public CharacterSlot characterArea; //Seçilen karakterin gösterileceği yer
     public CharacterSlot selectedSlot;
-    public CharacterSlot[] allSlots; // 0–6
+    public CharacterSlot[] allSlots; // 0–5 CharacterArea Yok
     public Transform previewArea; //
     private int activeSlotIndex = -1; //Seçilmiş olunan slot indexi
+    private int characterAreaIndex;
 
     private GameObject currentPreviewInstance;
 
@@ -40,24 +41,51 @@ public class CharacterSelectionManager : MonoBehaviour
     public float characterScaleFactor = 0.5f; // 🔥 Prefabs scaleFactor
     public string prefabSavePath = "Assets/Resources/GeneratedCharacters/";
 
+    private Vector3 slotVisualParent;
+
     private GameObject activeCharacter;
 
     void Awake()
     {
+        //TODO: Koordinat kontrol edilecek
+        slotVisualParent = new Vector3(0f, 150f, 0f);
+        characterAreaIndex = allSlots.Length;
+        Debug.Log("AreaIndex="+characterAreaIndex);
         Instance = this;
+    }
+
+    private void Start()
+    {
+        foreach (CharacterSlot slot in allSlots)
+        {
+            if (slot.slotIndex < characterAreaIndex)
+            {
+                string slotName = slot.gameObject.name; // örn: "CharacterSlot_3"
+                string prefabPath = $"GeneratedCharacters/{slotName}";
+
+                GameObject loadedPrefab = Resources.Load<GameObject>(prefabPath);
+                if (loadedPrefab != null)
+                {
+                    slot.characterInstance = loadedPrefab;
+                    slot.SetCharacter(loadedPrefab);
+                }
+
+                //slot.RefreshSlotVisual(); // prefab varsa göster, yoksa characterImage aktif kalsın
+            }
+        }
     }
 
     public void SelectSlot(CharacterSlot slot)
     {
 
-        if (slot.slotIndex < 6)
+        if (slot.slotIndex < characterAreaIndex)
         {
             // Slot 1–6 → Preview’a göster
             activeSlotIndex = slot.slotIndex;
             ShowInCharacterArea(slot.characterInstance);
         }
 
-        else if(slot.slotIndex == 6)
+        else if(slot.slotIndex == characterAreaIndex)
         {
             // 🔄 Panel geçişi
             characterSlotPanel.SetActive(false);
@@ -76,7 +104,7 @@ public class CharacterSelectionManager : MonoBehaviour
 
             ResetOptionGridToDefault();
 
-            StartCoroutine(DelayedPreview(slot.characterInstance));
+            StartCoroutine(DelayedPreview(selectedSlot.characterInstance));
         }        
     }
 
@@ -85,10 +113,38 @@ public class CharacterSelectionManager : MonoBehaviour
     {
         // PreviewArea’ya gösterim
         ClearCharacterArea();
-        GameObject preview = Instantiate(prefab, characterArea.transform);
-        preview.transform.localPosition = Vector3.zero;
-        preview.transform.localScale = Vector3.one;
-        Debug.Log("AA");
+
+        // GameObject finalPrefab = prefab;
+
+        // // Eğer prefab null ise → slot ismine göre Resources'tan yüklemeyi dene
+        // if (finalPrefab == null && selectedSlot != null)
+        // {
+        //     string slotName = selectedSlot.gameObject.name; // örn: "CharacterSlot_3"
+        //     string prefabPath = $"GeneratedCharacters/{slotName}";
+        //     finalPrefab = Resources.Load<GameObject>(prefabPath);
+
+        //     if (finalPrefab == null)
+        //     {
+        //         GameObject preview = Instantiate(prefab, characterArea.transform);
+        //         preview.transform.localPosition = slotVisualParent;
+        //         Vector3 updateScale = new Vector3(0.5f, 0.5f, 0.5f);
+        //         preview.transform.localScale = updateScale;
+        //         return;
+        //     }
+        //     else
+        //     {
+        //         // PreviewArea’ya gösterim
+        //         GameObject preview = Instantiate(finalPrefab, characterArea.transform);
+        //         preview.transform.localPosition = slotVisualParent;
+        //         Vector3 updateScale = new Vector3(0.5f, 0.5f, 0.5f);
+        //         preview.transform.localScale = updateScale;
+        //     }
+        // }
+
+                GameObject preview = Instantiate(prefab, characterArea.transform);
+                preview.transform.localPosition = slotVisualParent;
+                Vector3 updateScale = new Vector3(0.5f, 0.5f, 0.5f);
+                preview.transform.localScale = updateScale;
     }
 
     public void ClearCharacterArea()
