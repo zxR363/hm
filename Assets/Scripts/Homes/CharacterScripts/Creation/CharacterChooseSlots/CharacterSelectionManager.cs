@@ -267,6 +267,24 @@ public class CharacterSelectionManager : MonoBehaviour
         characterCreationManager.previewInstance = null;
     }
 
+    public void BackButtonCharacter()
+    {
+        if (selectedSlot == null || characterCreationManager.previewInstance == null)
+        {
+            Debug.LogWarning("ConfirmCharacter: Slot veya preview eksik");
+            return;
+        }
+        // 🔥 Preview’ı sahneden kaldır
+        if (characterCreationManager.previewInstance != null && characterCreationManager.previewInstance.scene.IsValid())
+        {
+            Destroy(characterCreationManager.previewInstance);
+        }
+        else
+        {
+            Debug.LogWarning("SetCharacter: Asset referansı silinemez");
+        }
+        characterCreationManager.previewInstance = null;
+    }
 
     //-------------PreviewArea'daki KARAKTER PREFAB KAYDETME ISLEMINI YAPIYOR------------
     public void SaveConfirmButtonCharacterPrefab()
