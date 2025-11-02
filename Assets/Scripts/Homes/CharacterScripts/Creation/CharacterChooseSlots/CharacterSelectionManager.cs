@@ -87,6 +87,21 @@ public class CharacterSelectionManager : MonoBehaviour
 
         else if(slot.slotIndex == characterAreaIndex)
         {
+            //-------CharacterPreviewArea boş iken edit yapılamaz------
+            bool controlFlag=false;
+            foreach (Transform child in characterArea.transform)
+            {
+                if (child.GetComponent<ICharacterPrefab>() != null)
+                {
+                    controlFlag = true;
+                }
+            }
+            if(controlFlag == false)
+            {
+                return;
+            }
+            //-------CharacterPreviewArea boş iken edit yapılamaz------
+
             // 🔄 Panel geçişi
             characterSlotPanel.SetActive(false);
             characterCreationPanel.SetActive(true);

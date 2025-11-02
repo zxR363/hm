@@ -13,7 +13,7 @@ public class CharacterSlot : MonoBehaviour
     private GameObject activeCharacter;
 
     public int slotIndex; // 0–6
-    private int constSlotAreaIndex = 6;
+    private int constSlotAreaIndex = 6; //Slot INDEX AREA
 
     private void Awake()
     {
