@@ -31,6 +31,8 @@ public class SlotPageController : MonoBehaviour
         UpdateButtonStates();
         UpdatePageNumber();
 
+        //UpdatePageVisibility();
+
         leftButton.onClick.AddListener(GoLeft);
         rightButton.onClick.AddListener(GoRight);
     }
@@ -73,7 +75,11 @@ public class SlotPageController : MonoBehaviour
         newPage.SetActive(true);
         newRT.anchoredPosition = direction * Screen.width;
 
-        float duration = 0.3f;
+        // 🔥 Alt objelerin CanvasGroup'larını aktif hale getir
+        UpdateAllChildCanvasGroups(newPage.transform, true);
+
+
+        float duration = 0.33f;
         float elapsed = 0f;
 
         while (elapsed < duration)
@@ -131,4 +137,27 @@ public class SlotPageController : MonoBehaviour
             }
         }
     }
+
+
+    private void UpdateAllChildCanvasGroups(Transform parent, bool isActive)
+    {
+        foreach (Transform child in parent)
+        {
+            CanvasGroup cg = child.GetComponent<CanvasGroup>();
+            if (cg != null)
+            {
+                cg.alpha = isActive ? 1f : 0f;
+                cg.interactable = isActive;
+                cg.blocksRaycasts = isActive;
+            }
+
+            // 🔁 Alt çocukları da kontrol et (recursive)
+            if (child.childCount > 0)
+            {
+                UpdateAllChildCanvasGroups(child, isActive);
+            }
+        }
+    }
+
+
 }

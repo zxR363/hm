@@ -265,6 +265,7 @@ public class CharacterSelectionManager : MonoBehaviour
             Debug.LogWarning("SetCharacter: Asset referansı silinemez");
         }
         characterCreationManager.previewInstance = null;
+
     }
 
     public void BackButtonCharacter()
