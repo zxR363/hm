@@ -91,16 +91,29 @@ public class CharacterSlot : MonoBehaviour
             string slotName = gameObject.name; // örn: "CharacterSlot_3"
             string prefabPath = $"GeneratedCharacters/{slotName}";
 
-            GameObject slotPrefab = Resources.Load<GameObject>(prefabPath);
-            if (slotPrefab != null)
+            // Eğer zaten bu prefab varsa yeniden oluşturma
+            if (characterInstance.name.Contains(slotName))
             {
-                characterInstance = Instantiate(slotPrefab, transform);
-                characterInstance.transform.localPosition = slotVisualParent;
+                Debug.Log($"✅ Zaten gösteriliyor: {slotName}");
             }
             else
             {
-                Debug.LogWarning($"❌ Prefab bulunamadı: {prefabPath}");
+                // Önce eskiyi sil
+                Destroy(characterInstance);
+
+                GameObject slotPrefab = Resources.Load<GameObject>(prefabPath);
+                if (slotPrefab != null)
+                {
+                    characterInstance = Instantiate(slotPrefab, transform);
+                    characterInstance.transform.localPosition = slotVisualParent;
+                    characterInstance.name = slotPrefab.name; // clone ekini temizlemek için
+                }
+                else
+                {
+                    Debug.LogWarning($"❌ Prefab bulunamadı: {prefabPath}");
+                }
             }
+
         }
         CharacterSelectionManager.Instance.SelectSlot(this);
     }
@@ -132,7 +145,7 @@ public class CharacterSlot : MonoBehaviour
             }
             else
             {
-                Debug.Log("TTTTTT");
+                //Debug.Log("TTTTTT");
                 characterInstance = Instantiate(prefab, transform);
                 characterInstance.transform.localPosition = slotVisualParent;
                 //characterInstance.transform.position += new Vector3(0f, -28f, 0f);
