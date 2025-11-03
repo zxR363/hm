@@ -209,6 +209,9 @@ public class CharacterSelectionManager : MonoBehaviour
         rt.sizeDelta = new Vector2(400, 800); // sabit boyut
 
         characterCreationManager.previewInstance = previewInstance;
+
+        // 3. Default kategoriye set et (örneğin “Skin”)
+        characterCreationManager.SetCategory(0);
     }
 
     //OptionGrid-Content içerisindeki tüm eski OptionItem'ları temizliyor.
@@ -225,8 +228,8 @@ public class CharacterSelectionManager : MonoBehaviour
         if (scrollRect != null)
             scrollRect.verticalNormalizedPosition = 1f;
 
-        // 3. Default kategoriye set et (örneğin “Skin”)
-        characterCreationManager.SetCategory(0);
+        // // 3. Default kategoriye set et (örneğin “Skin”)
+        // characterCreationManager.SetCategory(0);
     }
 
 

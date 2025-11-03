@@ -132,6 +132,7 @@ public class CharacterCreationManager : MonoBehaviour
         if (previewInstance == null) return;
 
         Transform skinRoot = previewInstance.transform.Find("Skin");
+        
         if (skinRoot == null) return;
 
         Color selectedColor = skinColors[index];
@@ -148,6 +149,9 @@ public class CharacterCreationManager : MonoBehaviour
             if (childImage != null)
                 childImage.color = selectedColor;
         }
+
+        //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+        dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,skinRoot,true); 
     }
 
         //Dinamik olarak seciyor
@@ -234,73 +238,107 @@ public class CharacterCreationManager : MonoBehaviour
 
         switch (tmpCurrentCategory)
         {
-            case EnumCharacterCustomizationCategory.Skin:
+            case EnumCharacterCustomizationCategory.Skin: 
                 Populate_Skin_Options();
                 break;
             
             //Direkt Buton ile açılanlar
             case EnumCharacterCustomizationCategory.Hair_Boy:
                 colorRoot = previewInstance.transform.Find("Hair");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
+
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image","BoyHair");
                 break;
 
             case EnumCharacterCustomizationCategory.Hair_Girl:
                 colorRoot = previewInstance.transform.Find("Hair");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
+
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "GirlHair");
                 break;
 
             case EnumCharacterCustomizationCategory.Hair_Mixed:
                 colorRoot = previewInstance.transform.Find("Hair");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
+
                 dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "MixedHair");
                 break;
             
             case EnumCharacterCustomizationCategory.Beard:
                 colorRoot = previewInstance.transform.Find("Beard");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
+
                 dynamicCategoryManager.PopulateOptionGrid("Beard_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Eyes:
                 colorRoot = previewInstance.transform.Find("Eyes");
+                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
+
                 dynamicCategoryManager.PopulateOptionGrid("Eyes_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Noise:
                 colorRoot = previewInstance.transform.Find("Noise");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
+
                 dynamicCategoryManager.PopulateOptionGrid("Noise_Image", "");
                 break;    
             case EnumCharacterCustomizationCategory.EyeBrown:
                 colorRoot = previewInstance.transform.Find("EyeBrown");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
+
                 dynamicCategoryManager.PopulateOptionGrid("EyeBrown_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Freckle:
                 colorRoot = previewInstance.transform.Find("Freckle");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
+
                 dynamicCategoryManager.PopulateOptionGrid("Freckle_Image", "");
                 break;                                                            
             
             //Alt seçim yapılarak açılanlar
             case EnumCharacterCustomizationCategory.Clothes:
                 colorRoot = previewInstance.transform.Find("Clothes");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false); 
+
                 dynamicCategoryManager.PopulateCategoryButtons("Clothes_Image");
                 break;
 
             case EnumCharacterCustomizationCategory.Hats:
                 colorRoot = previewInstance.transform.Find("Hats");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false); 
+
                 dynamicCategoryManager.PopulateCategoryButtons("Hats_Image");
                 break;
 
             case EnumCharacterCustomizationCategory.Accessory:
                 colorRoot = previewInstance.transform.Find("Accessory");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false);
+
                 dynamicCategoryManager.PopulateCategoryButtons("Accessory_Image");
                 break;
 
             // Diğer kategoriler eklenebilir
         }
+        
     }
 
     //Seçilen Renklerin uygulanabilmesi için yapılıyor.
@@ -352,6 +390,7 @@ public class CharacterCreationManager : MonoBehaviour
             item.SetActive(true);
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);
         }
+
     }
 
     public void Populate_Skin_Options()
@@ -370,6 +409,11 @@ public class CharacterCreationManager : MonoBehaviour
             item.SetActive(true);
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);
         }
+  
+        //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+        Transform skinRoot = previewInstance.transform.Find("Skin");
+        dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,skinRoot,true); 
+
     }
 
     public void Populate_HairBoy_Options()

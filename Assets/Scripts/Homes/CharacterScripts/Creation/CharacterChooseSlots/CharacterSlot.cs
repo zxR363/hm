@@ -99,7 +99,10 @@ public class CharacterSlot : MonoBehaviour
             else
             {
                 // Önce eskiyi sil
-                Destroy(characterInstance);
+                if (characterInstance != null && characterInstance.scene.IsValid())
+                {
+                    Destroy(characterInstance);
+                }
 
                 GameObject slotPrefab = Resources.Load<GameObject>(prefabPath);
                 if (slotPrefab != null)

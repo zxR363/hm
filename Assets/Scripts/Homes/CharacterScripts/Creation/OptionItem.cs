@@ -86,10 +86,10 @@ public class OptionItem : MonoBehaviour
     {
         if(this.colorFlag == true)
         {
-            Debug.Log("Color Secme alani");
-            Debug.Log("ColorSheme → currentCategory: " + manager.currentCategory);
+            manager.dynamicCategoryManager.OnOptionItemClicked(this); 
             //this.colorFlag = false;
             manager.SelectColorPalette(optionIndex);
+
             return;
         }
 
@@ -136,6 +136,9 @@ public class OptionItem : MonoBehaviour
                 break;
         }
 
+        //ToneSliderArea için
+        manager.dynamicCategoryManager.OnOptionItemClicked(this); 
+        //ToneSliderArea için
     }
 
     // Yeni bir CharacterPreview Item seçilirse (Aynı Item ise rengi koruması için yapılıyor)
@@ -164,4 +167,18 @@ public class OptionItem : MonoBehaviour
         Debug.Log("OptionItem Tam hiyerarşi: " + hierarchy);
     }
 
+
+    //----ToneSliderArea için
+    public Color GetColor()
+    {
+        //return GetComponent<Image>().color; // veya kendi tanımladığın renk alanı
+        return iconImage.color;
+    }
+
+    public void SetPreviewColor(Color newColor)
+    {
+        GetComponent<Image>().color = newColor;
+    }
+
+    //----ToneSliderArea için
 }
