@@ -380,7 +380,17 @@ public class CharacterSelectionManager : MonoBehaviour
         {
             if (child.name == "DeleteButton")
             {
-                StartCoroutine(ActivateAndReveal(child.gameObject));
+                //StartCoroutine(ActivateAndReveal(child.gameObject));
+
+                child.gameObject.SetActive(true);
+                CanvasGroup cg = child.gameObject.GetComponent<CanvasGroup>();
+                if (cg != null)
+                {
+                    cg.alpha = 0f;
+                    cg.interactable = false;
+                    cg.blocksRaycasts = false;
+                    //fadeTargets.Add(cg);
+                }
             }
             else
             {
@@ -397,8 +407,6 @@ public class CharacterSelectionManager : MonoBehaviour
                 }
             }            
         }
-
-        //ActivateSlotComponents(allSlots);
 
         StartCoroutine(FadeInAllAtOnce(fadeTargets, 0.8f));
 
@@ -417,6 +425,7 @@ public class CharacterSelectionManager : MonoBehaviour
             cg.blocksRaycasts = true;
         }
     }
+
 
 
 

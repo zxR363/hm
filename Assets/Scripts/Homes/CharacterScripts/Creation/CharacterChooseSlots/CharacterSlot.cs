@@ -79,13 +79,11 @@ public class CharacterSlot : MonoBehaviour
     {
         if (characterInstance == null)
         {
-            // 🔥 Kullanıcı boş slot'a tıkladı → BaseCharacterPrefab ile oluştur
+            //🔥 Kullanıcı boş slot'a tıkladı → BaseCharacterPrefab ile oluştur
             GameObject basePrefab = Resources.Load<GameObject>("GeneratedCharacters/BaseCharacterPrefab/BaseCharacterPrefab");
             if (basePrefab != null)
             {
                 characterInstance = Instantiate(basePrefab, transform);
-                characterInstance.transform.localPosition = slotVisualParent;
-                //characterInstance.transform.localScale = Vector3.one;
             }
         }
         else
@@ -116,7 +114,7 @@ public class CharacterSlot : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning($"❌ Prefab bulunamadı: {prefabPath}");
+                    Debug.Log($"❌ Prefab bulunamadı: {prefabPath}");
                 }
             }
 
