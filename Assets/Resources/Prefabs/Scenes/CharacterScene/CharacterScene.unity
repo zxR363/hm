@@ -1519,6 +1519,7 @@ GameObject:
   m_Component:
   - component: {fileID: 226048324}
   - component: {fileID: 226048325}
+  - component: {fileID: 226048326}
   m_Layer: 5
   m_Name: SlotsPart_3
   m_TagString: Untagged
@@ -1563,6 +1564,18 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &226048326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 226048323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4df872b939db1474891e5bb2f8d5ca61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &233823137
 GameObject:
   m_ObjectHideFlags: 0
@@ -12541,6 +12554,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1615496798}
   - component: {fileID: 1615496799}
+  - component: {fileID: 1615496800}
   m_Layer: 5
   m_Name: SlotsPart_1
   m_TagString: Untagged
@@ -12585,6 +12599,18 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &1615496800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1615496797}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4df872b939db1474891e5bb2f8d5ca61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1626975425
 GameObject:
   m_ObjectHideFlags: 0
@@ -14180,9 +14206,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c5eb24cf31fd2d4aba4540922f662ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fillCircle: {fileID: 0}
+  characterAreaRoot: {fileID: 840784842}
   holdDuration: 1.5
-  targetPrefab: {fileID: 0}
 --- !u!1 &1763035925
 GameObject:
   m_ObjectHideFlags: 0
@@ -16947,6 +16972,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2070384083}
   - component: {fileID: 2070384084}
+  - component: {fileID: 2070384085}
   m_Layer: 5
   m_Name: SlotsPart_2
   m_TagString: Untagged
@@ -16991,6 +17017,18 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &2070384085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2070384082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4df872b939db1474891e5bb2f8d5ca61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2080425670
 GameObject:
   m_ObjectHideFlags: 0

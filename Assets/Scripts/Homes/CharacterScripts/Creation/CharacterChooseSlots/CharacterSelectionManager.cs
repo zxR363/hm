@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
+using static UnityEngine.GraphicsBuffer;
 
 
 #if UNITY_EDITOR
@@ -44,6 +45,7 @@ public class CharacterSelectionManager : MonoBehaviour
     private Vector3 slotVisualParent;
 
     private GameObject activeCharacter;
+    private List<CanvasGroup> fadeTargets;
 
     void Awake()
     {
@@ -359,6 +361,15 @@ public class CharacterSelectionManager : MonoBehaviour
         characterCreationPanel.SetActive(false);
         characterSlotPanel.SetActive(true);
 
+        // 🎯 AllSlots objesini bul
+        Transform allSlots = characterSlotPanel.transform.Find("AllSlots");
+
+        if (allSlots == null)
+        {
+            Debug.LogWarning("AllSlots objesi bulunamadı!");
+            return;
+        }
+
         // SlotPanel altındaki tüm CanvasGroup bileşenlerini topla
         CanvasGroup[] allGroups = characterSlotPanel.GetComponentsInChildren<CanvasGroup>(true);
         List<CanvasGroup> fadeTargets = new List<CanvasGroup>(allGroups);
@@ -367,20 +378,46 @@ public class CharacterSelectionManager : MonoBehaviour
         Transform[] allChildren = characterSlotPanel.GetComponentsInChildren<Transform>(true);
         foreach (Transform child in allChildren)
         {
-            if (child.GetComponent<CanvasGroup>() == null)
+            if (child.name == "DeleteButton")
             {
-                CanvasGroup cg = child.gameObject.AddComponent<CanvasGroup>();
-                cg.alpha = 0;
-                cg.interactable = false;
-                cg.blocksRaycasts = false;
-                fadeTargets.Add(cg);
+                StartCoroutine(ActivateAndReveal(child.gameObject));
             }
+            else
+            {
+                if (child.GetComponent<CanvasGroup>() == null)
+                {
+                    CanvasGroup cg = child.gameObject.AddComponent<CanvasGroup>();
+                    cg.alpha = 0;
+                    cg.interactable = false;
+                    cg.blocksRaycasts = false;
+                    //cg.alpha = 1;
+                    //cg.interactable = true;
+                    //cg.blocksRaycasts = false;
+                    fadeTargets.Add(cg);
+                }
+            }            
         }
 
+        //ActivateSlotComponents(allSlots);
 
         StartCoroutine(FadeInAllAtOnce(fadeTargets, 0.8f));
 
     }
+
+    private IEnumerator ActivateAndReveal(GameObject target)
+    {
+        target.SetActive(true);
+        yield return null; // 🔄 1 frame bekle
+
+        CanvasGroup cg = target.GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.alpha = 1f;
+            cg.interactable = true;
+            cg.blocksRaycasts = true;
+        }
+    }
+
 
 
     //----------------------CHARACTER PANEL AYARLAMA ISLEMLERI-------
