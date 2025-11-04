@@ -8,12 +8,15 @@ public class CharacterSlot : MonoBehaviour
 
     [Header ("CharacterPrefabRefereans")]
     public GameObject characterInstance;
-    
+
     private GameObject characterImage;
     private GameObject activeCharacter;
 
     public int slotIndex; // 0–6
     private int constSlotAreaIndex = 18; //Slot INDEX AREA
+
+    [Header("CharacterDeleteButton")]
+    public Image fillCircle; // Inspector'da FillCircle atanmalı
 
     private void Awake()
     {
