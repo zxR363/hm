@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using UnityEditor;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -12,7 +10,9 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
     [Header("CharacterArea")]
     [SerializeField] private Transform characterAreaRoot;
 
-    private Image fillCircle;
+    [Header("FillCircle")]
+    [SerializeField] private Image fillCircle;
+
     private GameObject targetPrefab;
     private GameObject characterImage;
     private Transform slotRoot;
@@ -24,22 +24,28 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
 
     private void Start()
     {
-        // FillCircle'ı kendi altından bul
-        fillCircle = transform.Find("FillCircle")?.GetComponent<Image>();
+        // 🎯 FillCircle artık DeleteButton ile aynı seviyede, Delete altında
+        Transform deleteContainer = transform.parent;
+        fillCircle = deleteContainer.Find("FillCircle")?.GetComponent<Image>();
+        if (fillCircle != null)
+        {
+            fillCircle.transform.SetSiblingIndex(0); // Görsel olarak arkada kalması için
+            fillCircle.raycastTarget = false; // Tıklamayı engellemesin
+        }
 
-        // Slot kökünü al (DeleteButton → CharacterSlot_)
-        slotRoot = transform.parent;
+        // 🎯 Slot kökünü bul (CharacterSlot_ objesi)
+        slotRoot = FindSlotRoot(deleteContainer);
 
-        // characterImage → ShowArea altında
+        // 🎯 characterImage → ShowArea altında
         characterImage = slotRoot.Find("ShowArea/characterImage")?.gameObject;
     }
 
     private void Update()
     {
-        // 🎯 ICharacterPrefab interface’ine sahip aktif objeyi bul
+        // 🎯 Aktif prefab'ı bul
         targetPrefab = FindCharacterPrefabUnder(slotRoot);
 
-        // 🎯 Buton görünürlüğünü dinamik ayarla
+        // 🎯 Buton görünürlüğünü ayarla
         if (targetPrefab != null && targetPrefab.activeSelf)
         {
             if (!gameObject.activeSelf) gameObject.SetActive(true);
@@ -49,7 +55,7 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
             if (gameObject.activeSelf) gameObject.SetActive(false);
         }
 
-        // 🎯 Silme animasyonu
+        // 🎯 Basılı tutma animasyonu
         if (isHolding)
         {
             holdTime += Time.deltaTime;
@@ -89,16 +95,14 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
     {
         if (targetPrefab != null && targetPrefab.activeSelf)
         {
-            //var prefabComponent = targetPrefab.GetComponent<ICharacterPrefab>();
             string rawName = targetPrefab.name;
             string prefabName = NormalizePrefabName(rawName);
 
             Destroy(targetPrefab);
 
-            if (!string.IsNullOrEmpty(prefabName))
-            {
-                DeletePrefabAsset(prefabName);
-            }
+#if UNITY_EDITOR
+            DeletePrefabAsset(prefabName);
+#endif
 
             if (characterImage != null)
             {
@@ -113,7 +117,6 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
                 }
             }
 
-            // 🎯 CharacterArea'daki prefab ile eşleşiyorsa → sahneden kaldır
             if (characterAreaRoot != null)
             {
                 foreach (Transform child in characterAreaRoot)
@@ -133,19 +136,14 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
         }
     }
 
-
-    // 🎯 Interface tabanlı prefab arayıcı
     private GameObject FindCharacterPrefabUnder(Transform parent)
     {
         foreach (Transform child in parent)
         {
             var prefabComponent = child.GetComponent<ICharacterPrefab>();
             if (prefabComponent != null && child.gameObject.activeSelf)
-            {
                 return child.gameObject;
-            }
 
-            // Recursive arama
             GameObject found = FindCharacterPrefabUnder(child);
             if (found != null)
                 return found;
@@ -154,10 +152,23 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
         return null;
     }
 
+    private Transform FindSlotRoot(Transform current)
+    {
+        while (current != null)
+        {
+            if (current.name.StartsWith("CharacterSlot_"))
+                return current;
+
+            current = current.parent;
+        }
+
+        return null;
+    }
+
+#if UNITY_EDITOR
     private void DeletePrefabAsset(string prefabName)
     {
         Debug.Log("SİLİNEN PREFAB NAME=" + prefabName);
-    #if UNITY_EDITOR
         string path = $"Assets/Resources/GeneratedCharacters/{prefabName}.prefab";
         if (AssetDatabase.LoadAssetAtPath<GameObject>(path) != null)
         {
@@ -167,8 +178,8 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
             else
                 Debug.LogWarning($"❌ Prefab asset silinemedi: {path}");
         }
-    #endif
     }
+#endif
 
     private string NormalizePrefabName(string rawName)
     {
@@ -177,7 +188,4 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
 
         return rawName.Replace("(Clone)", "").Trim();
     }
-
-
-
 }
