@@ -6,9 +6,6 @@ using UnityEngine;
 
 public class BuildingManager : MonoBehaviour
 {
-    [Header("Silinecek")]
-    public Transform tmp;
-
     [Header("İnşa edilecek bina prefabları")]
     [SerializeField] private GameObject[] buildingPrefabs;
 
@@ -22,10 +19,16 @@ public class BuildingManager : MonoBehaviour
     public LayerMask placementLayer;
     public Material previewMaterial;
 
-    //Bina animasyon yönetimi ayarları(aktif tüm binaların seçimi
+    [Header("Silme işlemi için tüm Slotlar")]
+    [SerializeField] private List<BuildingSlotSelector> allSlots;
+
+    private bool isDeleteModeActive = false;
+
+    //Bina animasyon yönetimi ayarları(aktif tüm binaların seçimi)
     private List<BuildingBounce> activeBuildings = new();
     [SerializeField]
     private float bounceInterval = 5f;
+    //Bina animasyon yönetimi ayarları(aktif tüm binaların seçimi)
 
     private void Start()
     {
@@ -34,69 +37,37 @@ public class BuildingManager : MonoBehaviour
 
     void Update()
     {
-        if (selectedPrefab != null)
+
+    }
+
+    public void ToggleDeleteButtonsMode()
+    {
+        isDeleteModeActive = !isDeleteModeActive;
+
+        foreach (Transform child in buildingGridRoot)
         {
-            HandlePreview();
-            if (Input.GetMouseButtonDown(0))
-                PlaceBuilding();
+            BuildingSlotSelector slot = child.GetComponent<BuildingSlotSelector>();
+            if (slot != null)
+            {
+                slot.SetDeleteMode(isDeleteModeActive);
+
+                if (isDeleteModeActive && slot.HasBuilding())
+                    slot.ShowDeleteButton();
+                else
+                    slot.HideDeleteButton();
+            }
         }
     }
 
-
-    private void HandlePreview()
+    //Animasyon için Prefab instantiate ettiğin her yerde şu satırı ekle:
+    public void buildingAnimation(int buildingIndex, GameObject buildingObj)
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f, placementLayer))
-        {
-            currentPreview.transform.position = hit.point;
-        }
-    }
-
-    private void PlaceBuilding()
-    {
-        GameObject newBuilding = Instantiate(selectedPrefab);
-        newBuilding.transform.SetParent(buildingGridRoot, false); // ✅ UI hiyerarşisine ekle
-
-        // Eğer UI layout kullanıyorsan:
-        RectTransform rt = newBuilding.GetComponent<RectTransform>();
-        if (rt != null)
-        {
-            rt.localScale = Vector3.one;
-            rt.localPosition = Vector3.zero; // veya layout’a göre ayarlanır
-        }
-
-        // ✅ Bina tarzına göre özel Stil uygula
-        BuildingStyle style = newBuilding.GetComponent<BuildingStyle>();
-        if (style != null)
-            style.ApplyStyle();
-
-        Destroy(currentPreview);
-        selectedPrefab = null;
-    }
-
-
-    public GameObject CreateBuildingAtAnchored(int index, Vector2 anchoredPos)
-    {
-        if (index < 0 || index >= buildingPrefabs.Length) return null;
-
-        GameObject prefab = buildingPrefabs[index];
-        GameObject newBuilding = Instantiate(prefab);
-        RectTransform buildingRT = newBuilding.GetComponent<RectTransform>();
-
-        if (buildingRT != null)
-        {
-            buildingRT.SetParent(buildingGridRoot, false);
-            buildingRT.anchoredPosition = anchoredPos;
-            buildingRT.localScale = Vector3.one;
-        }
-
-        //Animasyon için Prefab instantiate ettiğin her yerde şu satırı ekle:
-        BuildingBounce bounce = newBuilding.GetComponent<BuildingBounce>();
+        
+        BuildingBounce bounce = buildingObj.GetComponent<BuildingBounce>();
         if (bounce != null)
             activeBuildings.Add(bounce);
-
-        return newBuilding;
     }
+
 
     //Ev animasyon tetikleme fonksiyonu
     private IEnumerator BounceLoop()
