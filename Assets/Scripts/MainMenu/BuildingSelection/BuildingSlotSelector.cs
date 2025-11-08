@@ -78,17 +78,23 @@ public class BuildingSlotSelector : MonoBehaviour
             return;
         }
 
-        isBuilt = false;
-
-        if (slotVisual != null)
+        if (isBuilt)
         {
-            slotVisual.sprite = emptySprite;
-            slotVisual.rectTransform.sizeDelta = emptySize;
-            slotVisual.rectTransform.localRotation = Quaternion.Euler(emptyRotation);
-        }
+            isBuilt = false;
 
-        if (deleteButtonUI != null)
-            deleteButtonUI.SetActive(false);
+            if (buildingManager != null && slotVisual != null)
+                buildingManager.RemoveBounceTarget(transform.gameObject);
+
+            if (slotVisual != null)
+            {
+                slotVisual.sprite = emptySprite;
+                slotVisual.rectTransform.sizeDelta = emptySize;
+                slotVisual.rectTransform.localRotation = Quaternion.Euler(emptyRotation);
+            }
+
+            if (deleteButtonUI != null)
+                deleteButtonUI.SetActive(false);
+        }    
 
     }
 

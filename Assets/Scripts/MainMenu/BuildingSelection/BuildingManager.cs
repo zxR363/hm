@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Random = UnityEngine.Random;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class BuildingManager : MonoBehaviour
@@ -15,12 +16,13 @@ public class BuildingManager : MonoBehaviour
     private GameObject currentPreview;
     private GameObject selectedPrefab;
 
-    [Header("Ayarlar")]
-    public LayerMask placementLayer;
-    public Material previewMaterial;
+    [Header("Silme On/Off butonu")]
+    [SerializeField] private Sprite deleteOffSprite; // normal hali (boş çöp kutusu)
+    [SerializeField] private Sprite deleteOnSprite;  // aktif hali (dolu/kırmızı çöp kutusu)
+    [SerializeField] private Image deleteButtonImage; // butonun içindeki Image referansı
 
-    [Header("Silme işlemi için tüm Slotlar")]
-    [SerializeField] private List<BuildingSlotSelector> allSlots;
+    
+    private List<BuildingSlotSelector> allSlots;
 
     private bool isDeleteModeActive = false;
 
@@ -42,6 +44,14 @@ public class BuildingManager : MonoBehaviour
 
     public void ToggleDeleteButtonsMode()
     {
+
+        // 🔒 En az 1 bina yapılmış mı?
+        if (!HasAnyBuiltSlot() && isDeleteModeActive == false)
+        {
+            Debug.Log("❌ Silme modu aktif edilemez: hiç bina yapılmamış.");
+            return;
+        }
+
         isDeleteModeActive = !isDeleteModeActive;
 
         foreach (Transform child in buildingGridRoot)
@@ -57,6 +67,23 @@ public class BuildingManager : MonoBehaviour
                     slot.HideDeleteButton();
             }
         }
+        
+        // 🔁 Sprite değişimi
+        if (deleteButtonImage != null)
+            deleteButtonImage.sprite = isDeleteModeActive ? deleteOnSprite : deleteOffSprite;
+
+    }
+
+    //Ekranda herhangi bir mevcut Building(bina) var mı kontrol ediyor
+    private bool HasAnyBuiltSlot()
+    {
+        foreach (Transform child in buildingGridRoot)
+        {
+            BuildingSlotSelector slot = child.GetComponent<BuildingSlotSelector>();
+            if (slot != null && slot.HasBuilding())
+                return true;
+        }
+        return false;
     }
 
     //Animasyon için Prefab instantiate ettiğin her yerde şu satırı ekle:
@@ -66,6 +93,16 @@ public class BuildingManager : MonoBehaviour
         BuildingBounce bounce = buildingObj.GetComponent<BuildingBounce>();
         if (bounce != null)
             activeBuildings.Add(bounce);
+    }
+
+    //Animasyonu kaldırma
+    public void RemoveBounceTarget(GameObject buildingObj)
+    {
+        BuildingBounce bounce = buildingObj.GetComponent<BuildingBounce>();
+        if (bounce != null && activeBuildings.Contains(bounce))
+        {
+            activeBuildings.Remove(bounce);
+        }
     }
 
 
