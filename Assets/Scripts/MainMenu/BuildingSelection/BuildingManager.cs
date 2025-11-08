@@ -1,51 +1,58 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Random = UnityEngine.Random;
-using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class BuildingManager : MonoBehaviour
 {
-    [Header("İnşa edilecek bina prefabları")]
-    [SerializeField] private GameObject[] buildingPrefabs;
+    [Header("Template Slot Alanları")]
+    [SerializeField] private List<Transform> templateSlotsAreas; // dışarıdan verilecek
 
-    [Header("BuildingGridArea")]
-    [SerializeField] private Transform buildingGridRoot; // 🔧 BuildingGrid referansı
-    
-    private GameObject currentPreview;
-    private GameObject selectedPrefab;
+    private List<GameObject> buildingPrefabs = new();
+    private List<Transform> buildingGridRoots = new();
 
     [Header("Silme On/Off butonu")]
-    [SerializeField] private Sprite deleteOffSprite; // normal hali (boş çöp kutusu)
-    [SerializeField] private Sprite deleteOnSprite;  // aktif hali (dolu/kırmızı çöp kutusu)
-    [SerializeField] private Image deleteButtonImage; // butonun içindeki Image referansı
-
-    
-    private List<BuildingSlotSelector> allSlots;
+    [SerializeField] private Sprite deleteOffSprite;
+    [SerializeField] private Sprite deleteOnSprite;
+    [SerializeField] private Image deleteButtonImage;
 
     private bool isDeleteModeActive = false;
-
-    //Bina animasyon yönetimi ayarları(aktif tüm binaların seçimi)
     private List<BuildingBounce> activeBuildings = new();
-    [SerializeField]
-    private float bounceInterval = 5f;
-    //Bina animasyon yönetimi ayarları(aktif tüm binaların seçimi)
+    [SerializeField] private float bounceInterval = 5f;
 
     private void Start()
     {
-        StartCoroutine(BounceLoop());
+        // ExtractBuildingGridsAndPrefabs();
+        // StartCoroutine(BounceLoop());
+        InitializeFromTemplates(templateSlotsAreas);
     }
 
-    void Update()
+    private void ExtractBuildingGridsAndPrefabs()
     {
+        foreach (Transform template in templateSlotsAreas)
+        {
+            Transform buildingGrid = template.Find("BuildingGrid");
+            if (buildingGrid != null)
+            {
+                buildingGridRoots.Add(buildingGrid);
 
+                foreach (Transform child in buildingGrid)
+                {
+                    if (child.GetComponent<IBuildingSlots>() != null)
+                    {
+                        buildingPrefabs.Add(child.gameObject);
+                    }
+                }
+            }
+        }
+
+        Debug.Log($"✅ Toplam {buildingPrefabs.Count} bina slotu bulundu.");
     }
 
     public void ToggleDeleteButtonsMode()
     {
-
-        // 🔒 En az 1 bina yapılmış mı?
         if (!HasAnyBuiltSlot() && isDeleteModeActive == false)
         {
             Debug.Log("❌ Silme modu aktif edilemez: hiç bina yapılmamış.");
@@ -54,48 +61,48 @@ public class BuildingManager : MonoBehaviour
 
         isDeleteModeActive = !isDeleteModeActive;
 
-        foreach (Transform child in buildingGridRoot)
+        foreach (Transform grid in buildingGridRoots)
         {
-            BuildingSlotSelector slot = child.GetComponent<BuildingSlotSelector>();
-            if (slot != null)
+            foreach (Transform child in grid)
             {
-                slot.SetDeleteMode(isDeleteModeActive);
+                BuildingSlotSelector slot = child.GetComponent<BuildingSlotSelector>();
+                if (slot != null)
+                {
+                    slot.SetDeleteMode(isDeleteModeActive);
 
-                if (isDeleteModeActive && slot.HasBuilding())
-                    slot.ShowDeleteButton();
-                else
-                    slot.HideDeleteButton();
+                    if (isDeleteModeActive && slot.HasBuilding())
+                        slot.ShowDeleteButton();
+                    else
+                        slot.HideDeleteButton();
+                }
             }
         }
-        
-        // 🔁 Sprite değişimi
+
         if (deleteButtonImage != null)
             deleteButtonImage.sprite = isDeleteModeActive ? deleteOnSprite : deleteOffSprite;
-
     }
 
-    //Ekranda herhangi bir mevcut Building(bina) var mı kontrol ediyor
     private bool HasAnyBuiltSlot()
     {
-        foreach (Transform child in buildingGridRoot)
+        foreach (Transform grid in buildingGridRoots)
         {
-            BuildingSlotSelector slot = child.GetComponent<BuildingSlotSelector>();
-            if (slot != null && slot.HasBuilding())
-                return true;
+            foreach (Transform child in grid)
+            {
+                BuildingSlotSelector slot = child.GetComponent<BuildingSlotSelector>();
+                if (slot != null && slot.HasBuilding())
+                    return true;
+            }
         }
         return false;
     }
 
-    //Animasyon için Prefab instantiate ettiğin her yerde şu satırı ekle:
     public void buildingAnimation(int buildingIndex, GameObject buildingObj)
     {
-        
         BuildingBounce bounce = buildingObj.GetComponent<BuildingBounce>();
         if (bounce != null)
             activeBuildings.Add(bounce);
     }
 
-    //Animasyonu kaldırma
     public void RemoveBounceTarget(GameObject buildingObj)
     {
         BuildingBounce bounce = buildingObj.GetComponent<BuildingBounce>();
@@ -105,8 +112,6 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-
-    //Ev animasyon tetikleme fonksiyonu
     private IEnumerator BounceLoop()
     {
         while (true)
@@ -118,11 +123,39 @@ public class BuildingManager : MonoBehaviour
                 int index = Random.Range(0, activeBuildings.Count);
                 BuildingBounce bounceTarget = activeBuildings[index];
 
-                if (bounceTarget != null)
+                // ✅ GameObject aktif mi kontrol et
+                if (bounceTarget != null && bounceTarget.gameObject.activeInHierarchy)
+                {
                     bounceTarget.BounceOnce();
+                }
             }
         }
+
+    }
+
+    public void InitializeFromTemplates(List<Transform> templateSlotsAreas)
+    {
+        buildingPrefabs.Clear();
+        buildingGridRoots.Clear();
+
+        foreach (Transform template in templateSlotsAreas)
+        {
+            Transform buildingGrid = template.Find("BuildingGrid");
+            if (buildingGrid != null)
+            {
+                buildingGridRoots.Add(buildingGrid);
+
+                foreach (Transform child in buildingGrid)
+                {
+                    if (child.GetComponent<IBuildingSlots>() != null)
+                    {
+                        buildingPrefabs.Add(child.gameObject);
+                    }
+                }
+            }
+        }
+        StartCoroutine(BounceLoop());
+        Debug.Log($"✅ BuildingManager initialized with {buildingPrefabs.Count} building slots.");
     }
 
 }
-

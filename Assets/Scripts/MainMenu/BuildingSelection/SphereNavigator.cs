@@ -1,8 +1,12 @@
 using UnityEngine;
+using System.Collections.Generic;
 using System.Collections;
 
 public class SphereNavigator : MonoBehaviour
 {
+    [Header("BuildingManager Objesi")]
+    [SerializeField] private BuildingManager buildingManager;
+
     [Header("Template Alanları")]
     [SerializeField] private Transform[] templateAreas;
     [SerializeField] private float transitionDuration = 1f;
@@ -18,6 +22,8 @@ public class SphereNavigator : MonoBehaviour
             templateAreas[i].gameObject.SetActive(i == currentIndex);
 
         transform.position = templateAreas[currentIndex].position;
+
+        
     }
 
     public void GoToNextTemplate()
@@ -72,6 +78,13 @@ public class SphereNavigator : MonoBehaviour
             {
                 ApplyWobbleRecursively(child);
             }
+        }
+
+        // 🎯 BuildingManager'ı geçerli template ile initialize et
+        if (buildingManager != null)
+        {
+            List<Transform> activeTemplates = new() { templateAreas[currentIndex] };
+            buildingManager.InitializeFromTemplates(activeTemplates);
         }
     }
 

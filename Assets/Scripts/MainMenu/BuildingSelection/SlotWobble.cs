@@ -4,7 +4,7 @@ using System.Collections;
 public class SlotWobble : MonoBehaviour
 {
     [SerializeField] private float wobbleSpeed = 20f;
-    [SerializeField] private float wobbleAmount = 5f;
+    private float wobbleAmount = 4f;
     private float wobbleDuration = 3f;
 
     private Vector3 initialRotation;
