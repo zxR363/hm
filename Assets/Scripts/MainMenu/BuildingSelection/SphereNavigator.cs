@@ -8,67 +8,82 @@ public class SphereNavigator : MonoBehaviour
     [SerializeField] private float transitionDuration = 1f;
     [SerializeField] private AnimationCurve transitionCurve;
 
-    [Header("Kamera Takibi")]
-    [SerializeField] private CameraFollower cameraFollower;
-
     private int currentIndex = 0;
     private bool isTransitioning = false;
 
     private void Start()
     {
-        transform.rotation = Quaternion.LookRotation(templateAreas[currentIndex].position - transform.position);
-        if (cameraFollower != null)
-            cameraFollower.SetTarget(templateAreas[currentIndex]);
-        UpdateCanvasStates();
+        // Başlangıçta sadece ilk template aktif
+        for (int i = 0; i < templateAreas.Length; i++)
+            templateAreas[i].gameObject.SetActive(i == currentIndex);
+
+        transform.position = templateAreas[currentIndex].position;
     }
 
     public void GoToNextTemplate()
     {
         if (isTransitioning || templateAreas.Length < 2) return;
+
         int nextIndex = (currentIndex + 1) % templateAreas.Length;
-        StartCoroutine(RotateToTemplate(nextIndex));
+        StartCoroutine(TransitionTo(nextIndex));
     }
 
     public void GoToPreviousTemplate()
     {
         if (isTransitioning || templateAreas.Length < 2) return;
+
         int prevIndex = (currentIndex - 1 + templateAreas.Length) % templateAreas.Length;
-        StartCoroutine(RotateToTemplate(prevIndex));
+        StartCoroutine(TransitionTo(prevIndex));
     }
 
-    private IEnumerator RotateToTemplate(int targetIndex)
+    private IEnumerator TransitionTo(int targetIndex)
     {
+        Debug.Log("Ilgili template = " + templateAreas[targetIndex].name);
         isTransitioning = true;
 
-        Quaternion startRot = transform.rotation;
-        Quaternion endRot = Quaternion.LookRotation(templateAreas[targetIndex].position - transform.position);
+        Vector3 startPos = transform.position;
+        Vector3 endPos = templateAreas[targetIndex].position;
 
         float time = 0f;
+
         while (time < transitionDuration)
         {
             float t = transitionCurve.Evaluate(time / transitionDuration);
-            transform.rotation = Quaternion.Slerp(startRot, endRot, t);
+            transform.position = Vector3.Lerp(startPos, endPos, t);
             time += Time.deltaTime;
             yield return null;
         }
 
-        transform.rotation = endRot;
+        transform.position = endPos;
         currentIndex = targetIndex;
         isTransitioning = false;
 
-        if (cameraFollower != null)
-            cameraFollower.SetTarget(templateAreas[currentIndex]);
+        // 🎯 Template görünürlüğünü güncelle
+        for (int i = 0; i < templateAreas.Length; i++)
+            templateAreas[i].gameObject.SetActive(i == currentIndex);
 
-        UpdateCanvasStates();
+        // 🎯 Wobble tetikle: BuildingGrid altındaki tüm child objelerde
+        Transform activeTemplate = templateAreas[currentIndex];
+        Transform buildingGrid = activeTemplate.Find("BuildingGrid");
+
+        if (buildingGrid != null)
+        {
+            foreach (Transform child in buildingGrid)
+            {
+                ApplyWobbleRecursively(child);
+            }
+        }
     }
 
-    private void UpdateCanvasStates()
+    private void ApplyWobbleRecursively(Transform root)
     {
-        for (int i = 0; i < templateAreas.Length; i++)
+        SlotWobble wobble = root.GetComponent<SlotWobble>();
+        if (wobble != null)
+            wobble.TriggerWobble();
+
+        foreach (Transform child in root)
         {
-            Canvas canvas = templateAreas[i].GetComponentInChildren<Canvas>(true);
-            if (canvas != null)
-                canvas.enabled = (i == currentIndex);
+            ApplyWobbleRecursively(child);
         }
     }
 }
