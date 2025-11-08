@@ -2,6 +2,7 @@
 
 public class CameraFollowing : MonoBehaviour
 {
+    //NESNE TAKIBI ICIN KULLANILIYOR
     //ACIKLAMA:: Seçilen Nesneyi kameranın takip etmesine yarayan script
 
     [Header("Takip Ayarları")]
