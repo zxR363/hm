@@ -8,64 +8,62 @@ public class SphereNavigator : MonoBehaviour
     [SerializeField] private float transitionDuration = 1f;
     [SerializeField] private AnimationCurve transitionCurve;
 
+    [Header("Kamera Takibi")]
     [SerializeField] private CameraFollower cameraFollower;
-    [Header("Otomatik çekiyor boş kalacak")]
-    [SerializeField] private Canvas[] templateCanvases;
-
 
     private int currentIndex = 0;
     private bool isTransitioning = false;
 
     private void Start()
     {
-        // Başlangıçta ilk template'i aktif konuma getir
-        transform.position = templateAreas[currentIndex].position;
+        transform.rotation = Quaternion.LookRotation(templateAreas[currentIndex].position - transform.position);
+        if (cameraFollower != null)
+            cameraFollower.SetTarget(templateAreas[currentIndex]);
+        UpdateCanvasStates();
     }
 
     public void GoToNextTemplate()
     {
         if (isTransitioning || templateAreas.Length < 2) return;
-
         int nextIndex = (currentIndex + 1) % templateAreas.Length;
-        StartCoroutine(TransitionTo(nextIndex));
+        StartCoroutine(RotateToTemplate(nextIndex));
     }
 
     public void GoToPreviousTemplate()
     {
         if (isTransitioning || templateAreas.Length < 2) return;
-
         int prevIndex = (currentIndex - 1 + templateAreas.Length) % templateAreas.Length;
-        StartCoroutine(TransitionTo(prevIndex));
+        StartCoroutine(RotateToTemplate(prevIndex));
     }
 
-
-    private IEnumerator TransitionTo(int targetIndex)
+    private IEnumerator RotateToTemplate(int targetIndex)
     {
-        Debug.Log("Ilgili template="+templateAreas[targetIndex].name);
         isTransitioning = true;
 
-        Vector3 startPos = transform.position;
-        Vector3 endPos = templateAreas[targetIndex].position;
+        Quaternion startRot = transform.rotation;
+        Quaternion endRot = Quaternion.LookRotation(templateAreas[targetIndex].position - transform.position);
 
         float time = 0f;
-
         while (time < transitionDuration)
         {
             float t = transitionCurve.Evaluate(time / transitionDuration);
-            transform.position = Vector3.Lerp(startPos, endPos, t);
+            transform.rotation = Quaternion.Slerp(startRot, endRot, t);
             time += Time.deltaTime;
             yield return null;
         }
 
-        transform.position = endPos;
+        transform.rotation = endRot;
         currentIndex = targetIndex;
         isTransitioning = false;
 
-        // 🎯 Kamera hedefini güncelle
         if (cameraFollower != null)
             cameraFollower.SetTarget(templateAreas[currentIndex]);
 
-        // 🎯 Canvas'ları güncelle (dinamik)
+        UpdateCanvasStates();
+    }
+
+    private void UpdateCanvasStates()
+    {
         for (int i = 0; i < templateAreas.Length; i++)
         {
             Canvas canvas = templateAreas[i].GetComponentInChildren<Canvas>(true);
@@ -73,5 +71,4 @@ public class SphereNavigator : MonoBehaviour
                 canvas.enabled = (i == currentIndex);
         }
     }
-
 }
