@@ -8,9 +8,9 @@
         "BuildingButton_Template_7"
     ],
     "values": [
-        true,
-        true,
-        true,
+        false,
+        false,
+        false,
         true,
         true,
         true
