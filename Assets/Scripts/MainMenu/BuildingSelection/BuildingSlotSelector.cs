@@ -18,7 +18,7 @@ public class BuildingSlotSelector : MonoBehaviour
     [Header("Boyut ve Dönüş Ayarları")]
     [SerializeField] private Vector2 emptySize = new Vector2(100f, 100f);
     [SerializeField] private Vector2 buildingSize = new Vector2(150f, 150f);
-    [SerializeField] private Vector3 emptyRotation = new Vector3(64.651f, 17.242f, -6.166f);
+    [SerializeField] private Vector3 emptyRotation = new Vector3(60.4f, 33f, 0f);
     [SerializeField] private Vector3 buildingRotation = new Vector3(0f, 0f, -5.01f);
 
     [Header("Durum")]
@@ -139,22 +139,25 @@ public class BuildingSlotSelector : MonoBehaviour
 
     private void SetVisualBuilt()
     {
-        if (slotVisual != null)
-        {
-            slotVisual.sprite = buildingSprite;
-            slotVisual.rectTransform.sizeDelta = buildingSize;
-            slotVisual.rectTransform.localRotation = Quaternion.Euler(buildingRotation);
-        }
+        IBuildingSlots slotData = GetComponent<IBuildingSlots>();
+
+        if (slotData == null || slotVisual == null) return;
+
+        slotVisual.sprite = buildingSprite;
+        slotVisual.rectTransform.localPosition = slotData.builtBuildingPosition;
+        slotVisual.rectTransform.sizeDelta = slotData.builtBuildingSize;
+        slotVisual.rectTransform.localEulerAngles = slotData.builtBuildingRotation;
     }
 
     private void SetVisualEmpty()
     {
-        if (slotVisual != null)
-        {
-            slotVisual.sprite = emptySprite;
-            slotVisual.rectTransform.sizeDelta = emptySize;
-            slotVisual.rectTransform.localRotation = Quaternion.Euler(emptyRotation);
-        }
+        IBuildingSlots slotData = GetComponent<IBuildingSlots>();
+        if (slotData == null || slotVisual == null) return;
+
+        slotVisual.sprite = emptySprite;
+        slotVisual.rectTransform.localPosition = slotData.emptyBuildingPosition;
+        slotVisual.rectTransform.sizeDelta = slotData.emptyBuildingSize;
+        slotVisual.rectTransform.localEulerAngles = slotData.emptyBuildingRotation;
     }
 
     //Building Alanı Boş mu Dolu mu diye kontrol ediyor
