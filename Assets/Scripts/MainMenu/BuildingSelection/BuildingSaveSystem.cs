@@ -14,7 +14,6 @@ public static class BuildingSaveSystem
 
     public static void SaveSlotState(string slotID, bool isBuilt)
     {
-        Debug.Log("SAVE SLOT TETIKLENDI");
         var data = LoadAll();
         data[slotID] = isBuilt;
 

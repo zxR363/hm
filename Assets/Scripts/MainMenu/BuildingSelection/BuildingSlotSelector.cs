@@ -54,9 +54,9 @@ public class BuildingSlotSelector : MonoBehaviour
                 buildingManager.buildingAnimation(buildingIndex, transform.gameObject);
 
                 // ✅ İsteğe bağlı: sahne açılışında bir kez wobble
-                BuildingBounce bounce = GetComponent<BuildingBounce>();
-                if (bounce != null)
-                    bounce.BounceOnce();
+                // BuildingBounce bounce = GetComponent<BuildingBounce>();
+                // if (bounce != null)
+                //     bounce.BounceOnce();
             }
         }
         else
@@ -147,6 +147,8 @@ public class BuildingSlotSelector : MonoBehaviour
         slotVisual.rectTransform.localPosition = slotData.builtBuildingPosition;
         slotVisual.rectTransform.sizeDelta = slotData.builtBuildingSize;
         slotVisual.rectTransform.localEulerAngles = slotData.builtBuildingRotation;
+        Image hummerVisual = slotVisual.transform.Find("hummer")?.GetComponent<Image>();
+        hummerVisual.gameObject.SetActive(false);
     }
 
     private void SetVisualEmpty()
@@ -158,6 +160,8 @@ public class BuildingSlotSelector : MonoBehaviour
         slotVisual.rectTransform.localPosition = slotData.emptyBuildingPosition;
         slotVisual.rectTransform.sizeDelta = slotData.emptyBuildingSize;
         slotVisual.rectTransform.localEulerAngles = slotData.emptyBuildingRotation;
+        Image hummerVisual = slotVisual.transform.Find("hummer")?.GetComponent<Image>();
+        hummerVisual.gameObject.SetActive(true);
     }
 
     //Building Alanı Boş mu Dolu mu diye kontrol ediyor

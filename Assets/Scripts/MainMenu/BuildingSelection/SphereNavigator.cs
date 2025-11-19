@@ -106,8 +106,7 @@ public class SphereNavigator : MonoBehaviour
     }
 
     private bool ContainsEmptyBuildingChild(Transform root)
-    {
-        Debug.Log("TETERERE");
+    {        
         foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
         {
             Image image = child.GetComponent<Image>();
