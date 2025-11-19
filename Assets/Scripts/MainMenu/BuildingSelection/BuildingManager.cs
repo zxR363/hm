@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
+using DG.Tweening; // DoTween namespace
+
 
 public class BuildingManager : MonoBehaviour
 {
@@ -17,6 +19,8 @@ public class BuildingManager : MonoBehaviour
     [SerializeField] private Sprite deleteOffSprite;
     [SerializeField] private Sprite deleteOnSprite;
     [SerializeField] private Image deleteButtonImage;
+    private Tween deleteButtonTween;
+
 
     private bool isDeleteModeActive = false;
     private List<BuildingBounce> activeBuildings = new();
@@ -78,8 +82,29 @@ public class BuildingManager : MonoBehaviour
             }
         }
 
+        //Delete Butonu aktif oluyor ve animasyon çalışıyor
         if (deleteButtonImage != null)
+        {
             deleteButtonImage.sprite = isDeleteModeActive ? deleteOnSprite : deleteOffSprite;
+
+            if (isDeleteModeActive)
+            {
+                AnimateDeleteButtonImage(); // ✅ başlat
+            }
+            else
+            {
+                if (deleteButtonTween != null && deleteButtonTween.IsActive())
+                {
+                    deleteButtonTween.Kill(); // ✅ durdur
+                    deleteButtonTween = null;
+
+                    // 🎯 Görseli sıfırla
+                    deleteButtonImage.rectTransform.localScale = Vector3.one;
+                    deleteButtonImage.rectTransform.localRotation = Quaternion.identity;
+                }
+            }
+        }
+
     }
 
     private bool HasAnyBuiltSlot()
@@ -157,5 +182,39 @@ public class BuildingManager : MonoBehaviour
         StartCoroutine(BounceLoop());
         Debug.Log($"✅ BuildingManager initialized with {buildingPrefabs.Count} building slots.");
     }
+
+    //Delete Button animasyonu
+    private void AnimateDeleteButtonImage()
+    {
+        if (deleteButtonImage == null) return;
+
+        RectTransform target = deleteButtonImage.rectTransform;
+
+        // 🧼 Önceki tween varsa temizle
+        if (deleteButtonTween != null && deleteButtonTween.IsActive())
+            deleteButtonTween.Kill();
+
+        // 🎯 Salınım: 0 → +15 → 0 → -15 → 0 → ... 1.5 saniyede yavaş salınım
+        Sequence rotationSequence = DOTween.Sequence()
+            .Append(target.DOLocalRotate(new Vector3(0f, 0f, 15f), 1.5f).SetEase(Ease.InOutSine))
+            .Append(target.DOLocalRotate(Vector3.zero, 1.5f).SetEase(Ease.InOutSine))
+            .Append(target.DOLocalRotate(new Vector3(0f, 0f, -15f), 1.5f).SetEase(Ease.InOutSine))
+            .Append(target.DOLocalRotate(Vector3.zero, 1.5f).SetEase(Ease.InOutSine))
+            .SetLoops(-1);
+
+
+
+        // 🎯 Pulse: %6 büyü-küçülme, 1.2 saniyede
+        Tween scaleTween = target
+            .DOScale(1.06f, 1.2f)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutQuad);
+
+        // 🎯 Tweenleri birleştir
+        deleteButtonTween = DOTween.Sequence()
+            .Append(rotationSequence)
+            .Join(scaleTween);
+    }
+
 
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.UI;
 
 public class SphereNavigator : MonoBehaviour
 {
@@ -90,6 +91,10 @@ public class SphereNavigator : MonoBehaviour
 
     private void ApplyWobbleRecursively(Transform root)
     {
+        // ❌ Eğer EmptyBuilding içeriyorsa wobble yapma
+        if (ContainsEmptyBuildingChild(root))
+            return;
+
         SlotWobble wobble = root.GetComponent<SlotWobble>();
         if (wobble != null)
             wobble.TriggerWobble();
@@ -98,5 +103,22 @@ public class SphereNavigator : MonoBehaviour
         {
             ApplyWobbleRecursively(child);
         }
+    }
+
+    private bool ContainsEmptyBuildingChild(Transform root)
+    {
+        Debug.Log("TETERERE");
+        foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+        {
+            Image image = child.GetComponent<Image>();
+            if (image != null && image.sprite != null)
+            {
+                string spriteName = image.sprite.name;
+                if (spriteName.Contains("EmptyBuilding", System.StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+        }
+
+        return false;
     }
 }

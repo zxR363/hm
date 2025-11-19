@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System;
+
 
 public class BuildingSlotSelector : MonoBehaviour
 {
@@ -44,6 +46,18 @@ public class BuildingSlotSelector : MonoBehaviour
         {
             isBuilt = true;
             SetVisualBuilt();
+
+            // ✅ Eğer altında "EmptyBuilding" içeren bir obje yoksa bounce ekle
+            if (!HasEmptyBuildingChild())
+            {
+                // ✅ Bounce hedefi ekle
+                buildingManager.buildingAnimation(buildingIndex, transform.gameObject);
+
+                // ✅ İsteğe bağlı: sahne açılışında bir kez wobble
+                BuildingBounce bounce = GetComponent<BuildingBounce>();
+                if (bounce != null)
+                    bounce.BounceOnce();
+            }
         }
         else
         {
@@ -114,6 +128,7 @@ public class BuildingSlotSelector : MonoBehaviour
     {
         if (deleteButtonUI != null)
             deleteButtonUI.SetActive(true);
+
     }
 
     public void HideDeleteButton()
@@ -140,5 +155,24 @@ public class BuildingSlotSelector : MonoBehaviour
             slotVisual.rectTransform.sizeDelta = emptySize;
             slotVisual.rectTransform.localRotation = Quaternion.Euler(emptyRotation);
         }
+    }
+
+    //Building Alanı Boş mu Dolu mu diye kontrol ediyor
+    private bool HasEmptyBuildingChild()
+    {
+        foreach (Transform child in transform)
+        {
+            if (child.name.Contains("EmptyBuilding", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // Altında başka çocuklar varsa onları da kontrol et
+            foreach (Transform grandChild in child)
+            {
+                if (grandChild.name.Contains("EmptyBuilding", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+        }
+
+        return false;
     }
 }
