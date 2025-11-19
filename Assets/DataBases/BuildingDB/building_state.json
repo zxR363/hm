@@ -1,0 +1,14 @@
+{
+    "keys": [
+        "BuildingButton_Template_1",
+        "BuildingButton_Template_2",
+        "BuildingButton_Template_0",
+        "BuildingButton_Template_3"
+    ],
+    "values": [
+        true,
+        false,
+        true,
+        true
+    ]
+}

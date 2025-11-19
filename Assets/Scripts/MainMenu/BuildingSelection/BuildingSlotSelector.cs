@@ -16,7 +16,7 @@ public class BuildingSlotSelector : MonoBehaviour
     [Header("Boyut ve Dönüş Ayarları")]
     [SerializeField] private Vector2 emptySize = new Vector2(100f, 100f);
     [SerializeField] private Vector2 buildingSize = new Vector2(150f, 150f);
-    [SerializeField] private Vector3 emptyRotation = new Vector3(64.651f,17.242f,-6.166f);
+    [SerializeField] private Vector3 emptyRotation = new Vector3(64.651f, 17.242f, -6.166f);
     [SerializeField] private Vector3 buildingRotation = new Vector3(0f, 0f, -5.01f);
 
     [Header("Durum")]
@@ -26,9 +26,12 @@ public class BuildingSlotSelector : MonoBehaviour
     private Image slotVisual;
     private GameObject deleteButtonUI;
     private bool isBuilt = false;
+    private string slotID;
 
     private void Awake()
     {
+        slotID = gameObject.name;
+
         slotRect = GetComponent<RectTransform>();
         slotVisual = transform.Find("Image")?.GetComponent<Image>();
         deleteButtonUI = transform.Find("Delete")?.gameObject;
@@ -36,11 +39,16 @@ public class BuildingSlotSelector : MonoBehaviour
         if (deleteButtonUI != null)
             deleteButtonUI.SetActive(false);
 
-        if (slotVisual != null)
+        // 🎯 Kayıtlı durumu yükle
+        if (BuildingSaveSystem.TryGetSlotState(slotID, out bool wasBuilt) && wasBuilt)
         {
-            slotVisual.sprite = emptySprite;
-            slotVisual.rectTransform.sizeDelta = emptySize;
-            slotVisual.rectTransform.localRotation = Quaternion.Euler(emptyRotation);
+            isBuilt = true;
+            SetVisualBuilt();
+        }
+        else
+        {
+            isBuilt = false;
+            SetVisualEmpty();
         }
     }
 
@@ -58,11 +66,9 @@ public class BuildingSlotSelector : MonoBehaviour
         if (!isBuilt)
         {
             isBuilt = true;
-            slotVisual.sprite = buildingSprite;
-            slotVisual.rectTransform.sizeDelta = buildingSize;
-            slotVisual.rectTransform.localRotation = Quaternion.Euler(buildingRotation);
-            
+            SetVisualBuilt();
             buildingManager.buildingAnimation(buildingIndex, transform.gameObject);
+            BuildingSaveSystem.SaveSlotState(slotID, true); // ✅ kayıt
         }
         else
         {
@@ -85,17 +91,13 @@ public class BuildingSlotSelector : MonoBehaviour
             if (buildingManager != null && slotVisual != null)
                 buildingManager.RemoveBounceTarget(transform.gameObject);
 
-            if (slotVisual != null)
-            {
-                slotVisual.sprite = emptySprite;
-                slotVisual.rectTransform.sizeDelta = emptySize;
-                slotVisual.rectTransform.localRotation = Quaternion.Euler(emptyRotation);
-            }
+            SetVisualEmpty();
 
             if (deleteButtonUI != null)
                 deleteButtonUI.SetActive(false);
-        }    
 
+            BuildingSaveSystem.SaveSlotState(slotID, false); // ✅ silme kaydı
+        }
     }
 
     public bool HasBuilding()
@@ -111,9 +113,7 @@ public class BuildingSlotSelector : MonoBehaviour
     public void ShowDeleteButton()
     {
         if (deleteButtonUI != null)
-        {
             deleteButtonUI.SetActive(true);
-        }     
     }
 
     public void HideDeleteButton()
@@ -122,4 +122,23 @@ public class BuildingSlotSelector : MonoBehaviour
             deleteButtonUI.SetActive(false);
     }
 
+    private void SetVisualBuilt()
+    {
+        if (slotVisual != null)
+        {
+            slotVisual.sprite = buildingSprite;
+            slotVisual.rectTransform.sizeDelta = buildingSize;
+            slotVisual.rectTransform.localRotation = Quaternion.Euler(buildingRotation);
+        }
+    }
+
+    private void SetVisualEmpty()
+    {
+        if (slotVisual != null)
+        {
+            slotVisual.sprite = emptySprite;
+            slotVisual.rectTransform.sizeDelta = emptySize;
+            slotVisual.rectTransform.localRotation = Quaternion.Euler(emptyRotation);
+        }
+    }
 }
