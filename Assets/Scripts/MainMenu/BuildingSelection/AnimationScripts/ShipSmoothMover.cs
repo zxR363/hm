@@ -12,9 +12,21 @@ public class ShipSmoothMover : MonoBehaviour
     public float fixedLocalZ = 0f; // local Z sabit
 
     private Sequence moveSequence;
+    
+        private int currentIndex = 0;
+    private bool forward = true;
+    private Tween currentTween;
+
 
     private void Start()
     {
+        // Başlangıç pozisyonunu anında uygula
+        Vector2 start = localWaypointPositions[0];
+        transform.localPosition = new Vector3(start.x, start.y, fixedLocalZ);
+
+        currentIndex = 0;
+        forward = true;
+
         TriggerAnimations();
     }
 
@@ -32,30 +44,37 @@ public class ShipSmoothMover : MonoBehaviour
             return;
         }
 
-        if (moveSequence != null && moveSequence.IsActive())
-            moveSequence.Kill();
-
-        CreateLoopSequence();
+        StartNextTween();
     }
 
-    private void CreateLoopSequence()
+    private void StartNextTween()
     {
-        moveSequence = DOTween.Sequence();
+        int nextIndex = forward ? currentIndex + 1 : currentIndex - 1;
 
-        // 🔁 1 → 2 → 3 → 4
-        foreach (Vector2 point in localWaypointPositions)
+        // Sınır kontrolü
+        if (nextIndex >= localWaypointPositions.Count)
         {
-            Vector3 targetLocalPos = new Vector3(point.x, point.y, fixedLocalZ);
-            moveSequence.Append(transform.DOLocalMove(targetLocalPos, moveDuration).SetEase(Ease.Linear));
+            forward = false;
+            nextIndex = currentIndex - 1;
+        }
+        else if (nextIndex < 0)
+        {
+            forward = true;
+            nextIndex = currentIndex + 1;
         }
 
-        // 🔁 4 → 3 → 2 → 1
-        for (int i = localWaypointPositions.Count - 2; i >= 0; i--)
-        {
-            Vector3 targetLocalPos = new Vector3(localWaypointPositions[i].x, localWaypointPositions[i].y, fixedLocalZ);
-            moveSequence.Append(transform.DOLocalMove(targetLocalPos, moveDuration).SetEase(Ease.Linear));
-        }
+        Vector2 nextPos = localWaypointPositions[nextIndex];
+        Vector3 target = new Vector3(nextPos.x, nextPos.y, fixedLocalZ);
 
-        moveSequence.SetLoops(-1); // sonsuz döngü
+        currentTween = transform.DOLocalMove(target, moveDuration)
+            .SetEase(Ease.Linear)
+            .SetSpeedBased(false)
+            .SetUpdate(UpdateType.Normal, true)
+            .OnComplete(() =>
+            {
+                currentIndex = nextIndex;
+                StartNextTween(); // zincirleme
+            });
     }
+
 }
