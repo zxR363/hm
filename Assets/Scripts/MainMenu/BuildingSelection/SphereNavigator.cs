@@ -67,11 +67,18 @@ public class SphereNavigator : MonoBehaviour
 
         // 🎯 Template görünürlüğünü güncelle
         for (int i = 0; i < templateAreas.Length; i++)
+        {
+            // 🔁 Eski template'i kapatmadan önce temizle
+            templateAreas[currentIndex].gameObject.ClearPoolables();
             templateAreas[i].gameObject.SetActive(i == currentIndex);
+        }            
 
         // 🎯 Wobble tetikle: BuildingGrid altındaki tüm child objelerde
         Transform activeTemplate = templateAreas[currentIndex];
         Transform buildingGrid = activeTemplate.Find("BuildingGrid");
+
+        //Diğer animasyonların çalışması için
+        activeTemplate.gameObject.TriggerAreaAnimations();
 
         if (buildingGrid != null)
         {

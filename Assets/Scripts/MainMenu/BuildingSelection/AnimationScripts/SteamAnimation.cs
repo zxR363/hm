@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using DG.Tweening; // DoTween namespace
+using DG.Tweening;
 
 public class SteamAnimation : MonoBehaviour
 {
@@ -19,19 +19,35 @@ public class SteamAnimation : MonoBehaviour
 
     private Image image;
     private Tween pulseTween;
+    private Coroutine switchRoutine;
 
-    private void Start()
+    private void Awake()
     {
         image = GetComponent<Image>();
+        TriggerAnimations();
+    }
+
+    public void TriggerAnimations()
+    {
         if (image == null || spriteX1 == null || spriteX2 == null)
         {
-            Debug.LogWarning("Eksik bileşen veya referans.");
+            Debug.LogWarning($"[{name}] SteamAnimation: Eksik bileşen veya referans.");
             return;
         }
 
         image.sprite = spriteX1;
-        //StartCoroutine(SwitchLoop());
-        StartPulse();
+
+        if (switchRoutine != null)
+            StopCoroutine(switchRoutine);
+        switchRoutine = StartCoroutine(SwitchLoop());
+
+        if (pulseTween != null && pulseTween.IsActive())
+            pulseTween.Kill();
+
+        pulseTween = transform
+            .DOScale(pulseScale, pulseDuration)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutQuad);
     }
 
     private IEnumerator SwitchLoop()
@@ -46,19 +62,12 @@ public class SteamAnimation : MonoBehaviour
         }
     }
 
-    private void StartPulse()
-    {
-        pulseTween = transform
-            .DOScale(pulseScale, pulseDuration)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetEase(Ease.InOutQuad);
-    }
-
     private void OnDisable()
     {
         if (pulseTween != null && pulseTween.IsActive())
             pulseTween.Kill();
+
+        if (switchRoutine != null)
+            StopCoroutine(switchRoutine);
     }
-
-
 }

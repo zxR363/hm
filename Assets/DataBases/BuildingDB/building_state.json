@@ -5,14 +5,18 @@
         "BuildingButton_Template_0",
         "BuildingButton_Template_3",
         "BuildingButton_Template_8",
-        "BuildingButton_Template_7"
+        "BuildingButton_Template_7",
+        "BuildingButton_Template_4",
+        "BuildingButton_Template_5"
     ],
     "values": [
-        false,
+        true,
+        true,
         false,
         false,
         true,
         true,
-        true
+        false,
+        false
     ]
 }

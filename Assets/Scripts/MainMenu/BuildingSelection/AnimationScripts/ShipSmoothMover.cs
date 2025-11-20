@@ -15,11 +15,25 @@ public class ShipSmoothMover : MonoBehaviour
 
     private void Start()
     {
+        TriggerAnimations();
+    }
+
+    private void OnDisable()
+    {
+        if (moveSequence != null && moveSequence.IsActive())
+            moveSequence.Kill();
+    }
+
+    public void TriggerAnimations()
+    {
         if (localWaypointPositions.Count < 2)
         {
-            Debug.LogWarning("En az 2 local waypoint gerekli.");
+            Debug.LogWarning($"[{name}] ShipSmoothMover: En az 2 local waypoint gerekli.");
             return;
         }
+
+        if (moveSequence != null && moveSequence.IsActive())
+            moveSequence.Kill();
 
         CreateLoopSequence();
     }
@@ -43,11 +57,5 @@ public class ShipSmoothMover : MonoBehaviour
         }
 
         moveSequence.SetLoops(-1); // sonsuz döngü
-    }
-
-    private void OnDisable()
-    {
-        if (moveSequence != null && moveSequence.IsActive())
-            moveSequence.Kill();
     }
 }

@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6696334645458213286
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6274199942768980747}
+  - component: {fileID: 4287981111995410021}
+  - component: {fileID: 916753329132458492}
+  m_Layer: 5
+  m_Name: FallingSpriteContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6274199942768980747
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6696334645458213286}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &4287981111995410021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6696334645458213286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79feca77ab7bc5a44bcf7bd5e57cd05a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefab: {fileID: 2474374543398734812, guid: 9ccf7dce0624eed45a5c997c3f13ffc7, type: 3}
+  poolSize: 20
+--- !u!114 &916753329132458492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6696334645458213286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d3cec5f795349d4badd00e6e17c2d8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fallingSprites:
+  - {fileID: 21300000, guid: c518fdd86de9ef24ea59522ab45289d8, type: 3}
+  - {fileID: 21300000, guid: 2ae158afba8f359469deb9771d790663, type: 3}
+  - {fileID: 21300000, guid: 556331a516bbbae43bb2ff8685597789, type: 3}
+  - {fileID: 21300000, guid: 1ddf2c2e4b4033043a8637511a423a04, type: 3}
+  - {fileID: 21300000, guid: 5077ed0d08e5a2b4d9505fc9db117d82, type: 3}
+  spawnArea: {fileID: 0}
+  targetArea: {fileID: 0}
+  pool: {fileID: 4287981111995410021}
+  spawnInterval: 2
+  fallDuration: 20
