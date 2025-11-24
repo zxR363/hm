@@ -28,6 +28,9 @@ class ColorPickerApp:
         btn_open = tk.Button(control_frame, text="Open Image", command=self.open_image, font=("Arial", 12))
         btn_open.pack(side=tk.LEFT, padx=20)
 
+        btn_update = tk.Button(control_frame, text="Load & Update JSON", command=self.load_and_update_json, font=("Arial", 12), bg="#e1f5fe")
+        btn_update.pack(side=tk.LEFT, padx=20)
+
         self.lbl_status = tk.Label(control_frame, text="No image loaded", font=("Arial", 12))
         self.lbl_status.pack(side=tk.LEFT, padx=20)
 
@@ -69,8 +72,14 @@ class ColorPickerApp:
         self.canvas_list.pack(side="left", fill="both", expand=True)
         self.scrollbar.pack(side="right", fill="y")
 
+        # Bind MouseWheel
+        self.canvas_list.bind_all("<MouseWheel>", self._on_mousewheel)
+
         btn_clear = tk.Button(sidebar, text="Clear Colors for this Image", command=self.clear_colors, bg="#ffcccc")
         btn_clear.pack(pady=10, padx=10, fill=tk.X)
+
+    def _on_mousewheel(self, event):
+        self.canvas_list.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def load_palettes(self):
         if os.path.exists(self.json_path):
@@ -84,6 +93,47 @@ class ColorPickerApp:
     def save_palettes(self):
         with open(self.json_path, 'w') as f:
             json.dump(self.palettes, f, indent=4)
+
+    def load_and_update_json(self):
+        file_path = filedialog.askopenfilename(
+            initialdir=os.path.dirname(__file__),
+            title="Select JSON to Update",
+            filetypes=[("JSON Files", "*.json")]
+        )
+        
+        if not file_path:
+            return
+
+        try:
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+            
+            updated_count = 0
+            for filename, styles in data.items():
+                new_styles = []
+                for style in styles:
+                    if 'base' in style:
+                        # Regenerate using the base color
+                        new_style = self.generate_style(style['base'])
+                        new_styles.append(new_style)
+                        updated_count += 1
+                    else:
+                        new_styles.append(style)
+                data[filename] = new_styles
+            
+            # Save back
+            with open(file_path, 'w') as f:
+                json.dump(data, f, indent=4)
+            
+            # Reload into app
+            self.json_path = file_path
+            self.palettes = data
+            self.refresh_color_list()
+            
+            messagebox.showinfo("Success", f"Updated {updated_count} palettes with new style/prompt logic!")
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to update JSON: {e}")
 
     def open_image(self):
         file_path = filedialog.askopenfilename(
@@ -161,14 +211,27 @@ class ColorPickerApp:
 
         outline_hex = "#202020"
 
+        # --- Fallback Colors ---
+        fallback_colors = {
+            "White": "#FFFFFF", "Black": "#000000", "Grey": "#808080",
+            "Red": "#FF0000", "Green": "#00FF00", "Blue": "#0000FF",
+            "Yellow": "#FFFF00", "Orange": "#FFA500", "Purple": "#800080",
+            "Brown": "#A52A2A"
+        }
+        
+        fallback_str = ", ".join([f"{k} ({v})" for k, v in fallback_colors.items()])
+
         # --- Prompt Generation ---
         prompt = (
             f"Create a high-quality 2D game asset in a plush, tactile style. "
             f"The object has thick black outlines ({outline_hex}) and soft, rounded shading. "
             f"Lighting is golden and warm. "
-            f"Use the following color palette: Base Color: {base_hex}, Shadow Color: {shadow_hex}, Highlight Color: {highlight_hex}. "
-            f"REQUIRED ANCHOR COLORS: Use Pure White (#FFFFFF) and Pure Black (#000000) for neutral elements, highlights, and deep shadows. "
-            f"Do NOT tint these neutrals with the palette colors unless necessary for the style. Maintain color purity for the specified concept. "
+            f"PRIMARY PALETTE: Base Color: {base_hex}, Shadow Color: {shadow_hex}, Highlight Color: {highlight_hex}. "
+            f"Use this palette as the absolute priority for the main object and style. "
+            f"FALLBACK LOGIC: If the scene requires a color NOT in the palette (e.g. Blue for sky, Green for grass), "
+            f"you may use these standard colors: {fallback_str}. "
+            f"CRITICAL: When using fallbacks, do NOT use them 'raw'. BLEND them with the Golden/Warm style of the palette "
+            f"to ensure they fit the aesthetic. For example, a blue sky should have a warm golden tint, not be cold blue. "
             f"The overall look should be cute, vibrant, and high-resolution."
         )
 
@@ -177,6 +240,7 @@ class ColorPickerApp:
             "shadow": shadow_hex,
             "highlight": highlight_hex,
             "outline": outline_hex,
+            "fallbacks": fallback_colors,
             "prompt": prompt
         }
 
