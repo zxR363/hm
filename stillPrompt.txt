@@ -3,3 +3,6 @@ Use a whimsical, playful cartoon style inspired by Toca Boca. Apply a flat desig
 
 
 Toca Boca'dan ilham alan, eğlenceli ve eğlenceli bir çizgi film stili kullanın. Temiz çizgiler, kalın siyah hatlar ve minimal degradelerle düz bir tasarım estetiği uygulayın. Gerçekçilik olmadan derinlik hissi vermek için pastel tonlar ve yumuşak gölgelendirmeler kullanın. Şekiller, uygun yerlerde simetrik veya yelpaze benzeri düzenlemelerle hafifçe abartılı ve çocuk dostu olmalıdır. Genel atmosfer, yaratıcı, ulaşılabilir ve bir mobil oyun arayüzü veya karakter odaklı bir sahne için uygun olmalıdır. Aksi belirtilmedikçe arka plan şeffaf olmalıdır.
+
+
+Avatar World'den ilham alan, eğlenceli ve eğlenceli bir çizgi film stili kullanın. Temiz çizgiler, kalın siyah hatlar ve minimal degradelerle düz bir tasarım estetiği uygulayın. Gerçekçilik olmadan derinlik hissi vermek için pastel tonlar ve yumuşak gölgelendirmeler kullanın. Şekiller, uygun yerlerde simetrik veya yelpaze benzeri düzenlemelerle hafifçe abartılı ve çocuk dostu olmalıdır. Genel atmosfer, yaratıcı, ulaşılabilir ve bir mobil oyun arayüzü veya karakter odaklı bir sahne için uygun olmalıdır. Aksi belirtilmedikçe arka plan şeffaf olmalıdır. AvatarWorld içerisinden aldığım referans renkler palettes.json dosyası içerisindedir
