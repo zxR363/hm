@@ -6,3 +6,60 @@ Toca Boca'dan ilham alan, eğlenceli ve eğlenceli bir çizgi film stili kullan�
 
 
 Avatar World'den ilham alan, eğlenceli ve eğlenceli bir çizgi film stili kullanın. Temiz çizgiler, kalın siyah hatlar ve minimal degradelerle düz bir tasarım estetiği uygulayın. Gerçekçilik olmadan derinlik hissi vermek için pastel tonlar ve yumuşak gölgelendirmeler kullanın. Şekiller, uygun yerlerde simetrik veya yelpaze benzeri düzenlemelerle hafifçe abartılı ve çocuk dostu olmalıdır. Genel atmosfer, yaratıcı, ulaşılabilir ve bir mobil oyun arayüzü veya karakter odaklı bir sahne için uygun olmalıdır. Aksi belirtilmedikçe arka plan şeffaf olmalıdır. AvatarWorld içerisinden aldığım referans renkler palettes.json dosyası içerisindedir
+
+
+Referanstaki resmi güncelle. palettes.json'dan ilham alan, eğlenceli ve eğlenceli bir çizgi film stili kullanın. Temiz çizgiler, kalın siyah hatlar ve minimal degradelerle düz bir tasarım estetiği uygulayın. Şekiller, uygun yerlerde simetrik veya yelpaze benzeri düzenlemelerle hafifçe abartılı ve çocuk dostu olmalıdır. Genel atmosfer, yaratıcı, ulaşılabilir ve bir mobil oyun arayüzü veya karakter odaklı bir sahne için uygun olmalıdır. Aksi belirtilmedikçe arka plan şeffaf olmalıdır.
+
+Referanstaki resmi güncelle. palettes.json'dan ilham al
+
+
+
+
+//----------------------
+
+Restyle the attached image "buildingArea_1.png" using the art style defined in "palettes.json", adhering to the following strict rules:
+
+1. STYLE INSTRUCTIONS:
+   - Apply the "plush, tactile style" described in the JSON.
+   - Use "thick black outlines (#202020)" for all objects.
+   - Use "soft, rounded shading".
+
+2. LIGHTING OVERRIDE (CRITICAL):
+   - IGNORE the text "Lighting is golden and warm" found in the JSON file.
+   - Do NOT apply a yellow, sepia, or golden filter to the scene.
+   - Use neutral, white daylight lighting to ensure colors remain true to their hue.
+
+3. INTELLIGENT COLOR MAPPING:
+   - Analyze the original colors of the objects in "buildingArea_1.png" (e.g., Purple ground, Blue water, Cyan crystals).
+   - For each object, find the closest matching color palette entry inside "palettes.json".
+   - Apply the specific "base", "shadow", and "highlight" Hex codes from that matching JSON palette to the object.
+   - Example: For the purple ground, use the specific Purple Palette Hex codes from the JSON. For the blue water, use the Blue Palette Hex codes from the JSON.
+
+The goal is to keep the original color composition but rendered with the specific tones and textures defined in the JSON library.
+
+
+
+
+GÖREV: Ekli buildingArea_1.png resmini, palettes.json dosyasındaki stil kurallarına göre yeniden oluştur.
+
+1. STİL KURALLARI (JSON'dan Uygula):
+
+Nesneler "plush, tactile" (yumuşak, dokunsal) bir oyun varlığı gibi görünmeli.
+
+Her nesnenin etrafında belirgin "thick black outlines (#202020)" (kalın siyah dış hatlar) olmalı.
+
+Gölgelendirme "soft, rounded shading" (yumuşak ve yuvarlak) tekniğiyle yapılmalı.
+
+ÖNEMLİ: JSON metinlerinde geçen "Lighting is golden and warm" ifadesini YOKSAY. Sahneye sarı veya altın rengi bir filtre uygulama. Işıklandırma nötr ve beyaz olmalı.
+
+2. RENK EŞLEŞTİRME STRATEJİSİ (Color Mapping):
+
+Referans resimdeki ana renkleri analiz et (Örn: Zemin Moru, Su Mavisi, Kristal Yeşili).
+
+Bu renkleri doğrudan kullanmak yerine, palettes.json kütüphanesini tara ve her bir bölge için en uygun renk paletini bul.
+
+Örnek: Referans resimdeki zemin mor ise, JSON içindeki "mor" ağırlıklı paleti bul ve o paletin Base, Shadow ve Highlight hex kodlarını zemine uygula.
+
+Örnek: Su mavi ise, JSON içindeki "mavi" paleti bul ve onu suya uygula.
+
+Sonuç olarak resim, orijinalin renk kompozisyonunu korumalı ancak tonlar tamamen palettes.json dosyasından seçilmiş olmalıdır.
