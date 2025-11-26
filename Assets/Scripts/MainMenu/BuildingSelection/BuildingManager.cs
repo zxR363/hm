@@ -194,11 +194,11 @@ public class BuildingManager : MonoBehaviour
         if (deleteButtonTween != null && deleteButtonTween.IsActive())
             deleteButtonTween.Kill();
 
-        // 🎯 Salınım: 0 → +15 → 0 → -15 → 0 → ... 1.5 saniyede yavaş salınım
+        // 🎯 Salınım: 0 → +30 → 0 → -30 → 0 → ... 1.5 saniyede yavaş salınım
         Sequence rotationSequence = DOTween.Sequence()
-            .Append(target.DOLocalRotate(new Vector3(0f, 0f, 15f), 1.5f).SetEase(Ease.InOutSine))
+            .Append(target.DOLocalRotate(new Vector3(0f, 0f, 30f), 1.5f).SetEase(Ease.InOutSine))
             .Append(target.DOLocalRotate(Vector3.zero, 1.5f).SetEase(Ease.InOutSine))
-            .Append(target.DOLocalRotate(new Vector3(0f, 0f, -15f), 1.5f).SetEase(Ease.InOutSine))
+            .Append(target.DOLocalRotate(new Vector3(0f, 0f, -30f), 1.5f).SetEase(Ease.InOutSine))
             .Append(target.DOLocalRotate(Vector3.zero, 1.5f).SetEase(Ease.InOutSine))
             .SetLoops(-1);
 
