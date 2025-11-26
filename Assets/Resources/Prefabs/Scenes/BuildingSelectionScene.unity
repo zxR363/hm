@@ -475,8 +475,6 @@ MonoBehaviour:
   templateAreas:
   - {fileID: 50657171888264970}
   - {fileID: 1666638531490897562}
-  - {fileID: 8089891847011367626}
-  - {fileID: 7043586406282644002}
   transitionDuration: 0.4
   transitionCurve:
     serializedVersion: 2
@@ -1708,8 +1706,6 @@ MonoBehaviour:
   templateSlotsAreas:
   - {fileID: 50657171888264970}
   - {fileID: 1666638531490897562}
-  - {fileID: 8089891847011367626}
-  - {fileID: 7043586406282644002}
   deleteOffSprite: {fileID: 21300000, guid: d42b2e12317b84c4f94314564c0dbca5, type: 3}
   deleteOnSprite: {fileID: 21300000, guid: 20ca07a00ca909a48b0a0b9de893cb2e, type: 3}
   deleteButtonImage: {fileID: 721562862}
@@ -7893,7 +7889,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.2
+  duration: 1.5
 --- !u!114 &2892423511107710396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8127,7 +8124,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.5
+  duration: 1
 --- !u!222 &2970195270273556130
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -8417,7 +8415,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.5
+  duration: 1
 --- !u!1 &3093273057946944274
 GameObject:
   m_ObjectHideFlags: 0
@@ -8569,7 +8568,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.5
+  duration: 1
 --- !u!114 &3162821041413541013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8997,7 +8997,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.5
+  duration: 1
 --- !u!222 &3337131385749209956
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -10819,7 +10820,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.2
+  duration: 1.5
 --- !u!224 &4187657747454970095
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13002,7 +13004,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.2
+  duration: 1.5
 --- !u!224 &5338593244165133029
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13730,7 +13733,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.2
+  duration: 1.5
 --- !u!222 &5702839598473389456
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -14779,7 +14783,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.5
+  duration: 1
 --- !u!1 &6277674411217445970
 GameObject:
   m_ObjectHideFlags: 0
@@ -15453,7 +15458,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.2
+  duration: 1.5
 --- !u!114 &6627415719985671118
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15868,7 +15874,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.2
+  duration: 1.5
 --- !u!114 &6844757325191882825
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16171,7 +16178,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!222 &7021075113515813455
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -16366,7 +16373,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &7108265621807874859
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18995,7 +19002,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &8330208935160178084
 GameObject:
   m_ObjectHideFlags: 0
@@ -20105,7 +20112,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8e1231efe59d043b42e9a4bf50ec5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wobbleSpeed: 2
+  swayAmount: 0.5
+  duration: 1
 --- !u!1 &8770991683696963702
 GameObject:
   m_ObjectHideFlags: 0

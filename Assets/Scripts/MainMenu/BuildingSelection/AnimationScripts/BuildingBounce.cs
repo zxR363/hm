@@ -17,10 +17,13 @@ public class BuildingBounce : MonoBehaviour
     private void Awake()
     {
         rt = GetComponent<RectTransform>();
+        originalScale = transform.localScale;
+    }
+
+    private void Start()
+    {
         if (rt != null)
             originalPos = rt.anchoredPosition;
-
-        originalScale = transform.localScale;
     }
 
     public void BounceOnce()
