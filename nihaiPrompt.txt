@@ -1,0 +1,177 @@
+# Game UI prompt
+
+## **MEVCUT RESIMDE NIHAI PROMP STILI UYGULATMAK ISTERSEK**
+
+Bu, yapay zeka görsel oluşturma sürecindeki en hassas noktalardan biridir. Var olan bir kompozisyonu koruyarak sadece "boyasını değiştirmek" (re-skinning), yapay zekaya "sakın yaratıcı olma, sadece dediğimi yap" demeyi gerektirir.
+
+Bunu başarmak için prompt'un başına, yapay zekayı mevcut görüntüye sadık kalmaya zorlayacak **"kısıtlayıcı komutlar"** eklememiz gerekiyor.
+
+Aşağıda, bu işlem için kullanman gereken prompt yapısını ve bu yapının nasıl çalıştığını açıklıyorum.
+
+### "Stil Transferi" Prompt Yapısı
+
+Bu promptu kullanırken, görseli yüklediğin (Image-to-Image) alana bu metni yazmalısın.
+
+**Formül:** `[Kısıtlayıcı Komutlar]`, `[Bizim Stil Promptumuz]`
+
+---
+
+### KULLANIMA HAZIR TAM PROMPT:
+
+Aşağıdaki İngilizce metni kopyala. Köşeli parantez `[ ]` ile belirttiğim yer, yüklediğin resme bir referanstır. Kullandığın araca göre bu kısım değişebilir (bazı araçlar otomatik algılar, bazılarında dosya adını yazman gerekir, bazılarında "based on this image" yeterlidir).
+
+> **"Based on [Yüklediğin Resim], redraw the exact same scene. Keep the original composition, layout, object positions, and perspective precisely identical. Do not add or remove any elements. Apply a new art style to the existing structure: isometric view, playful Toca Boca game aesthetic, friendly design, rounded shapes. Rendered as a 2D vector game asset with thick bold black outlines, vivid and vibrant color palette, flat colors, cel shaded, sticker art style, white background"**
+> 
+
+---
+
+### Bu Prompt Nasıl Çalışıyor? (Analiz)
+
+Yapay zeka bu komutu şöyle işler:
+
+1. **"Based on [Yüklediğin Resim], redraw the exact same scene."**
+    - (Komut: Referans resme bak ve aynısını yeniden çiz.)
+2. **"Keep the original composition, layout, object positions, and perspective precisely identical."**
+    - (Kritik Kısıtlama: Kompozisyonu, düzeni, pozisyonları ve açıyı "kesinlikle aynı" tut. Burası yapay zekanın yaratıcılığını kilitlediğimiz yerdir.)
+3. **"Do not add or remove any elements."**
+    - (Ek Güvenlik: Kafandan yeni bir şey ekleme veya var olanı silme.)
+4. **"Apply a new art style to the existing structure: [Bizim Stil Promptumuz...]"**
+    - (İşlem: Şimdi elindeki o kilitlenmiş yapıya, daha önce belirlediğimiz kalın çizgili, canlı renkli, Toca Boca tarzını uygula.)
+
+### Çok Önemli Teknik Uyarı (Kullandığın Araca Göre)
+
+Bu promptun başarısı, kullandığın yapay zeka aracının "Image-to-Image" (Resimden Resme) özelliğinin gücüne bağlıdır.
+
+- **Midjourney / Leonardo AI gibi araçlar:** Resmi yükleyip bu promptu girdiğinde, genellikle "Image Strength" (Görüntü Gücü) veya "Influence" (Etki) ayarı vardır. Bu ayarı yüksek tutmalısın (Örn: %70-90 arası). Düşük tutarsan yapay zeka kompozisyonu bozar.
+- **Stable Diffusion (ControlNet):** Eğer bu işi profesyonel seviyede yapıyorsan, Stable Diffusion'da "ControlNet - Canny" veya "ControlNet - Lineart" modunu kullanmalısın. Bu modlar, yüklediğin resmin sadece kenar çizgilerini alır ve boyamayı bizim prompta göre yapar. En kesin sonuç budur.
+- **DALL-E 3 (ChatGPT):** DALL-E 3 şu an için "resme sadık kalma" konusunda çok inatçıdır. Yüklediğin resmi genellikle "ilham" olarak alır ve kompozisyonu değiştirir. Bu promptu denesen bile DALL-E 3'te pozisyonların birebir aynı kalması zordur.
+
+# NIHAI PROMPT
+
+Bu çok mantıklı bir istek. Yapay zeka, özellikle "pastel" veya "soft" kelimelerini gördüğünde (Toca Boca stili dediğimizde bunu yapmaya meyillidir) renkleri bazen fazla soldurabilir.
+
+Bunu çözmek için promptumuza iki katmanlı bir renk talimatı ekleyeceğiz:
+
+1. **Genel Canlılık Komutu:** Yapay zekaya "soluk renkler kullanma, canlı olsun" diyeceğiz.
+2. **Senin Renklerin (Opsiyonel):** Eğer elinde kod veya renk ismi varsa onları "ana renkler" olarak vereceğiz, geri kalanını o tamamlayacak.
+
+İşte bu mantıkla güncellenmiş, renk kontrollü yeni prompt kalıbı:
+
+### Renk Kontrollü & Yumuşatılmış Hibrit Prompt
+
+Aşağıdaki kalıpta **`[RENKLERİN]`** kısmına istersen Hex kodu (örn: #FF0000), istersen renk ismi (örn: Orange and Blue) yazabilirsin. Eğer özel bir rengin yoksa o kısmı boş bırakabilir veya sil, promptun geri kalanı "canlı renkler" üretmeye ayarlandı.
+
+> **"isometric view, three-quarter perspective of a cute [Çizdirmek İstediğin Nesne], playful Toca Boca game aesthetic, friendly design, rounded shapes. Main colors are [RENKLERİN]. Rendered as a 2D vector game asset with thick bold black outlines, vivid and vibrant color palette, flat colors, cel shaded, simple shading, clean distinct lines, sticker art style, white background"**
+> 
+
+---
+
+### Bu Prompt Neleri Değiştirdi?
+
+1. **`Main colors are [RENKLERİN]`:** Bu komut, yapay zekaya "Önce bu renkleri kullan, eksik kalan yerleri bunlara uyumlu renklerle sen tamamla" der.
+2. **`Vivid and vibrant color palette`:** Bu ifade, "soluk" (desaturated) renk sorununu çözer. Renklerin patlamasını ve mobil oyunlardaki gibi dikkat çekici olmasını sağlar.
+
+---
+
+### Nasıl Kullanacaksın? (Örnek Senaryolar)
+
+**Senaryo 1: Elinde belirli bir renk kodu (Hex Code) varsa:**
+Diyelim ki elinde markan için belirlediğin özel bir **Turuncu (#FF5733)** ve **Mavi (#33C1FF)** var.
+
+> "...cute school bus, playful Toca Boca game aesthetic... Main colors are #FF5733 orange and #33C1FF blue. Rendered as a 2D vector game asset..."
+> 
+
+*(Not: Hex kodunun yanına rengin İngilizce adını da yazmak yapay zekanın hata yapma payını azaltır.)*
+
+**Senaryo 2: Sadece genel bir renk tercihin varsa:**
+Diyelim ki bir ev çizdiriyorsun ve sadece "çatısı kırmızı olsun, gerisini sen hallet" demek istiyorsun.
+
+> "...cute house, playful Toca Boca game aesthetic... Main colors are Red roof and White walls. Rendered as a 2D vector game asset..."
+> 
+
+**Senaryo 3: Hiç renk belirtmezsen (Ama yine de canlı olsun istersen):**
+Kısmı tamamen boş geçersen, `vivid and vibrant color palette` komutu devreye girer ve Toca Boca stiline uygun ama soluk olmayan, canlı renkleri kendisi seçer.
+
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+
+"2D vector game asset, thick bold black outlines, flat colors, cel shaded, simple shading, clean distinct lines, cartoon aesthetic, mobile game graphics, sticker art style, white background”
+
+### Nasıl Kullanacaksın?
+
+Bu stili başka nesneler çizdirmek için kullanırken şu formülü uygulayabilirsin:
+
+**Formül:** `[Çizdirmek istediğin Nesne]`, `[Yukarıdaki Stil Promptu]`
+
+**Örnekler:**
+
+1. **Bir Araba Çizdirmek İstersen:**
+    
+    > "A red sports car, 2D vector game asset, thick bold black outlines, flat colors, cel shaded, simple shading, clean distinct lines, cartoon aesthetic, mobile game graphics, sticker art style, white background"
+    > 
+2. **Bir Karakter Çizdirmek İstersen:**
+    
+    > "A cute warrior character holding a sword, 2D vector game asset, thick bold black outlines, flat colors, cel shaded, simple shading, clean distinct lines, cartoon aesthetic, mobile game graphics, sticker art style, white background"
+    > 
+
+Bu kalıbı kullanarak görseldeki o net, karikatürize ve oyun içi varlık (asset) havasını yakalayabilirsin.
+
+### Tam Prompt Kalıbı (Stil + Bakış Açısı)
+
+İlk görseldeki kalın çizgili çizim stilini, bu görseldeki izometrik açıyla birleştirdiğimizde ortaya çıkan tam prompt budur:
+
+**"A [Çizdirmek istediğin Nesne] in isometric view, three-quarter diagonal perspective. 2D vector game asset, thick bold black outlines, flat colors, cel shaded, simple shading, clean distinct lines, cartoon aesthetic, mobile game graphics, sticker art style"**
+
+### Örnek Kullanımlar:
+
+Eğer ilk görseldeki **Palmiye Ağacını** bu evin **İzometrik Açısıyla** çizdirmek istersen prompt şöyle olur:
+
+> "A tall palm tree in isometric view, three-quarter diagonal perspective. 2D vector game asset, thick bold black outlines, flat colors, cel shaded, simple shading, clean distinct lines, cartoon aesthetic, mobile game graphics, sticker art style"
+> 
+
+Eğer bu evin stilini kullanarak başka bir nesne (örneğin bir kule) çizdirmek istersen:
+
+> "A medieval stone tower building in isometric view, three-quarter diagonal perspective. 2D vector game asset, thick bold black outlines, flat colors, cel shaded, simple shading, clean distinct lines, cartoon aesthetic, mobile game graphics, sticker art style"
+> 
+
+# YUMUŞATILMIŞ HALİ
+
+### Yumuşatılmış İzometrik Hibrit Prompt
+
+Aşağıdaki İngilizce metni kopyalayıp, köşeli parantez `[ ]` içindeki yere çizdirmek istediğin şeyi yazman yeterli.
+
+> **"isometric view, three-quarter perspective of a cute [Çizdirmek istediğin Nesne], playful Toca Boca game aesthetic, friendly design, rounded shapes. rendered as a 2D vector game asset with thick bold black outlines, flat colors, cel shaded, simple shading, clean distinct lines, sticker art style, white background"**
+> 
+
+### Nasıl Çalışıyor? (Prompt Analizi)
+
+Bu promptu, yapay zekanın adım adım işlemesi için şu şekilde kurguladım:
+
+1. **Bakış Açısı:** `isometric view, three-quarter perspective` (Önce sahnenin açısını kilitliyoruz.)
+2. **Konu ve Hava (Yumuşatıcılar Buraya):** `cute [Nesne], playful Toca Boca game aesthetic, friendly design, rounded shapes.` (Burada nesnenin sevimli, Toca Boca tarzında, oyuncu ve yuvarlak hatlı olacağını belirtiyoruz. Bu kısım stili yumuşatan kısımdır.)
+3. **Teknik Çizim Tarzı (İlk Resimlerden):** `rendered as a 2D vector game asset with thick bold black outlines, flat colors, cel shaded...` (En sonunda ise, bu sevimli nesnenin teknik olarak ilk baştaki gibi kalın siyah çizgilerle, vektörel ve sticker gibi çizilmesini emrediyoruz.)
+
+### Örnek Denemeler
+
+Bu promptu nasıl kullanacağına dair birkaç örnek:
+
+**Örnek 1: Bir Okul Binası Çizdirmek İçin**
+
+> "isometric view, three-quarter perspective of a cute school building with a playground, playful Toca Boca game aesthetic, friendly design, rounded shapes. rendered as a 2D vector game asset with thick bold black outlines, flat colors, cel shaded, simple shading, clean distinct lines, sticker art style, white background"
+> 
+
+**Örnek 2: Bir Kafe İçi (İzometrik Oda) Çizdirmek İçin**
+
+> "isometric view, three-quarter perspective of a cute cozy coffee shop interior room with furniture, playful Toca Boca game aesthetic, friendly design, rounded shapes. rendered as a 2D vector game asset with thick bold black outlines, flat colors, cel shaded, simple shading, clean distinct lines, sticker art style, white background"
+>

@@ -10,9 +10,9 @@
         "BuildingButton_Template_5"
     ],
     "values": [
-        false,
-        false,
-        false,
+        true,
+        true,
+        true,
         false,
         true,
         true,
