@@ -5,12 +5,11 @@ using UnityEngine;
 public static class BuildingSaveSystem
 {
     private const string SaveFileName = "building_state.json";
-    //Kayıt işlemi Assets/Databases/BuildingDB
-    private static string FullPath => Path.Combine(Application.dataPath, "Databases/BuildingDB/building_state.json");
     
-    //Kayıt işlemi Application.persistentDataPath altında yapılıyor, yani
-    //C:/Users/[KullanıcıAdı]/AppData/LocalLow/[CompanyName]/[ProductName]/building_state.json
-    //private static string FullPath => Path.Combine(Application.persistentDataPath, SaveFileName);
+    // Kayıt işlemi Application.persistentDataPath altında yapılıyor
+    // PC: C:/Users/[User]/AppData/LocalLow/[Company]/[Product]/building_state.json
+    // Mobile: Internal Storage/Android/data/[PackageName]/files/building_state.json
+    private static string FullPath => Path.Combine(Application.persistentDataPath, SaveFileName);
 
     public static void SaveSlotState(string slotID, bool isBuilt)
     {
