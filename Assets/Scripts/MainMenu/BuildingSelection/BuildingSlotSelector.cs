@@ -18,11 +18,11 @@ public class BuildingSlotSelector : MonoBehaviour
     [SerializeField] private Sprite buildingSprite;
     [SerializeField] private string sceneName;
 
-    [Header("Boyut ve Dönüş Ayarları")]
-    [SerializeField] private Vector2 emptySize = new Vector2(100f, 100f);
-    [SerializeField] private Vector2 buildingSize = new Vector2(150f, 150f);
-    [SerializeField] private Vector3 emptyRotation = new Vector3(60.4f, 33f, 0f);
-    [SerializeField] private Vector3 buildingRotation = new Vector3(0f, 0f, -5.01f);
+    // [Header("Boyut ve Dönüş Ayarları")]
+    // [SerializeField] private Vector2 emptySize = new Vector2(100f, 100f);
+    // [SerializeField] private Vector2 buildingSize = new Vector2(150f, 150f);
+    // [SerializeField] private Vector3 emptyRotation = new Vector3(60.4f, 33f, 0f);
+    // [SerializeField] private Vector3 buildingRotation = new Vector3(0f, 0f, -5.01f);
 
     [Header("Durum")]
     public bool isDeleteMode = false;
