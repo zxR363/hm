@@ -18,10 +18,19 @@ public class SwipeInputHandler : MonoBehaviour
     private Vector2 startPos;
     private bool isSwiping = false;
 
+    [Header("Manager Referansı")]
+    [SerializeField] private BuildingManager buildingManager;
+
     private void Start()
     {
         leftButton.onClick.AddListener(GoLeft);
         rightButton.onClick.AddListener(GoRight);
+
+        // Eğer buildingManager atanmamışsa bulmaya çalış
+        if (buildingManager == null)
+        {
+            buildingManager = FindObjectOfType<BuildingManager>();
+        }
     }
 
     private void Update()
@@ -39,6 +48,9 @@ public class SwipeInputHandler : MonoBehaviour
 
             if (Mathf.Abs(delta.x) > swipeThreshold)
             {
+                // Swipe gerçekleşmeden önce silme modunu kapat
+                if (buildingManager != null) buildingManager.DisableDeleteMode();
+
                 if (delta.x > 0)
                     navigator.GoToPreviousTemplate();
                 else
@@ -65,6 +77,9 @@ public class SwipeInputHandler : MonoBehaviour
 
                 if (Mathf.Abs(delta.x) > swipeThreshold)
                 {
+                    // Swipe gerçekleşmeden önce silme modunu kapat
+                    if (buildingManager != null) buildingManager.DisableDeleteMode();
+
                     if (delta.x > 0)
                         navigator.GoToPreviousTemplate();
                     else
@@ -79,11 +94,15 @@ public class SwipeInputHandler : MonoBehaviour
 
     private void GoLeft()
     {
+        // Butona basıldığında da silme modunu kapat
+        if (buildingManager != null) buildingManager.DisableDeleteMode();
         StartCoroutine(TransitionToPage(leftButton));
     }
 
     private void GoRight()
     {
+        // Butona basıldığında da silme modunu kapat
+        if (buildingManager != null) buildingManager.DisableDeleteMode();
         StartCoroutine(TransitionToPage(rightButton));
     }
 

@@ -107,6 +107,13 @@ public class BuildingManager : MonoBehaviour
 
     }
 
+    public void DisableDeleteMode()
+    {
+        if (!isDeleteModeActive) return;
+
+        ToggleDeleteButtonsMode();
+    }
+
     private bool HasAnyBuiltSlot()
     {
         foreach (Transform grid in buildingGridRoots)
