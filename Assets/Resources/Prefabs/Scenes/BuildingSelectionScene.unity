@@ -5250,7 +5250,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 809289507744899475}
   m_LocalRotation: {x: 0, y: -0.27999657, z: 0, w: 0.960001}
-  m_LocalPosition: {x: 0, y: 0, z: 258}
+  m_LocalPosition: {x: 0, y: 0, z: 550}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5258,7 +5258,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: -32.52, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 491, y: -514}
+  m_AnchoredPosition: {x: 86, y: -199}
   m_SizeDelta: {x: 100, y: 88}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1360582201194037421
@@ -16954,13 +16954,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   localWaypointPositions:
   - {x: 86, y: -199}
-  - {x: 33, y: -258}
-  - {x: -24, y: -315}
-  - {x: -115, y: -396}
-  - {x: -145, y: -449}
-  - {x: -143, y: -508}
-  - {x: 61, y: -514}
-  - {x: 491, y: -514}
+  - {x: -20, y: -280}
+  - {x: -128, y: -356}
+  - {x: -181, y: -458}
+  - {x: 120, y: -469}
+  - {x: 546, y: -471}
   moveDuration: 6
   fixedLocalZ: 0
 --- !u!114 &7032716473203314065
