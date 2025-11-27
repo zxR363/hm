@@ -10,12 +10,12 @@ public class SteamAnimation : MonoBehaviour
     [SerializeField] private Sprite spriteX2;
 
     [Header("Geçiş Süreleri (saniye)")]
-    [SerializeField] private float timeToX2 = 1f;
+    [SerializeField] private float timeToX2 = 2f;
     [SerializeField] private float timeToX1 = 1f;
 
     [Header("Pulse Ayarları")]
-    [SerializeField] private float pulseScale = 1.06f;
-    [SerializeField] private float pulseDuration = 1.2f;
+    [SerializeField] private float pulseScale = 1.2f;
+    [SerializeField] private float pulseDuration = 1f;
 
     private Image image;
     private Tween pulseTween;
@@ -24,7 +24,7 @@ public class SteamAnimation : MonoBehaviour
     private void Awake()
     {
         image = GetComponent<Image>();
-        TriggerAnimations();
+        // TriggerAnimations(); // Moved to OnEnable
     }
 
     public void TriggerAnimations()
@@ -60,6 +60,11 @@ public class SteamAnimation : MonoBehaviour
             yield return new WaitForSeconds(timeToX1);
             image.sprite = spriteX1;
         }
+    }
+
+    private void OnEnable()
+    {
+        TriggerAnimations();
     }
 
     private void OnDisable()

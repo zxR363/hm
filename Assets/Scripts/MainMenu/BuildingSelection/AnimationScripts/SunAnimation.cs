@@ -10,15 +10,15 @@ public class SunAnimation : MonoBehaviour
     [SerializeField] private Sprite spriteX2;
 
     [Header("Geçiş Süreleri (saniye)")]
-    [SerializeField] private float timeToX2 = 1f;
+    [SerializeField] private float timeToX2 = 5f;
     [SerializeField] private float timeToX1 = 1f;
 
     [Header("Pulse Hedefi (dışarıdan atanır)")]
     [SerializeField] private GameObject pulseTarget;
 
     [Header("Pulse Ayarları")]
-    [SerializeField] private float pulseScale = 1.06f;
-    [SerializeField] private float pulseDuration = 1.2f;
+    [SerializeField] private float pulseScale = 1.3f;
+    [SerializeField] private float pulseDuration = 1.3f;
 
     private Image image;
     private Tween pulseTween;
@@ -63,6 +63,11 @@ public class SunAnimation : MonoBehaviour
             yield return new WaitForSeconds(timeToX1);
             image.sprite = spriteX1;
         }
+    }
+
+    private void OnEnable()
+    {
+        TriggerAnimations();
     }
 
     private void OnDisable()

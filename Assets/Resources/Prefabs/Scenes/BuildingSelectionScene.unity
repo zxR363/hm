@@ -5755,8 +5755,8 @@ MonoBehaviour:
   spriteX2: {fileID: 21300000, guid: c9e1a97c90e2bf248936ee58c05b4003, type: 3}
   timeToX2: 2
   timeToX1: 1
-  pulseScale: 1.1
-  pulseDuration: 1.3
+  pulseScale: 1.2
+  pulseDuration: 1.4
 --- !u!222 &1885958488141515409
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -17404,7 +17404,7 @@ MonoBehaviour:
   spriteX2: {fileID: 21300000, guid: c9e1a97c90e2bf248936ee58c05b4003, type: 3}
   timeToX2: 2
   timeToX1: 1
-  pulseScale: 1.1
+  pulseScale: 1.2
   pulseDuration: 1
 --- !u!114 &7521253067145291729
 MonoBehaviour:
