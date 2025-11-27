@@ -2,13 +2,16 @@
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
-
+using System.Collections;
 
 public class BuildingSlotSelector : MonoBehaviour
 {
     [Header("Bağlantılar")]
     [SerializeField] private BuildingManager buildingManager;
     [SerializeField] private int buildingIndex;
+
+    [Header("Efektler")]
+    [SerializeField] private DustEffect dustEffect;
 
     [Header("Görsel Ayarları")]
     [SerializeField] private Sprite emptySprite;
@@ -29,6 +32,7 @@ public class BuildingSlotSelector : MonoBehaviour
     private GameObject deleteButtonUI;
     private bool isBuilt = false;
     private string slotID;
+    private bool isAnimating = false;
 
     private void Awake()
     {
@@ -52,11 +56,6 @@ public class BuildingSlotSelector : MonoBehaviour
             {
                 // ✅ Bounce hedefi ekle
                 buildingManager.buildingAnimation(buildingIndex, transform.gameObject);
-
-                // ✅ İsteğe bağlı: sahne açılışında bir kez wobble
-                // BuildingBounce bounce = GetComponent<BuildingBounce>();
-                // if (bounce != null)
-                //     bounce.BounceOnce();
             }
         }
         else
@@ -68,7 +67,7 @@ public class BuildingSlotSelector : MonoBehaviour
 
     public void OnClickSlot()
     {
-        if (slotVisual == null) return;
+        if (slotVisual == null || isAnimating) return;
 
         if (isDeleteMode)
         {
@@ -79,15 +78,51 @@ public class BuildingSlotSelector : MonoBehaviour
 
         if (!isBuilt)
         {
-            isBuilt = true;
-            SetVisualBuilt();
-            buildingManager.buildingAnimation(buildingIndex, transform.gameObject);
-            BuildingSaveSystem.SaveSlotState(slotID, true); // ✅ kayıt
+            StartCoroutine(BuildSequence());
         }
         else
         {
             SceneLoader.LoadSceneWithTransition(sceneName);
         }
+    }
+
+    private IEnumerator BuildSequence()
+    {
+        isAnimating = true;
+
+        Image dustImage = null;
+        if (dustEffect != null)
+        {
+            dustImage = dustEffect.GetComponent<Image>();
+        }
+
+        // 1. Görsel Geçişi Başlat
+        if (slotVisual != null) slotVisual.gameObject.SetActive(false); // Ana görseli gizle
+        if (dustImage != null) dustImage.enabled = true; // Dust görselini aç
+
+        // 2. Toz Efektini Oynat
+        if (dustEffect != null)
+        {
+            // SlotVisual'ın olduğu yerden başlat
+            dustEffect.PlayAnimation(slotVisual != null ? slotVisual.transform : null);
+            
+            // Efekt bitene kadar bekle
+            yield return new WaitForSeconds(dustEffect.GetTotalDuration() * 0.8f); 
+        }
+
+        // 3. Binayı İnşa Et (Görseli değiştir)
+        isBuilt = true;
+        SetVisualBuilt();
+        
+        // 4. Görselleri Geri Yükle
+        if (slotVisual != null) slotVisual.gameObject.SetActive(true); // Ana görseli aç
+        if (dustImage != null) dustImage.enabled = false; // Dust görselini kapat
+        
+        // 5. Diğer Animasyonlar (Bounce vb.)
+        buildingManager.buildingAnimation(buildingIndex, transform.gameObject);
+        BuildingSaveSystem.SaveSlotState(slotID, true);
+
+        isAnimating = false;
     }
 
     public void resetBuildingSlot()
@@ -148,7 +183,7 @@ public class BuildingSlotSelector : MonoBehaviour
         slotVisual.rectTransform.sizeDelta = slotData.builtBuildingSize;
         slotVisual.rectTransform.localEulerAngles = slotData.builtBuildingRotation;
         Image hummerVisual = slotVisual.transform.Find("hummer")?.GetComponent<Image>();
-        hummerVisual.gameObject.SetActive(false);
+        if (hummerVisual != null) hummerVisual.gameObject.SetActive(false);
     }
 
     private void SetVisualEmpty()
@@ -161,7 +196,7 @@ public class BuildingSlotSelector : MonoBehaviour
         slotVisual.rectTransform.sizeDelta = slotData.emptyBuildingSize;
         slotVisual.rectTransform.localEulerAngles = slotData.emptyBuildingRotation;
         Image hummerVisual = slotVisual.transform.Find("hummer")?.GetComponent<Image>();
-        hummerVisual.gameObject.SetActive(true);
+        if (hummerVisual != null) hummerVisual.gameObject.SetActive(true);
     }
 
     //Building Alanı Boş mu Dolu mu diye kontrol ediyor
