@@ -20,11 +20,13 @@ public class SteamAnimation : MonoBehaviour
     private Image image;
     private Tween pulseTween;
     private Coroutine switchRoutine;
+    private Vector3 initialScale;
 
     private void Awake()
     {
         image = GetComponent<Image>();
-        // TriggerAnimations(); // Moved to OnEnable
+        initialScale = transform.localScale;
+        // TriggerAnimations(); // OnEnable çağıracak
     }
 
     public void TriggerAnimations()
@@ -43,6 +45,9 @@ public class SteamAnimation : MonoBehaviour
 
         if (pulseTween != null && pulseTween.IsActive())
             pulseTween.Kill();
+
+        // Scale'i resetle
+        transform.localScale = initialScale;
 
         pulseTween = transform
             .DOScale(pulseScale, pulseDuration)
@@ -74,5 +79,8 @@ public class SteamAnimation : MonoBehaviour
 
         if (switchRoutine != null)
             StopCoroutine(switchRoutine);
+            
+        // Disable olduğunda da scale'i resetlemek iyi olabilir
+        transform.localScale = initialScale;
     }
 }

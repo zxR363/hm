@@ -23,11 +23,15 @@ public class SunAnimation : MonoBehaviour
     private Image image;
     private Tween pulseTween;
     private Coroutine switchRoutine;
+    private Vector3 initialScale;
 
     private void Awake()
     {
         image = GetComponent<Image>();
-        TriggerAnimations();
+        if (pulseTarget != null) 
+            initialScale = pulseTarget.transform.localScale;
+        
+        // TriggerAnimations(); // OnEnable çağıracak
     }
 
     public void TriggerAnimations()
@@ -46,6 +50,9 @@ public class SunAnimation : MonoBehaviour
 
         if (pulseTween != null && pulseTween.IsActive())
             pulseTween.Kill();
+
+        // Scale'i resetle
+        pulseTarget.transform.localScale = initialScale;
 
         pulseTween = pulseTarget.transform
             .DOScale(pulseScale, pulseDuration)
@@ -77,5 +84,9 @@ public class SunAnimation : MonoBehaviour
 
         if (switchRoutine != null)
             StopCoroutine(switchRoutine);
+            
+        // Disable olduğunda da scale'i resetlemek iyi olabilir
+        if (pulseTarget != null)
+            pulseTarget.transform.localScale = initialScale;
     }
 }
