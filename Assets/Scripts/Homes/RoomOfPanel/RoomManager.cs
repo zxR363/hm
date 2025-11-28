@@ -14,8 +14,31 @@ public class RoomManager : MonoBehaviour
 
     public void LoadRoom(RoomType roomType)
     {
-        RoomLoader.Load(roomType,roomPanelsList); // ← sadece tetikler
+        // Save current state before switching? 
+        // Ideally we save all active rooms or just the one being hidden.
+        SaveAllRooms();
+        
+        RoomLoader.Load(roomType, roomPanelsList);
     }
 
-
+    public void SaveAllRooms()
+    {
+        foreach (var panel in roomPanelsList)
+        {
+            if (panel.gameObject.activeSelf)
+            {
+                panel.SaveRoomState();
+            }
+        }
+    }
+    
+    private void OnApplicationQuit()
+    {
+        SaveAllRooms();
+    }
+    
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause) SaveAllRooms();
+    }
 }

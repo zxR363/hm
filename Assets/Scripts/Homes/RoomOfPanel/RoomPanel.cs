@@ -2,66 +2,85 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
+[System.Serializable]
+public class RoomDataWrapper
+{
+    public List<RoomObjectData> objects = new List<RoomObjectData>();
+}
 
 public class RoomPanel : MonoBehaviour
 {
     public RoomType roomType;
-
     public Transform objectContainer;
-    public List<RoomObjectData> trackedObjects = new List<RoomObjectData>();
+    
+    // Dictionary for fast lookup: InstanceID -> RoomObjectData
+    private Dictionary<int, RoomObjectData> trackedObjects = new Dictionary<int, RoomObjectData>();
 
-    private float updateInterval = 0.5f;
-    private float timer = 0f;
-
-    private void Update()
+    private void Start()
     {
-        timer += Time.deltaTime;
-        if (timer >= updateInterval)
-        {
-            UpdateAllObjectsRecursive(objectContainer);
-            timer = 0f;
-        }
+        LoadRoomState();
     }
 
-    //Odadaki objeleri kaydediyor (Oda felan değiştiğinde kaybolmaması için)
+    private void OnDisable()
+    {
+        SaveRoomState();
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause) SaveRoomState();
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveRoomState();
+    }
+
     public void RegisterObject(GameObject obj)
     {
+        int id = obj.GetInstanceID();
+        if (trackedObjects.ContainsKey(id)) return;
+
         RoomObjectData data = new RoomObjectData
         {
-            objectID = obj.name,
-            instance = obj
+            objectID = obj.name.Replace("(Clone)", "").Trim(), // Clean up name
+            instance = obj,
+            position = obj.transform.position,
+            rotation = obj.transform.rotation
         };
 
-        // UI objesi mi?
-        if (obj.TryGetComponent<RectTransform>(out var rect))
+        UpdateObjectData(data, obj);
+        trackedObjects.Add(id, data);
+        
+        Debug.Log($"[RoomPanel] Registered {obj.name}");
+    }
+
+    public void UnregisterObject(GameObject obj)
+    {
+        int id = obj.GetInstanceID();
+        if (trackedObjects.ContainsKey(id))
         {
-            data.customStates["anchoredX"] = rect.anchoredPosition.x.ToString();
-            data.customStates["anchoredY"] = rect.anchoredPosition.y.ToString();
+            trackedObjects.Remove(id);
         }
-        else
-        {
-            data.position = obj.transform.position;
-            data.rotation = obj.transform.rotation;
-        }
-
-        // // Özel stateleri kaydet
-        // if (obj.TryGetComponent<ObjectState>(out var state))
-        // {
-        //     data.customStates["isOpen"] = state.IsOpen.ToString();
-        //     data.customStates["temperature"] = state.Temperature.ToString();
-        // }
-
-        Debug.Log("OBJECTID = "+obj.name+"   EKLENDI  " +rect.anchoredPosition.x.ToString()+" "+rect.anchoredPosition.y.ToString());
-
-        trackedObjects.Add(data);
     }
 
     public void NotifyObjectChanged(GameObject obj)
     {
-        var data = trackedObjects.FirstOrDefault(d => d.instance == obj);
-        if (data == null) return;
+        int id = obj.GetInstanceID();
+        if (trackedObjects.TryGetValue(id, out RoomObjectData data))
+        {
+            UpdateObjectData(data, obj);
+        }
+        else
+        {
+            // Should be registered, but if not, register it now
+            RegisterObject(obj);
+        }
+    }
 
-        // UI objesi mi?
+    private void UpdateObjectData(RoomObjectData data, GameObject obj)
+    {
+        // UI Object check
         if (obj.TryGetComponent<RectTransform>(out var rect))
         {
             data.customStates["anchoredX"] = rect.anchoredPosition.x.ToString();
@@ -73,65 +92,107 @@ public class RoomPanel : MonoBehaviour
             data.rotation = obj.transform.rotation;
         }
 
-        // Stateleri güncelle
-        if (obj.TryGetComponent<ObjectState>(out var state))
-        {
-            data.customStates["isOpen"] = state.IsOpen.ToString();
-            data.customStates["temperature"] = state.Temperature.ToString();
-        }
-
-        Debug.Log("Objede değişiklik algılandı: " + data.objectID);
+        // Generic state check (if you have other components like ObjectState)
+        // Example:
+        // if (obj.TryGetComponent<ObjectState>(out var state))
+        // {
+        //     data.customStates["isOpen"] = state.IsOpen.ToString();
+        // }
     }
 
-    //Mevcut objeleri geri yüklüyor.
-    public void UpdateAllObjectsRecursive(Transform parent)
+    public void SaveRoomState()
     {
-        foreach (Transform child in parent)
+        RoomDataWrapper wrapper = new RoomDataWrapper();
+        wrapper.objects = trackedObjects.Values.ToList();
+        
+        string filename = $"Room_{roomType}.json";
+        PersistenceManager.Save(filename, wrapper);
+    }
+
+    public void LoadRoomState()
+    {
+        string filename = $"Room_{roomType}.json";
+        if (!PersistenceManager.Exists(filename)) return;
+
+        RoomDataWrapper wrapper = PersistenceManager.Load<RoomDataWrapper>(filename);
+        if (wrapper == null || wrapper.objects == null) return;
+
+        Debug.Log($"[RoomPanel] Loading {wrapper.objects.Count} objects for {roomType}");
+
+        // Create a lookup for saved data
+        Dictionary<string, Queue<RoomObjectData>> savedDataLookup = new Dictionary<string, Queue<RoomObjectData>>();
+        foreach (var data in wrapper.objects)
         {
-            var obj = child.gameObject;
-            var data = trackedObjects.FirstOrDefault(d => d.instance == obj);
+            if (!savedDataLookup.ContainsKey(data.objectID))
+                savedDataLookup[data.objectID] = new Queue<RoomObjectData>();
+            
+            savedDataLookup[data.objectID].Enqueue(data);
+        }
 
-            if (data == null)
+        // Iterate over existing children in objectContainer
+        if (objectContainer != null)
+        {
+            foreach (Transform child in objectContainer)
             {
-                RegisterObject(obj);
-            }
-            else
-            {
-                // UI objesi mi?
-                if (obj.TryGetComponent<RectTransform>(out var rect))
+                string cleanName = child.name.Replace("(Clone)", "").Trim();
+                
+                if (savedDataLookup.TryGetValue(cleanName, out var queue) && queue.Count > 0)
                 {
-                    data.customStates["anchoredX"] = rect.anchoredPosition.x.ToString();
-                    data.customStates["anchoredY"] = rect.anchoredPosition.y.ToString();
+                    RoomObjectData data = queue.Dequeue();
+                    
+                    // Apply data
+                    ApplyDataToObj(child.gameObject, data);
+                    
+                    // Update tracking
+                    int id = child.gameObject.GetInstanceID();
+                    data.instance = child.gameObject;
+                    if (trackedObjects.ContainsKey(id))
+                        trackedObjects[id] = data;
+                    else
+                        trackedObjects.Add(id, data);
                 }
-                else
-                {
-                    data.position = obj.transform.position;
-                    data.rotation = obj.transform.rotation;
-                }
-
-                // // Stateleri güncelle
-                // if (obj.TryGetComponent<ObjectState>(out var state))
-                // {
-                //     data.customStates["isOpen"] = state.IsOpen.ToString();
-                //     data.customStates["temperature"] = state.Temperature.ToString();
-                // }
             }
-
-            // Alt objeleri de taramak için recursive çağrı
-            if (child.childCount > 0)
-                UpdateAllObjectsRecursive(child);
         }
     }
 
+    private void ApplyDataToObj(GameObject obj, RoomObjectData data)
+    {
+        if (obj.TryGetComponent<RectTransform>(out var rect))
+        {
+            if (data.customStates.TryGetValue("anchoredX", out var xStr) &&
+                data.customStates.TryGetValue("anchoredY", out var yStr))
+            {
+                if (float.TryParse(xStr, out float x) && float.TryParse(yStr, out float y))
+                {
+                    rect.anchoredPosition = new Vector2(x, y);
+                }
+            }
+        }
+        else
+        {
+            obj.transform.position = data.position;
+            obj.transform.rotation = data.rotation;
+        }
+        
+        Debug.Log($"[RoomPanel] Restored state for {obj.name}");
+    }
+
+    public List<RoomObjectData> GetSavedData()
+    {
+        string filename = $"Room_{roomType}.json";
+        if (!PersistenceManager.Exists(filename)) return new List<RoomObjectData>();
+        
+        RoomDataWrapper wrapper = PersistenceManager.Load<RoomDataWrapper>(filename);
+        return wrapper != null ? wrapper.objects : new List<RoomObjectData>();
+    }
+    
     public void ClearObjects()
     {
-        foreach (var data in trackedObjects)
+        foreach (var kvp in trackedObjects)
         {
-            if (data.instance != null)
-                Destroy(data.instance);
+            if (kvp.Value.instance != null)
+                Destroy(kvp.Value.instance);
         }
-
         trackedObjects.Clear();
     }
-
 }

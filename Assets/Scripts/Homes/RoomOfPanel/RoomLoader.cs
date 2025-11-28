@@ -6,12 +6,10 @@ using System.Linq;
 
 public static class RoomLoader
 {
-    public static void Load(RoomType roomType,List<RoomPanel> roomPanels)
+    public static void Load(RoomType roomType, List<RoomPanel> roomPanels)
     {
-
         // 1️⃣ Rastgele görsel seç
         Sprite randomSprite = GetRandomTransitionSprite();
-
 
         // 1️⃣ transitionBackgroundImage’in Canvas bileşenini bul
         TransitionPanel transitionPanel = GameObject.FindObjectOfType<TransitionPanel>();
@@ -20,7 +18,6 @@ public static class RoomLoader
 
         if (transitionPanel != null)
         {
-
             Image panelImage = transitionPanel.GetComponentInChildren<Image>();
             if (panelImage != null && randomSprite != null)
             {
@@ -35,7 +32,6 @@ public static class RoomLoader
             }
         }
         
-
         // 2️⃣ SlidePanel kapansın
         SlidePanelController slidePanel = GameObject.FindObjectOfType<SlidePanelController>();
         if (slidePanel != null && slidePanel.IsOpen)
@@ -44,26 +40,28 @@ public static class RoomLoader
         // 3️⃣ Ambient ses ve görsel değişimi
         UpdateAmbient(roomType);
 
-        RoomManager.Instance.StartCoroutine(DelayedRoomSwitch(roomType,roomPanels, transitionCanvas, originalOrder));
+        RoomManager.Instance.StartCoroutine(DelayedRoomSwitch(roomType, roomPanels, transitionCanvas, originalOrder));
     }
 
-    private static IEnumerator DelayedRoomSwitch(RoomType roomType,List<RoomPanel> roomPanels, Canvas transitionCanvas, int originalOrder)
+    private static IEnumerator DelayedRoomSwitch(RoomType roomType, List<RoomPanel> roomPanels, Canvas transitionCanvas, int originalOrder)
     {
         yield return new WaitForSeconds(3f);
 
         foreach (var panel in roomPanels)
         {
-            if(panel.roomType == roomType)
+            bool isTargetRoom = panel.roomType == roomType;
+            
+            if (isTargetRoom)
             {
                 LoadRoomObjects(panel);
             }
-            panel.gameObject.SetActive(panel.roomType == roomType);
+            
+            panel.gameObject.SetActive(isTargetRoom);
         }
 
         // 6️⃣ transitionBackgroundImage sortingOrder geri alınsın
         if (transitionCanvas != null)
             transitionCanvas.sortingOrder = originalOrder;
-
 
         Debug.Log("Room loaded after transition: " + roomType);
     }
@@ -110,21 +108,46 @@ public static class RoomLoader
     //ROOM ICERISINDE SAKLANMIS TUM OBJELERI YUKLEMEK ICIN KULLANILIYOR
     public static void LoadRoomObjects(RoomPanel roomPanel)
     {
-        Debug.Log("LoadRoomObject GERI YUKLENDI");
-        foreach (var data in roomPanel.trackedObjects)
+        Debug.Log($"Loading objects for {roomPanel.roomType}");
+        
+        // Get saved data from the panel (which loaded it from JSON)
+        List<RoomObjectData> savedObjects = roomPanel.GetSavedData();
+        
+        if (savedObjects == null || savedObjects.Count == 0)
         {
-            if (data.instance != null) continue; // Zaten sahnede varsa atla
+            Debug.Log("No saved objects found.");
+            return;
+        }
 
+        // Clear existing objects to avoid duplicates? 
+        // Or check if they exist?
+        // For simplicity in this refactor, we clear and respawn.
+        roomPanel.ClearObjects();
+
+        foreach (var data in savedObjects)
+        {
             // Prefab'ı Resources klasöründen yükle
             GameObject prefab = Resources.Load<GameObject>(data.objectID);
             if (prefab == null)
             {
-                Debug.LogWarning("Prefab bulunamadı: " + data.objectID);
-                continue;
+                // Try finding by name if ID is just name
+                prefab = Resources.Load<GameObject>($"Prefabs/{data.objectID}"); // Example path, adjust if needed
+                
+                if (prefab == null)
+                {
+                    Debug.LogWarning("Prefab bulunamadı: " + data.objectID);
+                    continue;
+                }
             }
 
             GameObject obj = GameObject.Instantiate(prefab, roomPanel.objectContainer);
-            data.instance = obj;
+            obj.name = data.objectID; // Ensure name matches ID
+            
+            // Add RoomObject component if missing
+            if (obj.GetComponent<RoomObject>() == null)
+            {
+                obj.AddComponent<RoomObject>();
+            }
 
             // UI objesi mi?
             if (obj.TryGetComponent<RectTransform>(out var rect))
@@ -152,11 +175,13 @@ public static class RoomLoader
                 if (data.customStates.TryGetValue("temperature", out var tempStr))
                     state.Temperature = float.Parse(tempStr);
             }
-
+            
+            // Register with panel (RoomObject Start() will also do this, but we can do it here to be safe/explicit)
+            // roomPanel.RegisterObject(obj); 
+            // Note: RoomObject.Start() calls RegisterObject. If we call it here, it might be duplicate or fine.
+            // RoomPanel.RegisterObject checks for duplicates.
+            
             Debug.Log("Obje geri yüklendi: " + data.objectID);
         }
     }
-
-
-
 }
