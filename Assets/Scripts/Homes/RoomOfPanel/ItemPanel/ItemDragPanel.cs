@@ -177,6 +177,13 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 dragGhost.AddComponent<RoomObject>();
         }
 
+        // Reset sorting order to default (so it doesn't stay at UI layer)
+        ItemSelection itemSelection = dragGhost.GetComponent<ItemSelection>();
+        if (itemSelection != null)
+        {
+            itemSelection.ResetSortingOrder();
+        }
+
         dragGhost = null;
         Debug.Log("Yeni item oluşturuldu → drag tamamlandı.");
     }

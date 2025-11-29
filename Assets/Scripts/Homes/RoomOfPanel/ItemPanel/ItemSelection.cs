@@ -13,6 +13,9 @@ public class ItemSelection : MonoBehaviour
     private Canvas canvas;
 
     [SerializeField] private Vector3 defaultScale = Vector3.one;
+    
+    private int defaultSortingOrder;
+    private bool isSortingOverridden = false;
 
     private void Awake()
     {
@@ -27,11 +30,46 @@ public class ItemSelection : MonoBehaviour
 
         if (canvas != null)
         {
+            defaultSortingOrder = canvas.sortingOrder;
+
             // Ensure GraphicRaycaster exists if Canvas is present, otherwise interaction might be weird
             if (GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
             {
                 gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
             }
+            
+            // Ensure items are always on top of the content background
+            if (ItemSelectionPanelController.Instance != null)
+            {
+                canvas.overrideSorting = true;
+                canvas.sortingOrder = ItemSelectionPanelController.Instance.ContentSortingOrder + 1;
+                isSortingOverridden = true;
+            }
+        }
+
+        EnsureRaycastTarget();
+    }
+
+    private void EnsureRaycastTarget()
+    {
+        // Items need a graphic to be clickable/draggable.
+        // If the item visual is a child, the root might not have an image.
+        // We ensure there's a transparent image on the root to catch events.
+        Image img = GetComponent<Image>();
+        if (img == null)
+        {
+            img = gameObject.AddComponent<Image>();
+            img.color = Color.clear; // Fully transparent
+        }
+        img.raycastTarget = true;
+    }
+
+    public void ResetSortingOrder()
+    {
+        if (canvas != null && isSortingOverridden)
+        {
+            canvas.sortingOrder = defaultSortingOrder;
+            // Optional: canvas.overrideSorting = false; if you want to revert that too
         }
     }
 
