@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using System.Linq;
 
 public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -13,13 +14,95 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     [SerializeField] private GameObject itemPrefab; // spawn edilecek yeni item
     private GameObject dragGhost; // geçici görsel kopya
     private Transform dragRoot;   // aktif RoomPanel
+    
+    // Scroll handling
+    private ScrollRect parentScrollRect;
+    private bool isScrolling = false;
+    private bool isDraggingItem = false;
+    private bool isDirectionDecided = false;
+    private const float DragThreshold = 10f; // Pixels to move before deciding
 
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
     }
 
+    private void Start()
+    {
+        // Find parent ScrollRect
+        parentScrollRect = GetComponentInParent<ScrollRect>();
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
+    {
+        isScrolling = false;
+        isDraggingItem = false;
+        isDirectionDecided = false;
+        
+        // Pass to ScrollRect just in case, but we might cancel it later if we decide to drag item
+        if (parentScrollRect != null) parentScrollRect.OnBeginDrag(eventData);
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (!isDirectionDecided)
+        {
+            Vector2 delta = eventData.position - eventData.pressPosition;
+            if (delta.magnitude > DragThreshold)
+            {
+                isDirectionDecided = true;
+                if (Mathf.Abs(delta.y) > Mathf.Abs(delta.x))
+                {
+                    // Vertical -> Scroll
+                    isScrolling = true;
+                    isDraggingItem = false;
+                }
+                else
+                {
+                    // Horizontal -> Item Drag
+                    isScrolling = false;
+                    isDraggingItem = true;
+                    StartItemDrag();
+                }
+            }
+            else
+            {
+                // Not moved enough yet, pass to scrollrect just to keep it responsive?
+                // Or wait? Usually waiting is better to avoid jitter.
+                // But ScrollRect might need immediate updates. 
+                // Let's pass to ScrollRect tentatively.
+                if (parentScrollRect != null) parentScrollRect.OnDrag(eventData);
+            }
+            return;
+        }
+
+        if (isScrolling)
+        {
+            if (parentScrollRect != null) parentScrollRect.OnDrag(eventData);
+        }
+        else if (isDraggingItem)
+        {
+            UpdateItemDrag(eventData);
+        }
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        if (isScrolling)
+        {
+            if (parentScrollRect != null) parentScrollRect.OnEndDrag(eventData);
+        }
+        else if (isDraggingItem)
+        {
+            EndItemDrag();
+        }
+        
+        isScrolling = false;
+        isDraggingItem = false;
+        isDirectionDecided = false;
+    }
+
+    private void StartItemDrag()
     {
         // Aktif RoomPanel'i bul
         RoomPanel[] roomPanels = FindObjectsOfType<RoomPanel>()
@@ -30,11 +113,11 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         {
             dragRoot = roomPanels[0].transform;
             canvas = dragRoot.GetComponentInParent<Canvas>();
-            Debug.Log("DragRoot seçildi: " + dragRoot.name);
         }
         else
         {
             Debug.LogWarning("Aktif RoomPanel bulunamadı.");
+            isDraggingItem = false;
             return;
         }
 
@@ -47,11 +130,12 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, originalSizeDelta.y * 1.1f);
 
         CanvasGroup ghostCG = dragGhost.GetComponent<CanvasGroup>();
+        if (ghostCG == null) ghostCG = dragGhost.AddComponent<CanvasGroup>();
         ghostCG.alpha = 0.6f;
         ghostCG.blocksRaycasts = false;
     }
 
-    public void OnDrag(PointerEventData eventData)
+    private void UpdateItemDrag(PointerEventData eventData)
     {
         if (dragGhost == null || dragRoot == null || canvas == null) return;
 
@@ -68,7 +152,7 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         dragGhost.transform.SetAsLastSibling();
     }
 
-    public void OnEndDrag(PointerEventData eventData)
+    private void EndItemDrag()
     {
         if (dragGhost == null) return;
 
@@ -82,8 +166,16 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, originalSizeDelta.y);
 
         dragGhost.transform.SetParent(dragRoot, false);
-        dragGhost = null;
+        
+        // Register logic if needed
+        RoomPanel panel = dragRoot.GetComponent<RoomPanel>();
+        if (panel != null)
+        {
+             if (dragGhost.GetComponent<RoomObject>() == null)
+                dragGhost.AddComponent<RoomObject>();
+        }
 
+        dragGhost = null;
         Debug.Log("Yeni item oluşturuldu → drag tamamlandı.");
     }
 }
