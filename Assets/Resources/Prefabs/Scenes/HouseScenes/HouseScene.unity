@@ -367,6 +367,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &31291666
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -572,6 +573,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &31358860
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -876,6 +878,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &48046355
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1081,6 +1084,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &52038623
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1361,6 +1365,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &74128857
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1689,6 +1694,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &121938247
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1894,6 +1900,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &125224982
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2099,6 +2106,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &138286401
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2304,6 +2312,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &174581916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2509,6 +2518,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &186511843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2862,6 +2872,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &301859938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3067,6 +3078,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &392767955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3363,6 +3375,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &431132779
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3787,6 +3800,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &492475511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4228,6 +4242,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &573308639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4580,6 +4595,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &585660923
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4785,6 +4801,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &590455471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5124,6 +5141,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &622905053
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5362,6 +5380,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &653161417
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5858,6 +5877,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &691642632
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6074,6 +6094,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &753854264
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6279,6 +6300,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &759509138
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6484,6 +6506,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &802462752
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6757,6 +6780,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &831665573
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7081,6 +7105,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &928605255
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7343,6 +7368,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1105505032
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7616,6 +7642,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1196645266
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7930,6 +7957,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1225584567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8234,6 +8262,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1290122058
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8439,6 +8468,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &1297078070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8644,6 +8674,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &1321604544
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8924,6 +8955,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1392153999
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9129,6 +9161,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &1431121005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9666,6 +9699,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1622067583
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9871,6 +9905,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &1641916242
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10076,6 +10111,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1643883968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10361,6 +10397,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &1720224202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10566,6 +10603,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1739264564
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10877,6 +10915,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &1763765465
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11082,6 +11121,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &1797352383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11287,6 +11327,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1803567442
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11492,6 +11533,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &1828374637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11697,6 +11739,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1901641810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11902,6 +11945,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1908168113
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12107,6 +12151,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &1936891224
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12312,6 +12357,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1973826928
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12517,6 +12563,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1988710865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12722,6 +12769,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &2043400496
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13258,6 +13306,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &2085140700
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13562,6 +13611,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &2118638009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13829,8 +13879,8 @@ MonoBehaviour:
   m_MovementType: 1
   m_Elasticity: 0.05
   m_Inertia: 1
-  m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 20
+  m_DecelerationRate: 0.4
+  m_ScrollSensitivity: 15
   m_Viewport: {fileID: 7794331821313454292}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 7769510065593362791}
@@ -14153,6 +14203,10 @@ PrefabInstance:
     - target: {fileID: 4786790332036156229, guid: 24bd2b37b7e9ed040a9b40ab1df37914, type: 3}
       propertyPath: m_Name
       value: RoomButtons
+      objectReference: {fileID: 0}
+    - target: {fileID: 4786790332036156229, guid: 24bd2b37b7e9ed040a9b40ab1df37914, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4797344137479547603, guid: 24bd2b37b7e9ed040a9b40ab1df37914, type: 3}
       propertyPath: m_Pivot.x
@@ -15050,6 +15104,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!114 &1780428366974718641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15065,6 +15120,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!223 &1809528595216099494
 Canvas:
   m_ObjectHideFlags: 0
@@ -16007,8 +16063,8 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 30, y: 35}
-  m_Spacing: {x: 0, y: -5}
+  m_CellSize: {x: 50, y: 50}
+  m_Spacing: {x: 0, y: -10}
   m_Constraint: 1
   m_ConstraintCount: 3
 --- !u!1 &2769843177582670394
@@ -16094,8 +16150,8 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 30, y: 35}
-  m_Spacing: {x: 0, y: -5}
+  m_CellSize: {x: 50, y: 50}
+  m_Spacing: {x: 0, y: -10}
   m_Constraint: 1
   m_ConstraintCount: 3
 --- !u!225 &3021864896264922005
@@ -16193,8 +16249,8 @@ MonoBehaviour:
   m_MovementType: 1
   m_Elasticity: 0.05
   m_Inertia: 1
-  m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 20
+  m_DecelerationRate: 0.4
+  m_ScrollSensitivity: 15
   m_Viewport: {fileID: 6737578061986226701}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 8197390691274666008}
@@ -16691,8 +16747,8 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 30, y: 35}
-  m_Spacing: {x: 0, y: -5}
+  m_CellSize: {x: 50, y: 50}
+  m_Spacing: {x: 0, y: -10}
   m_Constraint: 1
   m_ConstraintCount: 3
 --- !u!114 &3919951755593181719
@@ -16972,7 +17028,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.9150943, g: 0.4963955, b: 0.6744871, a: 0.4117647}
+  m_Color: {r: 0.9150943, g: 0.4963955, b: 0.6744871, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -17174,8 +17230,8 @@ MonoBehaviour:
   m_MovementType: 1
   m_Elasticity: 0.05
   m_Inertia: 1
-  m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 20
+  m_DecelerationRate: 0.4
+  m_ScrollSensitivity: 15
   m_Viewport: {fileID: 5317830489124221432}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 2300565988325320401}
@@ -17352,6 +17408,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 540, y: 430}
   itemPrefab: {fileID: 8309925619944345605, guid: 68c4f8af920780c41905ea52e683d26f, type: 3}
+  dragThreshold: 5
 --- !u!114 &4796544473988499385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18447,6 +18504,7 @@ MonoBehaviour:
   originalScale: {x: 1, y: 1, z: 0}
   originalSizeDelta: {x: 100, y: 100}
   itemPrefab: {fileID: 2334568599092814209, guid: c5986ab3c8ac2dd478eb1d21f8916a04, type: 3}
+  dragThreshold: 5
 --- !u!1 &6674628318333540121
 GameObject:
   m_ObjectHideFlags: 0
@@ -19554,8 +19612,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 5242286312383372809}
   m_HandleRect: {fileID: 0}
   m_Direction: 0
-  m_Value: 1.000002
-  m_Size: 0.1827523
+  m_Value: 1.0000012
+  m_Size: 0.11279729
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -19893,6 +19951,7 @@ GameObject:
   - component: {fileID: 1976119318869782626}
   - component: {fileID: 2660252251973639633}
   - component: {fileID: 8629801309096286617}
+  - component: {fileID: 8629801309096286619}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -19914,6 +19973,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HorizontalFit: 0
   m_VerticalFit: 2
+--- !u!222 &8629801309096286619
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8629801309096286616}
+  m_CullTransparentMesh: 1
 --- !u!114 &8631433421006501417
 MonoBehaviour:
   m_ObjectHideFlags: 0

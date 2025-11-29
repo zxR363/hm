@@ -57,12 +57,20 @@ public class ItemSelectionPanelController : MonoBehaviour
                 // 1. Ensure the root tab object (likely holding ScrollRect) has an image
                 EnsureTransparentImage(contentObj);
 
-                // 2. Check for ScrollRect and ensure its 'content' also has an image
-                // This is critical for dragging "between" items if the content container is larger than items
+                // 2. Check for ScrollRect and ensure its 'content' has Image
                 UnityEngine.UI.ScrollRect scrollRect = contentObj.GetComponent<UnityEngine.UI.ScrollRect>();
-                if (scrollRect != null && scrollRect.content != null)
+                if (scrollRect != null)
                 {
-                    EnsureTransparentImage(scrollRect.content.gameObject);
+                    if (scrollRect.content != null)
+                    {
+                        EnsureTransparentImage(scrollRect.content.gameObject);
+                    }
+                    
+                    // Viewport'a da ekleyelim garanti olsun
+                    if (scrollRect.viewport != null)
+                    {
+                        EnsureTransparentImage(scrollRect.viewport.gameObject);
+                    }
                 }
             }
         }
@@ -75,10 +83,27 @@ public class ItemSelectionPanelController : MonoBehaviour
         UnityEngine.UI.Image img = obj.GetComponent<UnityEngine.UI.Image>();
         if (img == null)
         {
+            // Only add if no other graphic is present? 
+            // Actually, for catching raycasts, we need a Graphic. Image is best.
             img = obj.AddComponent<UnityEngine.UI.Image>();
-            img.color = Color.clear; // Fully transparent
+            img.color = new Color(0, 0, 0, 0.004f); 
         }
         img.raycastTarget = true;
+
+        // Ensure it has a Canvas and Raycaster to catch events properly
+        if (obj.GetComponent<Canvas>() == null)
+        {
+            Canvas c = obj.AddComponent<Canvas>();
+            c.overrideSorting = true;
+            // Content'i itemların arkasına atmak için sorting order'ı düşürüyoruz.
+            // Items muhtemelen 100 veya hiyerarşi sırasına göre çiziliyor.
+            // Biz Content'i 90 yaparsak, Items (100) önde kalır.
+            c.sortingOrder = panelSortingOrder - 10; 
+        }
+        if (obj.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
+        {
+            obj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+        }
     }
 
     public void ClosePanel()

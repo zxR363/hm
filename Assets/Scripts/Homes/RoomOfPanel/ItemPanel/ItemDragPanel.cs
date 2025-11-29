@@ -20,7 +20,9 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     private bool isScrolling = false;
     private bool isDraggingItem = false;
     private bool isDirectionDecided = false;
-    private const float DragThreshold = 10f; // Pixels to move before deciding
+    
+    [Header("Settings")]
+    [SerializeField] private float dragThreshold = 5f; // Pixels to move before deciding (Lower = more sensitive)
 
     private void Awake()
     {
@@ -48,7 +50,7 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         if (!isDirectionDecided)
         {
             Vector2 delta = eventData.position - eventData.pressPosition;
-            if (delta.magnitude > DragThreshold)
+            if (delta.magnitude > dragThreshold)
             {
                 isDirectionDecided = true;
                 if (Mathf.Abs(delta.y) > Mathf.Abs(delta.x))
