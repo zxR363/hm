@@ -12,6 +12,8 @@ public class ItemSelection : MonoBehaviour
     private RectTransform viewPortRect;
     private Canvas canvas;
 
+    [SerializeField] private Vector3 defaultScale = Vector3.one;
+
     private void Awake()
     {
         itemRect = GetComponent<RectTransform>();
@@ -21,7 +23,7 @@ public class ItemSelection : MonoBehaviour
         if (canvasGroup == null)
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
         
-        transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        transform.localScale = defaultScale;
 
         if (canvas != null)
         {
