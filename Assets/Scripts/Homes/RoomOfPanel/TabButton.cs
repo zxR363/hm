@@ -19,45 +19,13 @@ public class TabButton : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(CheckVisibilityRoutine());
-    }
-
-    public void OnClick()
-    {
-        ItemSelectionPanelController.Instance.SelectTab(tabIndex);
-    }
-
-    private System.Collections.IEnumerator CheckVisibilityRoutine()
-    {
-        while (true)
+        // Optimization: Disable manual visibility check.
+        if (canvasGroup != null)
         {
-            yield return new WaitForEndOfFrame();
-
-            if (ItemSelectionPanelController.Instance != null)
-            {
-                bool isVisible = IsVisibleInViewport();
-                canvasGroup.alpha = isVisible ? 1f : 0f;
-                canvasGroup.blocksRaycasts = isVisible;
-            }
+            canvasGroup.alpha = 1f;
+            canvasGroup.blocksRaycasts = true;
         }
     }
 
-    private bool IsVisibleInViewport()
-    {
-        if (ItemSelectionPanelController.Instance == null) return true;
-
-        Transform leftLimit = ItemSelectionPanelController.Instance.LeftLimit;
-        Transform rightLimit = ItemSelectionPanelController.Instance.RightLimit;
-
-        if (leftLimit == null || rightLimit == null) return true;
-
-        float itemX = transform.position.x;
-
-        // Check horizontal position relative to limits
-        // Assuming Left X < Right X
-        bool isAfterLeft = itemX > leftLimit.position.x;
-        bool isBeforeRight = itemX < rightLimit.position.x;
-
-        return isAfterLeft && isBeforeRight;
-    }
+    // Removed CheckVisibilityRoutine and IsVisibleInViewport for performance
 }

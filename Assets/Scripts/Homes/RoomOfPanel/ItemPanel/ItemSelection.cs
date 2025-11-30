@@ -91,46 +91,17 @@ public class ItemSelection : MonoBehaviour
              if (viewportTransform != null) viewPortRect = viewportTransform.GetComponent<RectTransform>();
         }
         
-        StartCoroutine(CheckVisibilityRoutine());
-    }
-
-    private System.Collections.IEnumerator CheckVisibilityRoutine()
-    {
-        while (true)
+        // Optimization: Disable manual visibility check to avoid CPU overhead during scroll.
+        // Render everything at once.
+        if (canvasGroup != null)
         {
-            // Wait until the end of the frame (after ScrollRect has moved)
-            yield return new WaitForEndOfFrame();
-
-            if (viewPortRect != null)
-            {
-                bool isVisible = IsVisibleInViewport();
-                canvasGroup.alpha = isVisible ? 1f : 0f;
-                canvasGroup.blocksRaycasts = isVisible;
-            }
+            canvasGroup.alpha = 1f;
+            canvasGroup.blocksRaycasts = true;
         }
     }
 
-    private bool IsVisibleInViewport()
-    {
-        if (ItemSelectionPanelController.Instance == null) return false;
+    // Removed CheckVisibilityRoutine and IsVisibleInViewport for performance
 
-        Transform topLimit = ItemSelectionPanelController.Instance.TopLimit;
-        Transform bottomLimit = ItemSelectionPanelController.Instance.BottomLimit;
-
-        // If limits are not assigned, fallback to true (or previous logic)
-        if (topLimit == null || bottomLimit == null) return true;
-
-        // Check vertical position relative to limits
-        // Assuming limits are set correctly in world space
-        float itemY = transform.position.y;
-        
-        // Check if item is strictly between top and bottom
-        // Note: Usually Top Y > Bottom Y
-        bool isBelowTop = itemY < topLimit.position.y;
-        bool isAboveBottom = itemY > bottomLimit.position.y;
-
-        return isBelowTop && isAboveBottom;
-    }
 
 
 }
