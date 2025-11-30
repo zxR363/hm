@@ -22,10 +22,51 @@ public class ItemSelectionPanelController : MonoBehaviour
     [SerializeField] private int contentSortingOrder = 100; // Default 100 as requested
     public int ContentSortingOrder => contentSortingOrder;
 
+    private List<Vector3> tabButtonInitialScales;
+
     private void Awake()
     {
         Instance = this;
         panelRoot.SetActive(false);
+
+        // Capture initial scales of tab buttons
+        tabButtonInitialScales = new List<Vector3>();
+        foreach (var btn in tabButtons)
+        {
+            if (btn != null)
+            {
+                tabButtonInitialScales.Add(btn.transform.localScale);
+            }
+            else
+            {
+                tabButtonInitialScales.Add(Vector3.one); // Fallback
+            }
+        }
+    }
+
+    public void SelectTab(int index)
+    {
+        Debug.Log("SELECT TAB TIKLANIYOR INDEX=" + index);
+        for (int i = 0; i < tabContents.Count; i++)
+        {
+            tabContents[i].SetActive(i == index);
+        }
+
+        // Scale the selected tab button
+        for (int i = 0; i < tabButtons.Count; i++)
+        {
+            if (tabButtons[i] != null && i < tabButtonInitialScales.Count)
+            {
+                if (i == index)
+                {
+                    tabButtons[i].transform.localScale = tabButtonInitialScales[i] * 1.15f;
+                }
+                else
+                {
+                    tabButtons[i].transform.localScale = tabButtonInitialScales[i];
+                }
+            }
+        }
     }
 
     public void TogglePanel()
@@ -133,7 +174,11 @@ public class ItemSelectionPanelController : MonoBehaviour
                 c.overrideSorting = true;
                 
                 // Check if the object or any of its parents contains "background" or is "TabGroup"
-                if (IsChildOfNameContains(c.transform, "background") || IsChildOfName(c.transform, "TabGroup"))
+                // Also include "ItemSelectionButton" and "ChildButton" as requested
+                if (IsChildOfNameContains(c.transform, "background") || 
+                    IsChildOfName(c.transform, "TabGroup") ||
+                    IsChildOfNameContains(c.transform, "ItemSelectionButton") ||
+                    IsChildOfNameContains(c.transform, "ChildButton"))
                 {
                     c.sortingOrder = contentSortingOrder + 1; // Special groups (101)
                 }
@@ -189,13 +234,6 @@ public class ItemSelectionPanelController : MonoBehaviour
         panelRoot.SetActive(false);
     }
 
-    public void SelectTab(int index)
-    {
-        Debug.Log("SELECT TAB TIKLANIYOR INDEX=" + index);
-        for (int i = 0; i < tabContents.Count; i++)
-        {
-            tabContents[i].SetActive(i == index);
-        }
-    }
+
 
 }

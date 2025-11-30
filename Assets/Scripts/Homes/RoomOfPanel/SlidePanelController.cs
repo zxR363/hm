@@ -42,6 +42,7 @@ public class SlidePanelController : MonoBehaviour
                         itemSelectionPanel.SetActive(false);
                     
                     panel.gameObject.SetActive(false);
+                    SlidePanelItemButton.ResetAll(); // Reset buttons
                 });
         }
 
@@ -56,7 +57,11 @@ public class SlidePanelController : MonoBehaviour
         }
 
         panel.DOAnchorPos(closedPos, duration).SetEase(closeEase, overshoot)
-            .OnComplete(() => panel.gameObject.SetActive(false));
+            .OnComplete(() => 
+            {
+                panel.gameObject.SetActive(false);
+                SlidePanelItemButton.ResetAll(); // Reset buttons
+            });
 
         IsOpen = false;
     }

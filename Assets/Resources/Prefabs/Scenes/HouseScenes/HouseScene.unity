@@ -3517,7 +3517,6 @@ GameObject:
   - component: {fileID: 181238077}
   - component: {fileID: 181238076}
   - component: {fileID: 181238075}
-  - component: {fileID: 181238074}
   m_Layer: 5
   m_Name: Kids
   m_TagString: Untagged
@@ -3544,19 +3543,6 @@ RectTransform:
   m_AnchoredPosition: {x: 8, y: -0.55708313}
   m_SizeDelta: {x: -60, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &181238074
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 181238072}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d714929757691e94d81027dd40dfef9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemButtonEvent: {fileID: 0}
 --- !u!114 &181238075
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3608,7 +3594,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 101
   m_TargetDisplay: 0
 --- !u!225 &181238077
 CanvasGroup:
@@ -4710,7 +4696,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!225 &267142057
 CanvasGroup:
@@ -12153,7 +12139,6 @@ GameObject:
   - component: {fileID: 669681915}
   - component: {fileID: 669681914}
   - component: {fileID: 669681913}
-  - component: {fileID: 669681912}
   m_Layer: 5
   m_Name: zoomOut
   m_TagString: Untagged
@@ -12180,19 +12165,6 @@ RectTransform:
   m_AnchoredPosition: {x: 5, y: -0.099998474}
   m_SizeDelta: {x: -60, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &669681912
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 669681910}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d714929757691e94d81027dd40dfef9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemButtonEvent: {fileID: 0}
 --- !u!114 &669681913
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12244,7 +12216,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 101
   m_TargetDisplay: 0
 --- !u!225 &669681915
 CanvasGroup:
@@ -18941,6 +18913,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fe43b6ec15931b439ae2239aec809cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  contentSortingOrder: 100
 --- !u!114 &1185691486
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24783,7 +24756,6 @@ GameObject:
   - component: {fileID: 1471231812}
   - component: {fileID: 1471231811}
   - component: {fileID: 1471231810}
-  - component: {fileID: 1471231809}
   m_Layer: 5
   m_Name: Furniture
   m_TagString: Untagged
@@ -24810,19 +24782,6 @@ RectTransform:
   m_AnchoredPosition: {x: 8, y: -0.5570793}
   m_SizeDelta: {x: -60, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1471231809
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1471231807}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d714929757691e94d81027dd40dfef9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemButtonEvent: {fileID: 0}
 --- !u!114 &1471231810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24874,7 +24833,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 101
   m_TargetDisplay: 0
 --- !u!225 &1471231812
 CanvasGroup:
@@ -38357,7 +38316,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!1 &1861239362687564435
 GameObject:
@@ -42140,7 +42099,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!114 &9019666071092555853
 MonoBehaviour:
