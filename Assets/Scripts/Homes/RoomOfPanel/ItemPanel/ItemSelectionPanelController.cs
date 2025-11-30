@@ -10,6 +10,12 @@ public class ItemSelectionPanelController : MonoBehaviour
     [SerializeField] private List<TabButton> tabButtons;
     [SerializeField] private List<GameObject> tabContents;
 
+    [Header("Visibility Limits")]
+    [SerializeField] private Transform topLimit;
+    [SerializeField] private Transform bottomLimit;
+    public Transform TopLimit => topLimit;
+    public Transform BottomLimit => bottomLimit;
+
     private bool isActive = false;
 
     [SerializeField] private int panelSortingOrder = 100; // Increased to ensure visibility
@@ -48,18 +54,20 @@ public class ItemSelectionPanelController : MonoBehaviour
             panelRoot.AddComponent<UnityEngine.UI.GraphicRaycaster>();
         }
 
-        canvas.overrideSorting = true;
-        canvas.sortingOrder = contentSortingOrder; // Updated to use contentSortingOrder for the main panel too
+        // Apply sorting order to Panel Root
+        if (canvas != null)
+        {
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = contentSortingOrder;
+        }
 
-        // Fix for scroll dead zones: Ensure all tab contents have a raycast target (transparent image)
+        // Fix for scroll dead zones
         foreach (var contentObj in tabContents)
         {
             if (contentObj != null)
             {
-                // 1. Ensure the root tab object (likely holding ScrollRect) has an image
                 EnsureTransparentImage(contentObj);
 
-                // 2. Check for ScrollRect and ensure its 'content' has Image
                 UnityEngine.UI.ScrollRect scrollRect = contentObj.GetComponent<UnityEngine.UI.ScrollRect>();
                 if (scrollRect != null)
                 {
@@ -68,7 +76,6 @@ public class ItemSelectionPanelController : MonoBehaviour
                         EnsureTransparentImage(scrollRect.content.gameObject);
                     }
 
-                    // Viewport'a da ekleyelim garanti olsun
                     if (scrollRect.viewport != null)
                     {
                         EnsureTransparentImage(scrollRect.viewport.gameObject);
@@ -92,6 +99,12 @@ public class ItemSelectionPanelController : MonoBehaviour
 
         foreach (Canvas c in allCanvases)
         {
+            // Ensure every Canvas has a GraphicRaycaster so it can receive events
+            if (c.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
+            {
+                c.gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            }
+
             // Check if this Canvas belongs to an ItemSelection object
             if (c.GetComponent<ItemSelection>() != null)
             {
@@ -120,21 +133,7 @@ public class ItemSelectionPanelController : MonoBehaviour
             img.color = new Color(0, 0, 0, 0.004f);
         }
         img.raycastTarget = true;
-
-        // Ensure it has a Canvas and Raycaster to catch events properly
-        if (obj.GetComponent<Canvas>() == null)
-        {
-            Canvas c = obj.AddComponent<Canvas>();
-            c.overrideSorting = true;
-            // Inspector'dan seçilen değeri kullanıyoruz
-            c.sortingOrder = contentSortingOrder;
-        }
-        if (obj.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
-        {
-            obj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-        }
     }
-
     public void ClosePanel()
     {
         panelRoot.SetActive(false);

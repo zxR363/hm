@@ -32,13 +32,13 @@ public class ItemSelection : MonoBehaviour
         {
             defaultSortingOrder = canvas.sortingOrder;
 
-            // Ensure GraphicRaycaster exists if Canvas is present, otherwise interaction might be weird
+            // Ensure GraphicRaycaster exists if Canvas is present
             if (GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
             {
                 gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
             }
             
-            // Ensure items are always on top of the content background
+            // Override sorting to be on top of the panel
             if (ItemSelectionPanelController.Instance != null)
             {
                 canvas.overrideSorting = true;
@@ -69,59 +69,70 @@ public class ItemSelection : MonoBehaviour
         if (canvas != null && isSortingOverridden)
         {
             canvas.sortingOrder = defaultSortingOrder;
-            // Optional: canvas.overrideSorting = false; if you want to revert that too
         }
     }
 
     private void Start()
     {
-        // Find Viewport (assuming Viewport -> Content -> Item)
-        Transform viewportTransform = transform.parent?.parent;
-        if (viewportTransform != null)
+        // Find parent ScrollRect to get the correct Viewport
+        ScrollRect scrollRect = GetComponentInParent<ScrollRect>();
+        if (scrollRect != null)
         {
-            viewPortRect = viewportTransform.GetComponent<RectTransform>();
+            viewPortRect = scrollRect.viewport;
+            if (viewPortRect == null)
+            {
+                 Transform viewportTransform = transform.parent?.parent;
+                 if (viewportTransform != null) viewPortRect = viewportTransform.GetComponent<RectTransform>();
+            }
         }
+        else
+        {
+             Transform viewportTransform = transform.parent?.parent;
+             if (viewportTransform != null) viewPortRect = viewportTransform.GetComponent<RectTransform>();
+        }
+        
+        StartCoroutine(CheckVisibilityRoutine());
     }
 
-    private void Update()
+    private System.Collections.IEnumerator CheckVisibilityRoutine()
     {
-        if (viewPortRect == null) return;
+        while (true)
+        {
+            // Wait until the end of the frame (after ScrollRect has moved)
+            yield return new WaitForEndOfFrame();
 
-        // Manual culling/masking because nested Canvases break RectMask2D
-        bool isVisible = IsVisibleInViewport();
-        
-        // Toggle visibility
-        canvasGroup.alpha = isVisible ? 1f : 0f;
-        canvasGroup.blocksRaycasts = isVisible;
+            if (viewPortRect != null)
+            {
+                bool isVisible = IsVisibleInViewport();
+                canvasGroup.alpha = isVisible ? 1f : 0f;
+                canvasGroup.blocksRaycasts = isVisible;
+            }
+        }
     }
 
     private bool IsVisibleInViewport()
     {
-        // Simple check: overlaps with viewport?
-        // We can use world corners
-        Vector3[] itemCorners = new Vector3[4];
-        itemRect.GetWorldCorners(itemCorners);
+        if (ItemSelectionPanelController.Instance == null) return false;
 
-        Vector3[] viewportCorners = new Vector3[4];
-        viewPortRect.GetWorldCorners(viewportCorners);
+        Transform topLimit = ItemSelectionPanelController.Instance.TopLimit;
+        Transform bottomLimit = ItemSelectionPanelController.Instance.BottomLimit;
 
-        // Check if any corner of item is inside viewport rect (in screen space)
-        // Or simpler: Check if bounds intersect
-        // Let's use RectTransformUtility for accuracy with cameras
+        // If limits are not assigned, fallback to true (or previous logic)
+        if (topLimit == null || bottomLimit == null) return true;
+
+        // Check vertical position relative to limits
+        // Assuming limits are set correctly in world space
+        float itemY = transform.position.y;
         
-        Camera cam = null;
-        if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
-            cam = canvas.worldCamera;
-        
-        foreach (var corner in itemCorners)
-        {
-            if (RectTransformUtility.RectangleContainsScreenPoint(viewPortRect, corner, cam))
-                return true;
-        }
-        
-        // Also check if viewport corners are inside item (item covers viewport)
-        // But usually items are smaller. 
-        // Let's stick to the corner check for now, it's what was there.
-        return false;
+        // Check if item is strictly between top and bottom
+        // Note: Usually Top Y > Bottom Y
+        bool isBelowTop = itemY < topLimit.position.y;
+        bool isAboveBottom = itemY > bottomLimit.position.y;
+
+        return isBelowTop && isAboveBottom;
     }
+
+
 }
+
+
