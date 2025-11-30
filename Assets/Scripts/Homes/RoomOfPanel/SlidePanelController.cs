@@ -4,8 +4,11 @@ using DG.Tweening;
 public class SlidePanelController : MonoBehaviour
 {
     [SerializeField] private RectTransform panel;
-    [SerializeField] private float slideDistance = 300f;
-    [SerializeField] private float duration = 0.3f;
+    [SerializeField] private float slideDistance = 5f;
+    [SerializeField] private float duration = 0.5f; // Faster
+    [SerializeField] private Ease openEase = Ease.OutBack; 
+    [SerializeField] private float overshoot = 30f; // Controls the "hardness" and amplitude of the swing
+    [SerializeField] private Ease closeEase = Ease.InBack; 
     [SerializeField] private GameObject itemSelectionPanel;
 
     public bool IsOpen = false;
@@ -25,15 +28,20 @@ public class SlidePanelController : MonoBehaviour
         {
             panel.gameObject.SetActive(true); // Açmadan önce aktif hale getir
             panel.anchoredPosition = closedPos; // Pozisyonu sıfırla
-            panel.DOAnchorPos(openedPos, duration).SetEase(Ease.OutCubic);
+            // Use overshoot to increase the swing amplitude
+            panel.DOAnchorPos(openedPos, duration).SetEase(openEase, overshoot);
         }
         else
         {
-            panel.DOAnchorPos(closedPos, (duration*0.4f)).SetEase(Ease.InCubic)
-                .OnComplete(() => itemSelectionPanel.SetActive(false)); // Animasyon sonrası kapat
-
-            panel.DOAnchorPos(closedPos, duration).SetEase(Ease.InCubic)
-                .OnComplete(() => panel.gameObject.SetActive(false)); // Animasyon sonrası kapat
+            // Fixed: Single animation to close the panel
+            panel.DOAnchorPos(closedPos, duration).SetEase(closeEase)
+                .OnComplete(() => 
+                {
+                    if (itemSelectionPanel != null) 
+                        itemSelectionPanel.SetActive(false);
+                    
+                    panel.gameObject.SetActive(false);
+                });
         }
 
         IsOpen = !IsOpen;
@@ -46,7 +54,7 @@ public class SlidePanelController : MonoBehaviour
              return;
         }
 
-        panel.DOAnchorPos(closedPos, duration).SetEase(Ease.InCubic)
+        panel.DOAnchorPos(closedPos, duration).SetEase(closeEase)
             .OnComplete(() => panel.gameObject.SetActive(false));
 
         IsOpen = false;

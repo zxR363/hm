@@ -18429,7 +18429,7 @@ GameObject:
   - component: {fileID: 1185691485}
   - component: {fileID: 1185691486}
   m_Layer: 5
-  m_Name: SladePanelSpace
+  m_Name: SlidePanelSpace
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -38160,7 +38160,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   panel: {fileID: 3641794792574166378}
   slideDistance: 5
-  duration: 0.7
+  duration: 0.5
+  openEase: 27
+  overshoot: 30
+  closeEase: 26
   itemSelectionPanel: {fileID: 2769843177582670394}
   IsOpen: 0
 --- !u!225 &2605258010568873996
