@@ -44,31 +44,6 @@ public class ItemSelectionPanelController : MonoBehaviour
         }
     }
 
-    public void SelectTab(int index)
-    {
-        Debug.Log("SELECT TAB TIKLANIYOR INDEX=" + index);
-        for (int i = 0; i < tabContents.Count; i++)
-        {
-            tabContents[i].SetActive(i == index);
-        }
-
-        // Scale the selected tab button
-        for (int i = 0; i < tabButtons.Count; i++)
-        {
-            if (tabButtons[i] != null && i < tabButtonInitialScales.Count)
-            {
-                if (i == index)
-                {
-                    tabButtons[i].transform.localScale = tabButtonInitialScales[i] * 1.15f;
-                }
-                else
-                {
-                    tabButtons[i].transform.localScale = tabButtonInitialScales[i];
-                }
-            }
-        }
-    }
-
     public void TogglePanel()
     {
         if (isActive == false)
@@ -134,6 +109,62 @@ public class ItemSelectionPanelController : MonoBehaviour
         StartCoroutine(RefreshUIRoutine());
     }
 
+    public void ClosePanel()
+    {
+        panelRoot.SetActive(false);
+    }
+
+    public void SelectTab(int index)
+    {
+        Debug.Log("SELECT TAB TIKLANIYOR INDEX=" + index);
+
+        // 1. Ensure all tabs are active (to prevent state loss)
+        for (int i = 0; i < tabContents.Count; i++)
+        {
+            if (tabContents[i] != null && !tabContents[i].activeSelf)
+            {
+                tabContents[i].SetActive(true);
+            }
+        }
+
+        // 2. Reset everything to default visibility (Items -> 102, etc.)
+        ApplySortingOrderToAll();
+
+        // 3. Hide inactive tabs by lowering their sorting order to -50
+        for (int i = 0; i < tabContents.Count; i++)
+        {
+            if (i == index) continue; // Skip active tab
+
+            if (tabContents[i] != null)
+            {
+                Canvas[] childCanvases = tabContents[i].GetComponentsInChildren<Canvas>(true);
+                foreach (var c in childCanvases)
+                {
+                    c.sortingOrder = -50;
+                }
+            }
+        }
+
+        // 4. Scale the selected tab button
+        for (int i = 0; i < tabButtons.Count; i++)
+        {
+            if (tabButtons[i] != null && i < tabButtonInitialScales.Count)
+            {
+                if (i == index)
+                {
+                    tabButtons[i].transform.localScale = tabButtonInitialScales[i] * 1.15f;
+                }
+                else
+                {
+                    tabButtons[i].transform.localScale = tabButtonInitialScales[i];
+                }
+            }
+        }
+
+        // 5. Force UI update
+        StartCoroutine(RefreshUIRoutine());
+    }
+
     private IEnumerator RefreshUIRoutine()
     {
         // Wait for end of frame to ensure all SetActive/Layout calculations are done
@@ -145,7 +176,6 @@ public class ItemSelectionPanelController : MonoBehaviour
         // Extra safety: toggle layout groups if any (generic fix)
         UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot.GetComponent<RectTransform>());
     }
-
 
     private void ApplySortingOrderToAll()
     {
@@ -165,6 +195,7 @@ public class ItemSelectionPanelController : MonoBehaviour
             // Check if this Canvas belongs to an ItemSelection object
             if (c.GetComponent<ItemSelection>() != null)
             {
+                c.enabled = true; // Ensure it's enabled (reverting disable)
                 c.overrideSorting = true;
                 c.sortingOrder = contentSortingOrder + 2; // Items are highest (102)
             }
@@ -173,18 +204,25 @@ public class ItemSelectionPanelController : MonoBehaviour
                 // For all other structural parts
                 c.overrideSorting = true;
                 
-                // Check if the object or any of its parents contains "background" or is "TabGroup"
-                // Also include "ItemSelectionButton" and "ChildButton" as requested
+                // Check for special groups (Backgrounds, Tabs, Buttons) -> 101
                 if (IsChildOfNameContains(c.transform, "background") || 
                     IsChildOfName(c.transform, "TabGroup") ||
                     IsChildOfNameContains(c.transform, "ItemSelectionButton") ||
                     IsChildOfNameContains(c.transform, "ChildButton"))
                 {
-                    c.sortingOrder = contentSortingOrder + 1; // Special groups (101)
+                    c.sortingOrder = contentSortingOrder + 1; 
                 }
                 else
                 {
-                    c.sortingOrder = contentSortingOrder; // Default/Root (100)
+                    // Default/Root -> 100
+                    if (c.gameObject == panelRoot)
+                    {
+                        c.sortingOrder = contentSortingOrder;
+                    }
+                    else
+                    {
+                        c.sortingOrder = contentSortingOrder; 
+                    }
                 }
             }
         }
@@ -229,11 +267,4 @@ public class ItemSelectionPanelController : MonoBehaviour
         }
         img.raycastTarget = true;
     }
-    public void ClosePanel()
-    {
-        panelRoot.SetActive(false);
-    }
-
-
-
 }
