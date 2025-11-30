@@ -198,6 +198,16 @@ public class ItemSelectionPanelController : MonoBehaviour
     {
         if (panelRoot == null) return;
 
+        // Ensure TabButtons have Canvas components so they can be sorted individually
+        foreach (var btn in tabButtons)
+        {
+            if (btn != null)
+            {
+                if (btn.GetComponent<Canvas>() == null) btn.gameObject.AddComponent<Canvas>();
+                if (btn.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null) btn.gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            }
+        }
+
         // Find all Canvas components including inactive ones under the panelRoot
         Canvas[] allCanvases = panelRoot.GetComponentsInChildren<Canvas>(true);
 
@@ -209,12 +219,12 @@ public class ItemSelectionPanelController : MonoBehaviour
                 c.gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
             }
 
-            // Check if this Canvas belongs to an ItemSelection object
-            if (c.GetComponent<ItemSelection>() != null)
+            // Check if this Canvas belongs to an ItemSelection object OR is part of a TabButton hierarchy
+            if (c.GetComponent<ItemSelection>() != null || c.GetComponentInParent<TabButton>() != null)
             {
-                c.enabled = true; // Ensure it's enabled (reverting disable)
+                c.enabled = true; // Ensure it's enabled
                 c.overrideSorting = true;
-                c.sortingOrder = contentSortingOrder + 2; // Items are highest (102)
+                c.sortingOrder = contentSortingOrder + 2; // Items and TabButtons are highest (102)
             }
             else
             {
