@@ -34,7 +34,8 @@ public class SlidePanelController : MonoBehaviour
         else
         {
             // Fixed: Single animation to close the panel
-            panel.DOAnchorPos(closedPos, duration).SetEase(closeEase)
+            // Use overshoot for closing as well to match the style
+            panel.DOAnchorPos(closedPos, duration).SetEase(closeEase, overshoot)
                 .OnComplete(() => 
                 {
                     if (itemSelectionPanel != null) 
@@ -54,7 +55,7 @@ public class SlidePanelController : MonoBehaviour
              return;
         }
 
-        panel.DOAnchorPos(closedPos, duration).SetEase(closeEase)
+        panel.DOAnchorPos(closedPos, duration).SetEase(closeEase, overshoot)
             .OnComplete(() => panel.gameObject.SetActive(false));
 
         IsOpen = false;
