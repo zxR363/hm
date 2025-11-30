@@ -7,14 +7,19 @@ public class ItemSelectionPanelController : MonoBehaviour
     public static ItemSelectionPanelController Instance;
 
     [SerializeField] private GameObject panelRoot;
+    [SerializeField] private GameObject tabGroup; // New reference
     [SerializeField] private List<TabButton> tabButtons;
     [SerializeField] private List<GameObject> tabContents;
 
     [Header("Visibility Limits")]
     [SerializeField] private Transform topLimit;
     [SerializeField] private Transform bottomLimit;
+    [SerializeField] private Transform leftLimit; // New
+    [SerializeField] private Transform rightLimit; // New
     public Transform TopLimit => topLimit;
     public Transform BottomLimit => bottomLimit;
+    public Transform LeftLimit => leftLimit; // New
+    public Transform RightLimit => rightLimit; // New
 
     private bool isActive = false;
 
@@ -77,7 +82,7 @@ public class ItemSelectionPanelController : MonoBehaviour
             canvas.sortingOrder = contentSortingOrder;
         }
 
-        // Fix for scroll dead zones
+        // Fix for scroll dead zones (Tab Contents)
         foreach (var contentObj in tabContents)
         {
             if (contentObj != null)
@@ -97,6 +102,18 @@ public class ItemSelectionPanelController : MonoBehaviour
                         EnsureTransparentImage(scrollRect.viewport.gameObject);
                     }
                 }
+            }
+        }
+
+        // Fix for scroll dead zones (TabGroup)
+        if (tabGroup != null)
+        {
+            UnityEngine.UI.ScrollRect tabScroll = tabGroup.GetComponent<UnityEngine.UI.ScrollRect>();
+            if (tabScroll != null)
+            {
+                EnsureTransparentImage(tabGroup); // Ensure root has image
+                if (tabScroll.content != null) EnsureTransparentImage(tabScroll.content.gameObject);
+                if (tabScroll.viewport != null) EnsureTransparentImage(tabScroll.viewport.gameObject);
             }
         }
 
