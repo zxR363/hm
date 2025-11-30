@@ -88,7 +88,23 @@ public class ItemSelectionPanelController : MonoBehaviour
         ApplySortingOrderToAll();
 
         SelectTab(0); // Varsayılan ilk tab
+
+        // Force UI update to ensure new images/masks are rendered correctly
+        StartCoroutine(RefreshUIRoutine());
     }
+
+    private IEnumerator RefreshUIRoutine()
+    {
+        // Wait for end of frame to ensure all SetActive/Layout calculations are done
+        yield return new WaitForEndOfFrame();
+        
+        // Force rebuild
+        Canvas.ForceUpdateCanvases();
+        
+        // Extra safety: toggle layout groups if any (generic fix)
+        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot.GetComponent<RectTransform>());
+    }
+
 
     private void ApplySortingOrderToAll()
     {
@@ -109,15 +125,49 @@ public class ItemSelectionPanelController : MonoBehaviour
             if (c.GetComponent<ItemSelection>() != null)
             {
                 c.overrideSorting = true;
-                c.sortingOrder = contentSortingOrder + 1;
+                c.sortingOrder = contentSortingOrder + 2; // Items are highest (102)
             }
             else
             {
-                // For all other structural parts (Panel, Viewport, Content, etc.)
+                // For all other structural parts
                 c.overrideSorting = true;
-                c.sortingOrder = contentSortingOrder;
+                
+                // Check if the object or any of its parents contains "background" or is "TabGroup"
+                if (IsChildOfNameContains(c.transform, "background") || IsChildOfName(c.transform, "TabGroup"))
+                {
+                    c.sortingOrder = contentSortingOrder + 1; // Special groups (101)
+                }
+                else
+                {
+                    c.sortingOrder = contentSortingOrder; // Default/Root (100)
+                }
             }
         }
+    }
+
+    private bool IsChildOfName(Transform current, string targetName)
+    {
+        // Traverse up to panelRoot or null
+        while (current != null && current != panelRoot.transform.parent) // Stop if we go past panelRoot
+        {
+            if (current.name == targetName) return true;
+            if (current == panelRoot.transform) break; // Don't go past panelRoot
+            current = current.parent;
+        }
+        return false;
+    }
+
+    private bool IsChildOfNameContains(Transform current, string partialName)
+    {
+        partialName = partialName.ToLower();
+        // Traverse up to panelRoot or null
+        while (current != null && current != panelRoot.transform.parent)
+        {
+            if (current.name.ToLower().Contains(partialName)) return true;
+            if (current == panelRoot.transform) break;
+            current = current.parent;
+        }
+        return false;
     }
 
     private void EnsureTransparentImage(GameObject obj)
