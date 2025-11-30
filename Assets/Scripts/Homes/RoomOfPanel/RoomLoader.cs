@@ -56,7 +56,12 @@ public static class RoomLoader
                 LoadRoomObjects(panel);
             }
             
-            panel.gameObject.SetActive(isTargetRoom);
+            // ScrollView (Yan yana odalar) sistemi için tüm odaların açık olması gerekir.
+            // Sadece target odayı değil, hepsini aktif yapıyoruz.
+            if (!panel.gameObject.activeSelf)
+            {
+                panel.gameObject.SetActive(true);
+            }
         }
 
         // 6️⃣ transitionBackgroundImage sortingOrder geri alınsın

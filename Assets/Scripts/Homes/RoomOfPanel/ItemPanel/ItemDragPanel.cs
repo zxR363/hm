@@ -106,19 +106,16 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     private void StartItemDrag()
     {
-        // Aktif RoomPanel'i bul
-        RoomPanel[] roomPanels = FindObjectsOfType<RoomPanel>()
-            .Where(p => p.gameObject.activeInHierarchy)
-            .ToArray();
-
-        if (roomPanels.Length > 0)
+        // Find the main canvas to drag on top of everything
+        canvas = GetComponentInParent<Canvas>();
+        if (canvas != null && canvas.rootCanvas != null)
         {
-            dragRoot = roomPanels[0].transform;
-            canvas = dragRoot.GetComponentInParent<Canvas>();
+            canvas = canvas.rootCanvas; // Use root canvas
+            dragRoot = canvas.transform;
         }
         else
         {
-            Debug.LogWarning("Aktif RoomPanel bulunamadı.");
+            Debug.LogWarning("Canvas bulunamadı.");
             isDraggingItem = false;
             return;
         }
@@ -158,33 +155,59 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         if (dragGhost == null) return;
 
-        CanvasGroup ghostCG = dragGhost.GetComponent<CanvasGroup>();
-        ghostCG.alpha = 1f;
-        ghostCG.blocksRaycasts = true;
+        // Find which RoomPanel we dropped onto
+        RoomPanel targetPanel = null;
+        RoomPanel[] roomPanels = FindObjectsOfType<RoomPanel>()
+            .Where(p => p.gameObject.activeInHierarchy)
+            .ToArray();
 
-        RectTransform ghostRT = dragGhost.GetComponent<RectTransform>();
-        ghostRT.localScale = originalScale;
-        ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalSizeDelta.x);
-        ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, originalSizeDelta.y);
-
-        dragGhost.transform.SetParent(dragRoot, false);
-        
-        // Register logic if needed
-        RoomPanel panel = dragRoot.GetComponent<RoomPanel>();
-        if (panel != null)
+        foreach (var panel in roomPanels)
         {
-             if (dragGhost.GetComponent<RoomObject>() == null)
-                dragGhost.AddComponent<RoomObject>();
+            if (RectTransformUtility.RectangleContainsScreenPoint(
+                panel.GetComponent<RectTransform>(), 
+                Input.mousePosition, 
+                canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera))
+            {
+                targetPanel = panel;
+                break;
+            }
         }
 
-        // Reset sorting order to default (so it doesn't stay at UI layer)
-        ItemSelection itemSelection = dragGhost.GetComponent<ItemSelection>();
-        if (itemSelection != null)
+        if (targetPanel != null)
         {
-            itemSelection.ResetSortingOrder();
+            CanvasGroup ghostCG = dragGhost.GetComponent<CanvasGroup>();
+            ghostCG.alpha = 1f;
+            ghostCG.blocksRaycasts = true;
+
+            RectTransform ghostRT = dragGhost.GetComponent<RectTransform>();
+            ghostRT.localScale = originalScale;
+            ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalSizeDelta.x);
+            ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, originalSizeDelta.y);
+
+            // Parent to the target room's object container (or transform if container is null)
+            Transform targetContainer = targetPanel.objectContainer != null ? targetPanel.objectContainer : targetPanel.transform;
+            dragGhost.transform.SetParent(targetContainer, true); // true to keep world position
+            
+            // Register logic
+            if (dragGhost.GetComponent<RoomObject>() == null)
+                dragGhost.AddComponent<RoomObject>();
+
+            // Reset sorting order
+            ItemSelection itemSelection = dragGhost.GetComponent<ItemSelection>();
+            if (itemSelection != null)
+            {
+                itemSelection.ResetSortingOrder();
+            }
+            
+            Debug.Log($"Item {targetPanel.name} paneline bırakıldı.");
+        }
+        else
+        {
+            // Dropped outside any room -> Cancel
+            Destroy(dragGhost);
+            Debug.Log("Item herhangi bir odaya bırakılmadı, iptal edildi.");
         }
 
         dragGhost = null;
-        Debug.Log("Yeni item oluşturuldu → drag tamamlandı.");
     }
 }
