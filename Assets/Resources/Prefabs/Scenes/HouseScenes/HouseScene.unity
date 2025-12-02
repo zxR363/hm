@@ -1237,7 +1237,7 @@ GameObject:
   - component: {fileID: 155728244}
   - component: {fileID: 155728243}
   m_Layer: 5
-  m_Name: BedRoom
+  m_Name: Room3Panel
   m_TagString: KitchenPanel
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1263,10 +1263,10 @@ RectTransform:
   - {fileID: 315854384}
   m_Father: {fileID: 415776971}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 6798.855, y: -699.31036}
+  m_SizeDelta: {x: 2719.542, y: 1398.6207}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &155728242
 MonoBehaviour:
@@ -1887,17 +1887,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 234590741}
-  m_LocalRotation: {x: 0, y: -0, z: 0.99893063, w: -0.046234757}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.150076, y: 1.1503, z: 1.1503}
+  m_LocalRotation: {x: 0, y: 0, z: 0.07236785, w: 0.99737805}
+  m_LocalPosition: {x: 0, y: 0, z: 34}
+  m_LocalScale: {x: 1.291927, y: 1.1639367, z: 1.1639367}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1730337415}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 185.3}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 8.3}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 32, y: -796}
-  m_SizeDelta: {x: 347.9, y: 725.2}
+  m_AnchoredPosition: {x: 40, y: -772}
+  m_SizeDelta: {x: 104.3, y: 725.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &234590743
 MonoBehaviour:
@@ -1912,14 +1912,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5566038, g: 0.36796242, b: 0.27042544, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 5f157ee696cb7c3479f5e02fde464fc7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: dd939dc4094ebd345b51e94de578a536, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3194,7 +3194,7 @@ GameObject:
   - component: {fileID: 462285632}
   - component: {fileID: 462285631}
   m_Layer: 5
-  m_Name: KitchenBackground
+  m_Name: RoomBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4662,7 +4662,7 @@ GameObject:
   - component: {fileID: 725356186}
   - component: {fileID: 725356185}
   m_Layer: 5
-  m_Name: LivingRoom
+  m_Name: Room2Panel
   m_TagString: KitchenPanel
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4688,10 +4688,10 @@ RectTransform:
   - {fileID: 1582169186}
   m_Father: {fileID: 415776971}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 4079.313, y: -699.31036}
+  m_SizeDelta: {x: 2719.542, y: 1398.6207}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &725356184
 MonoBehaviour:
@@ -4991,7 +4991,7 @@ GameObject:
   - component: {fileID: 876007412}
   - component: {fileID: 876007411}
   m_Layer: 5
-  m_Name: KitchenPanel
+  m_Name: Room1Panel
   m_TagString: KitchenPanel
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5017,10 +5017,10 @@ RectTransform:
   - {fileID: 582510068}
   m_Father: {fileID: 415776971}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 1359.771, y: -699.31036}
+  m_SizeDelta: {x: 2719.542, y: 1398.6206}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &876007410
 MonoBehaviour:
@@ -6486,8 +6486,9 @@ GameObject:
   - component: {fileID: 1139029950}
   - component: {fileID: 1139029949}
   - component: {fileID: 1139029948}
+  - component: {fileID: 1139029951}
   m_Layer: 5
-  m_Name: KitchenBackground
+  m_Name: RoomBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6556,7 +6557,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 75e4c9d99b2e16e48abd9b9a6df2718a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 15c9391a9e84826429d6c8939aeb8865, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6574,6 +6575,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1139029946}
   m_CullTransparentMesh: 1
+--- !u!114 &1139029951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1139029946}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1073f7a437c8ebd4fbc3c2ed6d2936d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  background: {fileID: 385288800}
+  bakedNormalizedPos: {x: 0, y: 0}
+  bakedLocalScale: {x: 0, y: 0, z: 0}
+  bakedBgSize: {x: 0, y: 0}
 --- !u!1 &1185691483
 GameObject:
   m_ObjectHideFlags: 0
@@ -8256,8 +8273,8 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1730337414}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 4}
   m_LocalScale: {x: 1.1375, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -8266,8 +8283,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1338.6, y: 296}
-  m_SizeDelta: {x: 746.3, y: 1050}
+  m_AnchoredPosition: {x: 1306, y: 259.3}
+  m_SizeDelta: {x: 163.5, y: 999}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1730337417
 MonoBehaviour:
@@ -8282,14 +8299,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.541346, g: 0.3037113, b: 0.6132076, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 5f157ee696cb7c3479f5e02fde464fc7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: dd939dc4094ebd345b51e94de578a536, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8527,7 +8544,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.541346, g: 0.3037113, b: 0.6132076, a: 1}
+  m_Color: {r: 0.8962264, g: 0.71846825, b: 0.5368903, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9584,7 +9601,7 @@ GameObject:
   - component: {fileID: 2087781924}
   - component: {fileID: 2087781927}
   m_Layer: 5
-  m_Name: KitchenBackground
+  m_Name: RoomBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
