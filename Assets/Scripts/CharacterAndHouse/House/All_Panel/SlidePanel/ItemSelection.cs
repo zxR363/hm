@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+//SlidePanel'den seçilen Item'lar için kullandğımız script
+
+
 public class ItemSelection : MonoBehaviour
 {
     // Removed Canvas dependency as it breaks ScrollRect
