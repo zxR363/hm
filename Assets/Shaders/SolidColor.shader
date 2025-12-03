@@ -79,6 +79,9 @@ Shader "UI/SolidColor"
             fixed4 _Color;
             float4 _ClipRect;
             float4 _MainTex_ST;
+            
+            // FIX: Declare _TextureSampleAdd
+            fixed4 _TextureSampleAdd;
 
             v2f vert(appdata_t v)
             {
