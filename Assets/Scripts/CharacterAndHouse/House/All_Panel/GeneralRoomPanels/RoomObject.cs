@@ -1,5 +1,21 @@
 using UnityEngine;
 
+/*
+1.Kayıt (Registration):
+Nesne sahneye eklendiğinde (Start), otomatik olarak hangi RoomPanel'in
+içinde olduğunu bulur ve kendini ona kaydettirir (RegisterObject).
+Yok olduğunda (OnDestroy) kaydını sildirir.
+
+2.Değişiklik Takibi (Change Detection):
+Nesnenin pozisyonu veya rotasyonu değiştiğinde (Update içinde kontrol eder),
+ bağlı olduğu odaya "Ben değiştim" sinyali gönderir (NotifyChange).
+
+3.Kaydetme Sistemi İçin Tetikleyici:
+Bu sinyaller sayesinde RoomPanel, içerisindeki eşyaların durumunun
+ değiştiğini anlar ve muhtemelen Save System (Kaydetme Sistemi)
+  için verileri güncellemesi gerektiğini bilir.
+*/
+
 public class RoomObject : MonoBehaviour
 {
     private RoomPanel _currentRoomPanel;

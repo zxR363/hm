@@ -6,7 +6,22 @@ public class TabButton : MonoBehaviour
 {
     [SerializeField] private int tabIndex;
 
+    private ItemSelectionPanelController controller;
     private CanvasGroup canvasGroup;
+
+    public void Initialize(ItemSelectionPanelController ctrl)
+    {
+        Debug.Log("ITEMSELECTION INJECT EDILDI");
+        this.controller = ctrl;
+    }
+    
+    public void OnClick()
+    {
+        if (controller != null)
+        {
+            controller.SelectTab(tabIndex);
+        }
+    }
 
     private void Awake()
     {

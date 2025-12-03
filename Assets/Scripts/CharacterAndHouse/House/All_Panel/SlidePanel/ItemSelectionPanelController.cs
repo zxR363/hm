@@ -34,13 +34,14 @@ public class ItemSelectionPanelController : MonoBehaviour
         Instance = this;
         panelRoot.SetActive(false);
 
-        // Capture initial scales of tab buttons
+        // Capture initial scales of tab buttons and inject dependency
         tabButtonInitialScales = new List<Vector3>();
         foreach (var btn in tabButtons)
         {
             if (btn != null)
             {
                 tabButtonInitialScales.Add(btn.transform.localScale);
+                btn.Initialize(this); // Inject reference
             }
             else
             {
@@ -131,6 +132,7 @@ public class ItemSelectionPanelController : MonoBehaviour
         panelRoot.SetActive(false);
     }
 
+    //SECILEN TabGroup'un calistigi fonksiyon 
     public void SelectTab(int index)
     {
         Debug.Log("SELECT TAB TIKLANIYOR INDEX=" + index);
