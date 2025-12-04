@@ -1,33 +1,36 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ItemSelectionPanelController : MonoBehaviour
 {
     public static ItemSelectionPanelController Instance;
 
     [SerializeField] private GameObject panelRoot;
-    [SerializeField] private GameObject tabGroup; // New reference
+    [SerializeField] private GameObject tabGroup; 
     [SerializeField] private List<TabButton> tabButtons;
     [SerializeField] private List<GameObject> tabContents;
 
     [Header("Visibility Limits")]
     [SerializeField] private Transform topLimit;
     [SerializeField] private Transform bottomLimit;
-    [SerializeField] private Transform leftLimit; // New
-    [SerializeField] private Transform rightLimit; // New
+    [SerializeField] private Transform leftLimit; 
+    [SerializeField] private Transform rightLimit; 
     public Transform TopLimit => topLimit;
     public Transform BottomLimit => bottomLimit;
-    public Transform LeftLimit => leftLimit; // New
-    public Transform RightLimit => rightLimit; // New
+    public Transform LeftLimit => leftLimit; 
+    public Transform RightLimit => rightLimit; 
 
     private bool isActive = false;
 
-    [SerializeField] private int panelSortingOrder = 100; // Increased to ensure visibility
-    [SerializeField] private int contentSortingOrder = 101; // Default 100 as requested
+    [SerializeField] private int panelSortingOrder = 100; 
+    [SerializeField] private int contentSortingOrder = 101; 
     public int ContentSortingOrder => contentSortingOrder;
 
     private List<Vector3> tabButtonInitialScales;
+    private List<Canvas> _cachedItemCanvases = new List<Canvas>();
+    private List<Canvas> _cachedTabCanvases = new List<Canvas>();
 
     private void Awake()
     {
@@ -66,7 +69,7 @@ public class ItemSelectionPanelController : MonoBehaviour
 
     public void OpenPanel()
     {
-        isActive = true; // Ensure this is true!
+        isActive = true; 
         panelRoot.SetActive(true);
 
         // Ensure the panel renders on top of other Canvas elements
@@ -74,7 +77,7 @@ public class ItemSelectionPanelController : MonoBehaviour
         if (canvas == null)
         {
             canvas = panelRoot.AddComponent<Canvas>();
-            panelRoot.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            panelRoot.AddComponent<GraphicRaycaster>();
         }
 
         // Apply sorting order to Panel Root
@@ -91,18 +94,11 @@ public class ItemSelectionPanelController : MonoBehaviour
             {
                 EnsureTransparentImage(contentObj);
 
-                UnityEngine.UI.ScrollRect scrollRect = contentObj.GetComponent<UnityEngine.UI.ScrollRect>();
+                ScrollRect scrollRect = contentObj.GetComponent<ScrollRect>();
                 if (scrollRect != null)
                 {
-                    if (scrollRect.content != null)
-                    {
-                        EnsureTransparentImage(scrollRect.content.gameObject);
-                    }
-
-                    if (scrollRect.viewport != null)
-                    {
-                        EnsureTransparentImage(scrollRect.viewport.gameObject);
-                    }
+                    if (scrollRect.content != null) EnsureTransparentImage(scrollRect.content.gameObject);
+                    if (scrollRect.viewport != null) EnsureTransparentImage(scrollRect.viewport.gameObject);
                 }
             }
         }
@@ -110,10 +106,10 @@ public class ItemSelectionPanelController : MonoBehaviour
         // Fix for scroll dead zones (TabGroup)
         if (tabGroup != null)
         {
-            UnityEngine.UI.ScrollRect tabScroll = tabGroup.GetComponent<UnityEngine.UI.ScrollRect>();
+            ScrollRect tabScroll = tabGroup.GetComponent<ScrollRect>();
             if (tabScroll != null)
             {
-                EnsureTransparentImage(tabGroup); // Ensure root has image
+                EnsureTransparentImage(tabGroup); 
                 if (tabScroll.content != null) EnsureTransparentImage(tabScroll.content.gameObject);
                 if (tabScroll.viewport != null) EnsureTransparentImage(tabScroll.viewport.gameObject);
             }
@@ -122,23 +118,20 @@ public class ItemSelectionPanelController : MonoBehaviour
         // Apply sorting order to ALL canvases under panelRoot (Recursive)
         ApplySortingOrderToAll();
 
-        SelectTab(0); // Varsayılan ilk tab
+        SelectTab(0); // Default first tab
 
-        // Force UI update to ensure new images/masks are rendered correctly
+        // Force UI update and register events
         StartCoroutine(RefreshUIRoutine());
     }
 
     public void ClosePanel()
     {
-        StopCoroutine("CheckVisibilityRoutine");
+        isActive = false;
         panelRoot.SetActive(false);
     }
 
-    //SECILEN TabGroup'un calistigi fonksiyon 
     public void SelectTab(int index)
     {
-        Debug.Log("SELECT TAB TIKLANIYOR INDEX=" + index);
-
         // 1. Ensure all tabs are active (to prevent state loss)
         for (int i = 0; i < tabContents.Count; i++)
         {
@@ -148,7 +141,7 @@ public class ItemSelectionPanelController : MonoBehaviour
             }
         }
 
-        // 2. Reset everything to default visibility (Items -> 102, etc.)
+        // 2. Reset everything to default visibility
         ApplySortingOrderToAll();
 
         // 3. Hide inactive tabs by lowering their sorting order to -50
@@ -186,9 +179,6 @@ public class ItemSelectionPanelController : MonoBehaviour
         StartCoroutine(RefreshUIRoutine());
     }
 
-    private List<Canvas> _cachedItemCanvases = new List<Canvas>();
-    private List<Canvas> _cachedTabCanvases = new List<Canvas>();
-
     private IEnumerator RefreshUIRoutine()
     {
         // Wait for end of frame to ensure all SetActive/Layout calculations are done
@@ -197,8 +187,8 @@ public class ItemSelectionPanelController : MonoBehaviour
         // Force rebuild
         Canvas.ForceUpdateCanvases();
         
-        // Extra safety: toggle layout groups if any (generic fix)
-        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot.GetComponent<RectTransform>());
+        // Extra safety: toggle layout groups if any
+        LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot.GetComponent<RectTransform>());
         
         // --- CACHE LISTS FOR PERFORMANCE ---
         _cachedItemCanvases.Clear();
@@ -226,104 +216,114 @@ public class ItemSelectionPanelController : MonoBehaviour
         }
         // -----------------------------------
 
-        // Start visibility check routine
-        StopCoroutine("CheckVisibilityRoutine");
-        StartCoroutine("CheckVisibilityRoutine");
+        // Register events and do initial check
+        RegisterScrollEvents();
+        CheckVisibility();
     }
 
-    private IEnumerator CheckVisibilityRoutine()
+    private void RegisterScrollEvents()
     {
-        WaitForSeconds wait = new WaitForSeconds(0.1f); // Optimized interval
-        
-        while (isActive)
+        // Add listener to TabGroup ScrollRect
+        if (tabGroup != null)
         {
-            if (panelRoot == null) yield break;
-
-            // Pre-calculate Limit positions in Panel Space
-            float topY = (topLimit != null) ? panelRoot.transform.InverseTransformPoint(topLimit.position).y : float.MaxValue;
-            float bottomY = (bottomLimit != null) ? panelRoot.transform.InverseTransformPoint(bottomLimit.position).y : float.MinValue;
-            float leftX = (leftLimit != null) ? panelRoot.transform.InverseTransformPoint(leftLimit.position).x : float.MinValue;
-            float rightX = (rightLimit != null) ? panelRoot.transform.InverseTransformPoint(rightLimit.position).x : float.MaxValue;
-
-            // Debug Limits (Once per frame is enough)
-            // Debug.Log($"[Limits Local] L: {leftX} R: {rightX} T: {topY} B: {bottomY}");
-
-            // 1. Check ItemSelections (Vertical)
-            foreach (Canvas c in _cachedItemCanvases)
+            var sr = tabGroup.GetComponent<ScrollRect>();
+            if (sr != null)
             {
-                if (c == null) continue;
-                
-                bool isVisible = true;
-                // Convert Item position to Panel Space
-                Vector3 localPos = panelRoot.transform.InverseTransformPoint(c.transform.position);
+                sr.onValueChanged.RemoveListener(OnScrollValueChanged);
+                sr.onValueChanged.AddListener(OnScrollValueChanged);
+            }
+        }
 
-                if (localPos.y > topY) isVisible = false;
-                if (localPos.y < bottomY) isVisible = false;
-
-                if (isVisible)
+        // Add listener to all TabContent ScrollRects
+        foreach (var contentObj in tabContents)
+        {
+            if (contentObj != null)
+            {
+                var sr = contentObj.GetComponent<ScrollRect>();
+                if (sr != null)
                 {
-                    if (c.sortingOrder == -50)
-                    {
-                        c.overrideSorting = true;
-                        c.sortingOrder = contentSortingOrder + 3;
-                    }
-                }
-                else
-                {
-                    if (c.sortingOrder != -50)
-                    {
-                        c.overrideSorting = true;
-                        c.sortingOrder = -50;
-                    }
+                    sr.onValueChanged.RemoveListener(OnScrollValueChanged);
+                    sr.onValueChanged.AddListener(OnScrollValueChanged);
                 }
             }
+        }
+    }
 
-            // 2. Check TabButtons (Horizontal)
-            foreach (Canvas c in _cachedTabCanvases)
+    private void OnScrollValueChanged(Vector2 val)
+    {
+        CheckVisibility();
+    }
+
+    private void CheckVisibility()
+    {
+        if (panelRoot == null) return;
+
+        float visibilityBuffer = 0f; // Buffer to account for item width
+
+        // Pre-calculate Limit positions in Panel Space
+        float topY = (topLimit != null) ? panelRoot.transform.InverseTransformPoint(topLimit.position).y : float.MaxValue;
+        float bottomY = (bottomLimit != null) ? panelRoot.transform.InverseTransformPoint(bottomLimit.position).y : float.MinValue;
+        float leftX = (leftLimit != null) ? panelRoot.transform.InverseTransformPoint(leftLimit.position).x : float.MinValue;
+        float rightX = (rightLimit != null) ? panelRoot.transform.InverseTransformPoint(rightLimit.position).x : float.MaxValue;
+
+        // 1. Check ItemSelections (Vertical)
+        foreach (Canvas c in _cachedItemCanvases)
+        {
+            if (c == null) continue;
+            
+            bool isVisible = true;
+            // Convert Item position to Panel Space
+            Vector3 localPos = panelRoot.transform.InverseTransformPoint(c.transform.position);
+
+            if (localPos.y > topY + visibilityBuffer) isVisible = false;
+            if (localPos.y < bottomY - visibilityBuffer) isVisible = false;
+
+            if (isVisible)
             {
-                if (c == null) continue;
-
-                bool isVisible = true;
-                // Convert TabButton position to Panel Space
-                Vector3 localPos = panelRoot.transform.InverseTransformPoint(c.transform.position);
-
-                if (localPos.x < leftX) isVisible = false;
-                
-                if (rightLimit != null)
+                if (c.sortingOrder == -50)
                 {
-                    if (localPos.x > rightX)
-                    {
-                        isVisible = false;
-                        Debug.Log($"[RightLimit] HIDING {c.name}: LocalX {localPos.x} > LimitX {rightX}");
-                    }
-                    else
-                    {
-                        if (c.name.Contains("TabButton")) 
-                            Debug.Log($"[RightLimit] VISIBLE {c.name}: LocalX {localPos.x} <= LimitX {rightX}");
-                    }
-                }
-
-                if (isVisible)
-                {
-                    if (c.sortingOrder == -50)
-                    {
-                        c.overrideSorting = true;
-                        c.sortingOrder = contentSortingOrder + 3;
-                        Debug.Log("PROBLEM BURADA");
-                    }
-                }
-                else
-                {
-                    if (c.sortingOrder != -50)
-                    {
-                        c.overrideSorting = true;
-                        c.sortingOrder = -50;
-                        Debug.Log("YADAA PROBLEM BURADA");
-                    }
+                    c.overrideSorting = true;
+                    c.sortingOrder = contentSortingOrder + 3;
                 }
             }
+            else
+            {
+                if (c.sortingOrder != -50)
+                {
+                    c.overrideSorting = true;
+                    c.sortingOrder = -50;
+                }
+            }
+        }
 
-            yield return wait;
+        // 2. Check TabButtons (Horizontal)
+        foreach (Canvas c in _cachedTabCanvases)
+        {
+            if (c == null) continue;
+
+            bool isVisible = true;
+            // Convert TabButton position to Panel Space
+            Vector3 localPos = panelRoot.transform.InverseTransformPoint(c.transform.position);
+
+            if (localPos.x < leftX - visibilityBuffer) isVisible = false;
+            if (localPos.x > rightX + visibilityBuffer) isVisible = false;
+
+            if (isVisible)
+            {
+                if (c.sortingOrder == -50)
+                {
+                    c.overrideSorting = true;
+                    c.sortingOrder = contentSortingOrder + 3;
+                }
+            }
+            else
+            {
+                if (c.sortingOrder != -50)
+                {
+                    c.overrideSorting = true;
+                    c.sortingOrder = -50;
+                }
+            }
         }
     }
 
@@ -337,7 +337,7 @@ public class ItemSelectionPanelController : MonoBehaviour
             if (btn != null)
             {
                 if (btn.GetComponent<Canvas>() == null) btn.gameObject.AddComponent<Canvas>();
-                if (btn.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null) btn.gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+                if (btn.GetComponent<GraphicRaycaster>() == null) btn.gameObject.AddComponent<GraphicRaycaster>();
             }
         }
 
@@ -347,9 +347,9 @@ public class ItemSelectionPanelController : MonoBehaviour
         foreach (Canvas c in allCanvases)
         {
             // Ensure every Canvas has a GraphicRaycaster so it can receive events
-            if (c.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
+            if (c.GetComponent<GraphicRaycaster>() == null)
             {
-                c.gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+                c.gameObject.AddComponent<GraphicRaycaster>();
             }
 
             // Check if this Canvas belongs to an ItemSelection object OR is part of a TabButton hierarchy
@@ -366,10 +366,7 @@ public class ItemSelectionPanelController : MonoBehaviour
                 
                 // Check for special groups (Backgrounds, Tabs, Buttons) -> 101
                 if (IsChildOfNameContains(c.transform, "background") || 
-                    IsChildOfName(c.transform, "TabGroup") 
-                    // || IsChildOfNameContains(c.transform, "ItemSelectionButton") ||
-                    // IsChildOfNameContains(c.transform, "ChildButton")
-                    )
+                    IsChildOfName(c.transform, "TabGroup"))
                 {
                     c.sortingOrder = contentSortingOrder + 2; 
                 }
@@ -416,14 +413,10 @@ public class ItemSelectionPanelController : MonoBehaviour
 
     private void EnsureTransparentImage(GameObject obj)
     {
-        UnityEngine.UI.Image img = obj.GetComponent<UnityEngine.UI.Image>();
+        Image img = obj.GetComponent<Image>();
         if (img == null)
         {
-            // Only add if no other graphic is present? 
-            // Actually, for catching raycasts, we need a Graphic. Image is best.
-            img = obj.AddComponent<UnityEngine.UI.Image>();
-            // Unity bazen tamamen şeffaf (alpha=0) objeleri raycast dışı bırakabilir.
-            // Bu yüzden çok çok az görünür (neredeyse şeffaf) yapıyoruz.
+            img = obj.AddComponent<Image>();
             img.color = new Color(0, 0, 0, 0.004f);
         }
         img.raycastTarget = true;
