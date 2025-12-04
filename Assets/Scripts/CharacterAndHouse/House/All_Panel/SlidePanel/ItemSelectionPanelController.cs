@@ -239,24 +239,42 @@ public class ItemSelectionPanelController : MonoBehaviour
         {
             if (panelRoot == null) yield break;
 
+            // Pre-calculate Limit positions in Panel Space
+            float topY = (topLimit != null) ? panelRoot.transform.InverseTransformPoint(topLimit.position).y : float.MaxValue;
+            float bottomY = (bottomLimit != null) ? panelRoot.transform.InverseTransformPoint(bottomLimit.position).y : float.MinValue;
+            float leftX = (leftLimit != null) ? panelRoot.transform.InverseTransformPoint(leftLimit.position).x : float.MinValue;
+            float rightX = (rightLimit != null) ? panelRoot.transform.InverseTransformPoint(rightLimit.position).x : float.MaxValue;
+
+            // Debug Limits (Once per frame is enough)
+            // Debug.Log($"[Limits Local] L: {leftX} R: {rightX} T: {topY} B: {bottomY}");
+
             // 1. Check ItemSelections (Vertical)
             foreach (Canvas c in _cachedItemCanvases)
             {
                 if (c == null) continue;
                 
                 bool isVisible = true;
-                Vector3 pos = c.transform.position;
+                // Convert Item position to Panel Space
+                Vector3 localPos = panelRoot.transform.InverseTransformPoint(c.transform.position);
 
-                if (topLimit != null && pos.y > topLimit.position.y) isVisible = false;
-                if (bottomLimit != null && pos.y < bottomLimit.position.y) isVisible = false;
+                if (localPos.y > topY) isVisible = false;
+                if (localPos.y < bottomY) isVisible = false;
 
                 if (isVisible)
                 {
-                    if (c.sortingOrder == -50) c.sortingOrder = contentSortingOrder + 3;
+                    if (c.sortingOrder == -50)
+                    {
+                        c.overrideSorting = true;
+                        c.sortingOrder = contentSortingOrder + 3;
+                    }
                 }
                 else
                 {
-                    if (c.sortingOrder != -50) c.sortingOrder = -50;
+                    if (c.sortingOrder != -50)
+                    {
+                        c.overrideSorting = true;
+                        c.sortingOrder = -50;
+                    }
                 }
             }
 
@@ -266,18 +284,42 @@ public class ItemSelectionPanelController : MonoBehaviour
                 if (c == null) continue;
 
                 bool isVisible = true;
-                Vector3 pos = c.transform.position;
+                // Convert TabButton position to Panel Space
+                Vector3 localPos = panelRoot.transform.InverseTransformPoint(c.transform.position);
 
-                if (leftLimit != null && pos.x < leftLimit.position.x) isVisible = false;
-                if (rightLimit != null && pos.x > rightLimit.position.x) isVisible = false;
+                if (localPos.x < leftX) isVisible = false;
+                
+                if (rightLimit != null)
+                {
+                    if (localPos.x > rightX)
+                    {
+                        isVisible = false;
+                        Debug.Log($"[RightLimit] HIDING {c.name}: LocalX {localPos.x} > LimitX {rightX}");
+                    }
+                    else
+                    {
+                        if (c.name.Contains("TabButton")) 
+                            Debug.Log($"[RightLimit] VISIBLE {c.name}: LocalX {localPos.x} <= LimitX {rightX}");
+                    }
+                }
 
                 if (isVisible)
                 {
-                    if (c.sortingOrder == -50) c.sortingOrder = contentSortingOrder + 3;
+                    if (c.sortingOrder == -50)
+                    {
+                        c.overrideSorting = true;
+                        c.sortingOrder = contentSortingOrder + 3;
+                        Debug.Log("PROBLEM BURADA");
+                    }
                 }
                 else
                 {
-                    if (c.sortingOrder != -50) c.sortingOrder = -50;
+                    if (c.sortingOrder != -50)
+                    {
+                        c.overrideSorting = true;
+                        c.sortingOrder = -50;
+                        Debug.Log("YADAA PROBLEM BURADA");
+                    }
                 }
             }
 
