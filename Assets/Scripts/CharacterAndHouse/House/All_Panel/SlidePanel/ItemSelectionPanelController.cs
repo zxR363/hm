@@ -120,7 +120,8 @@ public class ItemSelectionPanelController : MonoBehaviour
 
         SelectTab(0); // Default first tab
 
-        // Force UI update and register events
+        // Force UI update and register events immediately
+        ForceUpdateVisibility();
         StartCoroutine(RefreshUIRoutine());
     }
 
@@ -176,7 +177,43 @@ public class ItemSelectionPanelController : MonoBehaviour
         }
 
         // 5. Force UI update
+        ForceUpdateVisibility();
         StartCoroutine(RefreshUIRoutine());
+    }
+
+    private void ForceUpdateVisibility()
+    {
+        if (panelRoot == null) return;
+
+        // Force rebuild
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot.GetComponent<RectTransform>());
+
+        // --- CACHE LISTS FOR PERFORMANCE ---
+        _cachedItemCanvases.Clear();
+        _cachedTabCanvases.Clear();
+
+        // Cache ItemSelection Canvases
+        var items = panelRoot.GetComponentsInChildren<ItemSelection>(true);
+        foreach (var item in items)
+        {
+            Canvas c = item.GetComponent<Canvas>();
+            if (c != null) _cachedItemCanvases.Add(c);
+        }
+
+        // Cache TabButton Canvases
+        foreach (var btn in tabButtons)
+        {
+            if (btn != null)
+            {
+                Canvas c = btn.GetComponent<Canvas>();
+                if (c != null) _cachedTabCanvases.Add(c);
+            }
+        }
+        // -----------------------------------
+
+        RegisterScrollEvents();
+        CheckVisibility();
     }
 
     private IEnumerator RefreshUIRoutine()
@@ -184,41 +221,7 @@ public class ItemSelectionPanelController : MonoBehaviour
         // Wait for end of frame to ensure all SetActive/Layout calculations are done
         yield return new WaitForEndOfFrame();
         
-        // Force rebuild
-        Canvas.ForceUpdateCanvases();
-        
-        // Extra safety: toggle layout groups if any
-        LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot.GetComponent<RectTransform>());
-        
-        // --- CACHE LISTS FOR PERFORMANCE ---
-        _cachedItemCanvases.Clear();
-        _cachedTabCanvases.Clear();
-
-        if (panelRoot != null)
-        {
-            // Cache ItemSelection Canvases
-            var items = panelRoot.GetComponentsInChildren<ItemSelection>(true);
-            foreach (var item in items)
-            {
-                Canvas c = item.GetComponent<Canvas>();
-                if (c != null) _cachedItemCanvases.Add(c);
-            }
-
-            // Cache TabButton Canvases
-            foreach (var btn in tabButtons)
-            {
-                if (btn != null)
-                {
-                    Canvas c = btn.GetComponent<Canvas>();
-                    if (c != null) _cachedTabCanvases.Add(c);
-                }
-            }
-        }
-        // -----------------------------------
-
-        // Register events and do initial check
-        RegisterScrollEvents();
-        CheckVisibility();
+        ForceUpdateVisibility();
     }
 
     private void RegisterScrollEvents()
@@ -357,7 +360,7 @@ public class ItemSelectionPanelController : MonoBehaviour
             {
                 c.enabled = true; // Ensure it's enabled
                 c.overrideSorting = true;
-                c.sortingOrder = contentSortingOrder + 3; // Items and TabButtons are highest (102)
+                c.sortingOrder = -50; // Default to HIDDEN to prevent pop-in
             }
             else
             {
