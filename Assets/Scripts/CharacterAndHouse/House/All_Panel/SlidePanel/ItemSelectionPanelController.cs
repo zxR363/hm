@@ -24,7 +24,7 @@ public class ItemSelectionPanelController : MonoBehaviour
     private bool isActive = false;
 
     [SerializeField] private int panelSortingOrder = 100; // Increased to ensure visibility
-    [SerializeField] private int contentSortingOrder = 100; // Default 100 as requested
+    [SerializeField] private int contentSortingOrder = 101; // Default 100 as requested
     public int ContentSortingOrder => contentSortingOrder;
 
     private List<Vector3> tabButtonInitialScales;
@@ -66,6 +66,7 @@ public class ItemSelectionPanelController : MonoBehaviour
 
     public void OpenPanel()
     {
+        isActive = true; // Ensure this is true!
         panelRoot.SetActive(true);
 
         // Ensure the panel renders on top of other Canvas elements
@@ -129,6 +130,7 @@ public class ItemSelectionPanelController : MonoBehaviour
 
     public void ClosePanel()
     {
+        StopCoroutine("CheckVisibilityRoutine");
         panelRoot.SetActive(false);
     }
 
@@ -184,6 +186,9 @@ public class ItemSelectionPanelController : MonoBehaviour
         StartCoroutine(RefreshUIRoutine());
     }
 
+    private List<Canvas> _cachedItemCanvases = new List<Canvas>();
+    private List<Canvas> _cachedTabCanvases = new List<Canvas>();
+
     private IEnumerator RefreshUIRoutine()
     {
         // Wait for end of frame to ensure all SetActive/Layout calculations are done
@@ -194,6 +199,90 @@ public class ItemSelectionPanelController : MonoBehaviour
         
         // Extra safety: toggle layout groups if any (generic fix)
         UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot.GetComponent<RectTransform>());
+        
+        // --- CACHE LISTS FOR PERFORMANCE ---
+        _cachedItemCanvases.Clear();
+        _cachedTabCanvases.Clear();
+
+        if (panelRoot != null)
+        {
+            // Cache ItemSelection Canvases
+            var items = panelRoot.GetComponentsInChildren<ItemSelection>(true);
+            foreach (var item in items)
+            {
+                Canvas c = item.GetComponent<Canvas>();
+                if (c != null) _cachedItemCanvases.Add(c);
+            }
+
+            // Cache TabButton Canvases
+            foreach (var btn in tabButtons)
+            {
+                if (btn != null)
+                {
+                    Canvas c = btn.GetComponent<Canvas>();
+                    if (c != null) _cachedTabCanvases.Add(c);
+                }
+            }
+        }
+        // -----------------------------------
+
+        // Start visibility check routine
+        StopCoroutine("CheckVisibilityRoutine");
+        StartCoroutine("CheckVisibilityRoutine");
+    }
+
+    private IEnumerator CheckVisibilityRoutine()
+    {
+        WaitForSeconds wait = new WaitForSeconds(0.1f); // Optimized interval
+        
+        while (isActive)
+        {
+            if (panelRoot == null) yield break;
+
+            // 1. Check ItemSelections (Vertical)
+            foreach (Canvas c in _cachedItemCanvases)
+            {
+                if (c == null) continue;
+                
+                bool isVisible = true;
+                Vector3 pos = c.transform.position;
+
+                if (topLimit != null && pos.y > topLimit.position.y) isVisible = false;
+                if (bottomLimit != null && pos.y < bottomLimit.position.y) isVisible = false;
+
+                if (isVisible)
+                {
+                    if (c.sortingOrder == -50) c.sortingOrder = contentSortingOrder + 3;
+                }
+                else
+                {
+                    if (c.sortingOrder != -50) c.sortingOrder = -50;
+                }
+            }
+
+            // 2. Check TabButtons (Horizontal)
+            foreach (Canvas c in _cachedTabCanvases)
+            {
+                if (c == null) continue;
+
+                bool isVisible = true;
+                Vector3 pos = c.transform.position;
+
+                if (leftLimit != null && pos.x < leftLimit.position.x) isVisible = false;
+                if (rightLimit != null && pos.x > rightLimit.position.x) isVisible = false;
+
+                if (isVisible)
+                {
+                    if (c.sortingOrder == -50) c.sortingOrder = contentSortingOrder + 3;
+                }
+                else
+                {
+                    if (c.sortingOrder != -50) c.sortingOrder = -50;
+                }
+            }
+
+            yield return wait;
+        }
     }
 
     private void ApplySortingOrderToAll()
@@ -226,7 +315,7 @@ public class ItemSelectionPanelController : MonoBehaviour
             {
                 c.enabled = true; // Ensure it's enabled
                 c.overrideSorting = true;
-                c.sortingOrder = contentSortingOrder + 2; // Items and TabButtons are highest (102)
+                c.sortingOrder = contentSortingOrder + 3; // Items and TabButtons are highest (102)
             }
             else
             {
@@ -235,11 +324,12 @@ public class ItemSelectionPanelController : MonoBehaviour
                 
                 // Check for special groups (Backgrounds, Tabs, Buttons) -> 101
                 if (IsChildOfNameContains(c.transform, "background") || 
-                    IsChildOfName(c.transform, "TabGroup") ||
-                    IsChildOfNameContains(c.transform, "ItemSelectionButton") ||
-                    IsChildOfNameContains(c.transform, "ChildButton"))
+                    IsChildOfName(c.transform, "TabGroup") 
+                    // || IsChildOfNameContains(c.transform, "ItemSelectionButton") ||
+                    // IsChildOfNameContains(c.transform, "ChildButton")
+                    )
                 {
-                    c.sortingOrder = contentSortingOrder + 1; 
+                    c.sortingOrder = contentSortingOrder + 2; 
                 }
                 else
                 {
