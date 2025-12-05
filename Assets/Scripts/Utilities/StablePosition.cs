@@ -6,6 +6,7 @@ public class StablePositionOnce : MonoBehaviour
 {
     [Header("Settings")]
     public RectTransform background; 
+    public bool useBakedNormalizedPos = true;
     
     [Header("Baked Data (Right Click -> Bake Position)")]
     [SerializeField] private Vector2 bakedNormalizedPos;
@@ -31,11 +32,14 @@ public class StablePositionOnce : MonoBehaviour
 
         if (background != null && bakedBgSize.x > 0 && bakedBgSize.y > 0)
         {
-            // 1. Pozisyonu Güncelle
-            // Background üzerindeki normalize edilmiş (0-1 arası) noktayı tekrar dünya koordinatına çevir
-            Vector2 targetLocalPoint = Rect.NormalizedToPoint(background.rect, bakedNormalizedPos);
-            Vector3 targetWorldPos = background.TransformPoint(targetLocalPoint);
-            rt.position = targetWorldPos;
+            // 1. Pozisyonu Güncelle (Sadece checkbox işaretliyse)
+            if (useBakedNormalizedPos)
+            {
+                // Background üzerindeki normalize edilmiş (0-1 arası) noktayı tekrar dünya koordinatına çevir
+                Vector2 targetLocalPoint = Rect.NormalizedToPoint(background.rect, bakedNormalizedPos);
+                Vector3 targetWorldPos = background.TransformPoint(targetLocalPoint);
+                rt.position = targetWorldPos;
+            }
 
             // 2. Scale'i Güncelle
             // Background'ın ne kadar büyüdüğünü hesapla
