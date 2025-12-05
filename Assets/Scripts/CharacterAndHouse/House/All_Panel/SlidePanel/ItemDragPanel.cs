@@ -14,6 +14,8 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     [SerializeField] private GameObject itemPrefab; // spawn edilecek yeni item
     private GameObject dragGhost; // geçici görsel kopya
     private Transform dragRoot;   // aktif RoomPanel
+
+    private int defaultDragGHostSortOrder = 0;
     
     // Scroll handling
     private ScrollRect parentScrollRect;
@@ -102,6 +104,7 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         isScrolling = false;
         isDraggingItem = false;
         isDirectionDecided = false;
+
     }
 
     private void StartItemDrag()
@@ -130,8 +133,20 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         CanvasGroup ghostCG = dragGhost.GetComponent<CanvasGroup>();
         if (ghostCG == null) ghostCG = dragGhost.AddComponent<CanvasGroup>();
-        ghostCG.alpha = 0.6f;
+        ghostCG.alpha = 0.8f;
         ghostCG.blocksRaycasts = false;
+
+        // Elevate sorting order during drag (Requested: 104)
+        Canvas ghostCanvas = dragGhost.GetComponent<Canvas>();
+
+        defaultDragGHostSortOrder = ghostCanvas.sortingOrder;
+        Debug.Log("Default SORT="+ defaultDragGHostSortOrder);
+
+        if (ghostCanvas != null)
+        {
+            ghostCanvas.overrideSorting = true;
+            ghostCanvas.sortingOrder = 104; 
+        }
     }
 
     private void UpdateItemDrag(PointerEventData eventData)
@@ -183,6 +198,13 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             ghostRT.localScale = originalScale;
             ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalSizeDelta.x);
             ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, originalSizeDelta.y);
+
+            Canvas ghostCanvas = dragGhost.GetComponent<Canvas>();
+            if (ghostCanvas != null)
+            {
+                ghostCanvas.overrideSorting = true;
+                ghostCanvas.sortingOrder = defaultDragGHostSortOrder; 
+            }
 
             // Parent to the target room's object container (or transform if container is null)
             Transform targetContainer = targetPanel.objectContainer != null ? targetPanel.objectContainer : targetPanel.transform;
