@@ -12,6 +12,39 @@ public class TabButton : MonoBehaviour, UnityEngine.EventSystems.IPointerClickHa
     private CanvasGroup canvasGroup;
     private bool isDragging = false;
 
+    private void Awake()
+    {
+        canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        }
+    }
+
+    private void Start()
+    {
+        // Ensure we have a raycast target
+        UnityEngine.UI.Image img = GetComponent<UnityEngine.UI.Image>();
+        if (img == null)
+        {
+            img = gameObject.AddComponent<UnityEngine.UI.Image>();
+            img.color = new Color(0, 0, 0, 0.004f); // Almost transparent
+        }
+        img.raycastTarget = true;
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.blocksRaycasts = true;
+        }
+    }
+
+    public void OnClick()
+    {
+        Debug.Log("TabButon clicked");
+        controller.SelectTab(tabIndex);
+    }
+
     public void Initialize(ItemSelectionPanelController ctrl)
     {
         // Debug.Log("ITEMSELECTION INJECT EDILDI");
@@ -49,30 +82,5 @@ public class TabButton : MonoBehaviour, UnityEngine.EventSystems.IPointerClickHa
         ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.endDragHandler);
     }
 
-    private void Awake()
-    {
-        canvasGroup = GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
-        {
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
-        }
-    }
 
-    private void Start()
-    {
-        // Ensure we have a raycast target
-        UnityEngine.UI.Image img = GetComponent<UnityEngine.UI.Image>();
-        if (img == null)
-        {
-            img = gameObject.AddComponent<UnityEngine.UI.Image>();
-            img.color = new Color(0, 0, 0, 0.004f); // Almost transparent
-        }
-        img.raycastTarget = true;
-
-        if (canvasGroup != null)
-        {
-            canvasGroup.alpha = 1f;
-            canvasGroup.blocksRaycasts = true;
-        }
-    }
 }

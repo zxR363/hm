@@ -133,6 +133,7 @@ public class ItemSelectionPanelController : MonoBehaviour
 
     public void SelectTab(int index)
     {
+        Debug.Log("SelectTab called");
         // 1. Ensure all tabs are active (to prevent state loss)
         for (int i = 0; i < tabContents.Count; i++)
         {
@@ -145,17 +146,32 @@ public class ItemSelectionPanelController : MonoBehaviour
         // 2. Reset everything to default visibility
         ApplySortingOrderToAll();
 
-        // 3. Hide inactive tabs by lowering their sorting order to -50
+        // 3. Update CanvasGroups for visibility and interactivity
         for (int i = 0; i < tabContents.Count; i++)
         {
-            if (i == index) continue; // Skip active tab
-
             if (tabContents[i] != null)
             {
-                Canvas[] childCanvases = tabContents[i].GetComponentsInChildren<Canvas>(true);
-                foreach (var c in childCanvases)
+                CanvasGroup cg = EnsureCanvasGroup(tabContents[i]);
+                if (i == index)
                 {
-                    c.sortingOrder = -50;
+                    // Selected Tab: Visible and Interactable
+                    cg.alpha = 1f;
+                    cg.interactable = true;
+                    cg.blocksRaycasts = true;
+                }
+                else
+                {
+                     // Inactive Tabs: Hidden and Non-interactable
+                    cg.alpha = 0f;
+                    cg.interactable = false;
+                    cg.blocksRaycasts = false;
+                    
+                    // Also lower sorting order as a backup
+                    Canvas[] childCanvases = tabContents[i].GetComponentsInChildren<Canvas>(true);
+                    foreach (var c in childCanvases)
+                    {
+                        c.sortingOrder = -50;
+                    }
                 }
             }
         }
@@ -179,6 +195,16 @@ public class ItemSelectionPanelController : MonoBehaviour
         // 5. Force UI update
         ForceUpdateVisibility();
         StartCoroutine(RefreshUIRoutine());
+    }
+
+    private CanvasGroup EnsureCanvasGroup(GameObject obj)
+    {
+        CanvasGroup cg = obj.GetComponent<CanvasGroup>();
+        if (cg == null)
+        {
+            cg = obj.AddComponent<CanvasGroup>();
+        }
+        return cg;
     }
 
     private void ForceUpdateVisibility()
