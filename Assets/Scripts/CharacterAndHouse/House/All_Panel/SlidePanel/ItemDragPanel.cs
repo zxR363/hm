@@ -36,6 +36,10 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         // Find parent ScrollRect
         parentScrollRect = GetComponentInParent<ScrollRect>();
+
+        // Initialize defaults if not set in Inspector
+        if (originalScale == Vector3.zero) originalScale = Vector3.one;
+        if (originalSizeDelta == Vector2.zero && rectTransform != null) originalSizeDelta = rectTransform.sizeDelta;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -140,14 +144,13 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         // Elevate sorting order during drag (Requested: 104)
         Canvas ghostCanvas = dragGhost.GetComponent<Canvas>();
 
-        defaultDragGHostSortOrder = ghostCanvas.sortingOrder;
-        Debug.Log("Default SORT="+ defaultDragGHostSortOrder);
-
         if (ghostCanvas != null)
         {
+            defaultDragGHostSortOrder = ghostCanvas.sortingOrder;
             ghostCanvas.overrideSorting = true;
             ghostCanvas.sortingOrder = 104; 
         }
+        Debug.Log("Drag Started. Default SORT="+ defaultDragGHostSortOrder);
     }
 
     private void UpdateItemDrag(PointerEventData eventData)
@@ -165,6 +168,104 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         RectTransform ghostRT = dragGhost.GetComponent<RectTransform>();
         ghostRT.localPosition = localPoint;
         dragGhost.transform.SetAsLastSibling();
+
+        // --- CLAMPING LOGIC ---
+        RectTransform rootRT = dragRoot.GetComponent<RectTransform>();
+        if (rootRT != null)
+        {
+            // 1. Try Collider Bounds
+            Bounds? colliderBounds = GetCompoundColliderBounds(dragGhost.transform);
+            
+            if (colliderBounds.HasValue)
+            {
+                Bounds bounds = colliderBounds.Value;
+                
+                // Get Root World Bounds
+                Vector3[] rootCorners = new Vector3[4];
+                rootRT.GetWorldCorners(rootCorners);
+                
+                Vector3 rootMin = rootCorners[0];
+                Vector3 rootMax = rootCorners[0];
+                for (int i = 1; i < 4; i++)
+                {
+                    rootMin = Vector3.Min(rootMin, rootCorners[i]);
+                    rootMax = Vector3.Max(rootMax, rootCorners[i]);
+                }
+
+                Vector3 currentPos = dragGhost.transform.position;
+                Vector3 clampedPos = currentPos;
+
+                Vector3 offset = bounds.center - currentPos;
+                Vector3 extents = bounds.extents;
+
+                Vector3 minLimit = rootMin - offset + extents;
+                Vector3 maxLimit = rootMax - offset - extents;
+
+                clampedPos.x = Mathf.Clamp(currentPos.x, minLimit.x, maxLimit.x);
+                clampedPos.y = Mathf.Clamp(currentPos.y, minLimit.y, maxLimit.y);
+
+                dragGhost.transform.position = clampedPos;
+            }
+            else
+            {
+                // 2. Fallback: RectTransform Bounds (Compound)
+                Rect compoundRect = GetCompoundRect(ghostRT);
+                
+                Vector3 minPosition = rootRT.rect.min - compoundRect.min;
+                Vector3 maxPosition = rootRT.rect.max - compoundRect.max;
+                
+                Vector3 pos = ghostRT.localPosition;
+                pos.x = Mathf.Clamp(pos.x, minPosition.x, maxPosition.x);
+                pos.y = Mathf.Clamp(pos.y, minPosition.y, maxPosition.y);
+                ghostRT.localPosition = pos;
+            }
+        }
+    }
+
+    private Bounds? GetCompoundColliderBounds(Transform root)
+    {
+        Collider2D[] colliders = root.GetComponentsInChildren<Collider2D>();
+        if (colliders.Length == 0) return null;
+
+        Bounds bounds = colliders[0].bounds;
+        for (int i = 1; i < colliders.Length; i++)
+        {
+            bounds.Encapsulate(colliders[i].bounds);
+        }
+        return bounds;
+    }
+
+    private Rect GetCompoundRect(RectTransform root)
+    {
+        // Start with root's own rect
+        Rect compoundRect = root.rect;
+        
+        // Get all children
+        var children = root.GetComponentsInChildren<RectTransform>();
+        Vector3[] corners = new Vector3[4];
+        
+        Vector2 min = compoundRect.min;
+        Vector2 max = compoundRect.max;
+        
+        foreach (var child in children)
+        {
+            if (child == root) continue;
+            
+            // Get child corners in World Space
+            child.GetWorldCorners(corners);
+            
+            // Convert to Root's Local Space and expand bounds
+            for (int i = 0; i < 4; i++)
+            {
+                Vector3 localPos = root.InverseTransformPoint(corners[i]);
+                if (localPos.x < min.x) min.x = localPos.x;
+                if (localPos.y < min.y) min.y = localPos.y;
+                if (localPos.x > max.x) max.x = localPos.x;
+                if (localPos.y > max.y) max.y = localPos.y;
+            }
+        }
+        
+        return new Rect(min.x, min.y, max.x - min.x, max.y - min.y);
     }
 
     private void EndItemDrag()
@@ -223,10 +324,10 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             }
         }
 
-        // 2. Place in RoomPanel (Standard Logic)
-        // Find which RoomPanel we dropped onto
-        RoomPanel targetPanel = null;
-        RoomPanel[] roomPanels = FindObjectsOfType<RoomPanel>()
+        // 2. Place in IRoomPanel (Updated Logic)
+        // Find which IRoomPanel we dropped onto
+        IRoomPanel targetPanel = null;
+        IRoomPanel[] roomPanels = FindObjectsOfType<IRoomPanel>()
             .Where(p => p.gameObject.activeInHierarchy)
             .ToArray();
 
@@ -249,9 +350,10 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             ghostCG.blocksRaycasts = true;
 
             RectTransform ghostRT = dragGhost.GetComponent<RectTransform>();
-            ghostRT.localScale = originalScale;
-            ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalSizeDelta.x);
-            ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, originalSizeDelta.y);
+            // Do NOT force localScale/localRotation here. Let SetParent(true) preserve world transform.
+            // ghostRT.localScale = originalScale; 
+            // ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalSizeDelta.x);
+            // ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, originalSizeDelta.y);
 
             Canvas ghostCanvas = dragGhost.GetComponent<Canvas>();
             if (ghostCanvas != null)
@@ -262,7 +364,17 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
             // Parent to the target room's object container (or transform if container is null)
             Transform targetContainer = targetPanel.objectContainer != null ? targetPanel.objectContainer : targetPanel.transform;
-            dragGhost.transform.SetParent(targetContainer, true); // true to keep world position
+            
+            // Use Unity's built-in worldPositionStays=true to preserve visual position/scale
+            dragGhost.transform.SetParent(targetContainer, true); 
+            
+            // FIX: Only flatten Z position to ensure it's not behind the background
+            Vector3 localPos = dragGhost.transform.localPosition;
+            localPos.z = 0;
+            dragGhost.transform.localPosition = localPos;
+
+            // FIX: Ensure Layer matches
+            dragGhost.layer = targetContainer.gameObject.layer;
             
             // Register logic
             if (dragGhost.GetComponent<RoomObject>() == null)
