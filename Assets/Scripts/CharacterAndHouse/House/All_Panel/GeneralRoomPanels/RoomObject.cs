@@ -22,8 +22,18 @@ public class RoomObject : MonoBehaviour
     private Vector3 _lastPosition;
     private Quaternion _lastRotation;
 
+    [SerializeField] private int defaultSortingOrder = 20;
+
     private void Start()
     {
+        // Apply default sorting order if Canvas exists
+        Canvas canvas = GetComponent<Canvas>();
+        if (canvas != null)
+        {
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = defaultSortingOrder;
+        }
+
         // Find the parent RoomPanel
         _currentRoomPanel = GetComponentInParent<RoomPanel>();
         if (_currentRoomPanel != null)
