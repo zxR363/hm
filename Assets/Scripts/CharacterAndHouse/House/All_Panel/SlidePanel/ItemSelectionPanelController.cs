@@ -11,6 +11,7 @@ public class ItemSelectionPanelController : MonoBehaviour
     [SerializeField] private GameObject tabGroup; 
     [SerializeField] private List<TabButton> tabButtons;
     [SerializeField] private List<GameObject> tabContents;
+    public List<GameObject> TabContents => tabContents;
 
     [Header("Visibility Limits")]
     [SerializeField] private Transform topLimit;
@@ -23,6 +24,9 @@ public class ItemSelectionPanelController : MonoBehaviour
     public Transform RightLimit => rightLimit; 
 
     private bool isActive = false;
+
+    private AutoLoadTabContents autoLoadTabContents;
+    private bool isActiveLoadTabContents = false;
 
     [SerializeField] private int panelSortingOrder = 100; 
     [SerializeField] private int contentSortingOrder = 101; 
@@ -52,6 +56,26 @@ public class ItemSelectionPanelController : MonoBehaviour
             }
         }
     }
+    
+    private void LoadTabContents()
+    {
+        if(isActiveLoadTabContents!=true)
+        {
+            // Trigger automatic loading of tab contents
+            autoLoadTabContents= GetComponent<AutoLoadTabContents>();
+            if (autoLoadTabContents == null) autoLoadTabContents = FindObjectOfType<AutoLoadTabContents>();
+            
+            if (autoLoadTabContents != null)
+            {
+                autoLoadTabContents.LoadAllTabs();
+            }
+            else
+            {
+                Debug.LogWarning("[ItemSelectionPanelController] AutoLoadTabContents script not found in scene.");
+            }
+            isActiveLoadTabContents = true;
+        }
+    }
 
     public void TogglePanel()
     {
@@ -69,6 +93,8 @@ public class ItemSelectionPanelController : MonoBehaviour
 
     public void OpenPanel()
     {
+        LoadTabContents();
+
         isActive = true; 
         panelRoot.SetActive(true);
 
@@ -207,7 +233,7 @@ public class ItemSelectionPanelController : MonoBehaviour
         return cg;
     }
 
-    private void ForceUpdateVisibility()
+    public void ForceUpdateVisibility()
     {
         if (panelRoot == null) return;
 

@@ -41,7 +41,7 @@ public class TabButton : MonoBehaviour, UnityEngine.EventSystems.IPointerClickHa
 
     public void OnClick()
     {
-        Debug.Log("TabButon clicked");
+        //Debug.Log("TabButon clicked");
         controller.SelectTab(tabIndex);
     }
 
