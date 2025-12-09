@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Linq;
+using System.Collections.Generic;
 
 public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -170,6 +171,52 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         if (dragGhost == null) return;
 
+        // 1. Check for Interactions (IInteractable)
+        PointerEventData pointerData = new PointerEventData(EventSystem.current)
+        {
+            position = Input.mousePosition
+        };
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, results);
+
+        Debug.Log($"[ItemDragPanel] Raycast Hit Count: {results.Count}");
+
+        foreach (var result in results)
+        {
+            Debug.Log($"[ItemDragPanel] Hit: {result.gameObject.name} (Layer: {result.gameObject.layer})");
+
+            // Skip the drag ghost itself
+            if (result.gameObject == dragGhost) continue;
+
+            var interactable = result.gameObject.GetComponent<IInteractable>();
+            if (interactable != null)
+            {
+                Debug.Log($"[ItemDragPanel] Found IInteractable on {result.gameObject.name}");
+                RoomObject sourceRoomObject = dragGhost.GetComponent<RoomObject>();
+                // Ensure the ghost has a RoomObject component if needed for the interface signature
+                if (sourceRoomObject == null) sourceRoomObject = dragGhost.AddComponent<RoomObject>();
+
+                if (interactable.CanInteract(sourceRoomObject))
+                {
+                    Debug.Log($"[ItemDragPanel] Interaction Success with {result.gameObject.name}");
+                    interactable.OnInteract(sourceRoomObject);
+                    
+                    // If the interaction destroyed the ghost (e.g. consumed item), stop here
+                    if (dragGhost == null) return; 
+                    
+                    // Break after first interaction to avoid multiple triggers?
+                    // Or continue? Usually one interaction per drop is safer.
+                    break; 
+                }
+                else
+                {
+                     Debug.Log($"[ItemDragPanel] CanInteract returned FALSE for {result.gameObject.name}");
+                }
+            }
+        }
+
+        // 2. Place in RoomPanel (Standard Logic)
         // Find which RoomPanel we dropped onto
         RoomPanel targetPanel = null;
         RoomPanel[] roomPanels = FindObjectsOfType<RoomPanel>()

@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+// Odaların scale edilmesini sağlıyor.
+
 [RequireComponent(typeof(LayoutElement))]
 [ExecuteInEditMode] // Runs in editor to see changes immediately
 public class MatchViewportSize : MonoBehaviour
