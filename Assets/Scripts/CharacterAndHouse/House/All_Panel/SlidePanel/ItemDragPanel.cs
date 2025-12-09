@@ -200,10 +200,17 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 if (interactable.CanInteract(sourceRoomObject))
                 {
                     Debug.Log($"[ItemDragPanel] Interaction Success with {result.gameObject.name}");
-                    interactable.OnInteract(sourceRoomObject);
+                    bool consumed = interactable.OnInteract(sourceRoomObject);
                     
-                    // If the interaction destroyed the ghost (e.g. consumed item), stop here
-                    if (dragGhost == null) return; 
+                    // If the interaction consumed the item, stop here (don't place it)
+                    if (consumed)
+                    {
+                        Debug.Log("[ItemDragPanel] Item consumed by interaction. Destroying ghost.");
+                        // Ensure it's destroyed if the script didn't do it (though it should have)
+                        if (dragGhost != null) Destroy(dragGhost);
+                        dragGhost = null;
+                        return; 
+                    }
                     
                     // Break after first interaction to avoid multiple triggers?
                     // Or continue? Usually one interaction per drop is safer.

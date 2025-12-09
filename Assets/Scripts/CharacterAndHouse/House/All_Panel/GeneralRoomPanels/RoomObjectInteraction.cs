@@ -7,7 +7,7 @@ public class RoomObjectInteraction : MonoBehaviour, IInteractable
     //İcerisine barındırıyor mu diye bakıyor
     [SerializeField] private string requiredToolNamePart = "PaintBrush"; // Name part to check (e.g. "PaintBrush")
     [SerializeField] private Sprite newSprite;
-    [SerializeField] private bool consumeTool = false; // Should the tool be destroyed after use?
+    [SerializeField] private bool destroyTool = false; // Should the tool be destroyed after use?
 
     public bool CanInteract(RoomObject sourceItem)
     {
@@ -19,7 +19,7 @@ public class RoomObjectInteraction : MonoBehaviour, IInteractable
         return sourceItem.name.Contains(requiredToolNamePart);
     }
 
-    public void OnInteract(RoomObject sourceItem)
+    public bool OnInteract(RoomObject sourceItem)
     {
         if (newSprite != null)
         {
@@ -46,9 +46,12 @@ public class RoomObjectInteraction : MonoBehaviour, IInteractable
             }
         }
 
-        if (consumeTool)
+        if (destroyTool)
         {
             Destroy(sourceItem.gameObject);
+            return true;
         }
+        
+        return false;
     }
 }
