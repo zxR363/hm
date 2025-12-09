@@ -15,6 +15,7 @@ public class SlidePanelItemButton : MonoBehaviour
         {
             allButtons.Add(this);
         }
+        ToggleDragHandlers(false);
     }
 
     private void OnDestroy()
