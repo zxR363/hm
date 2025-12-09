@@ -55,6 +55,7 @@ public class SlidePanelItemButton : MonoBehaviour
         }
     }
 
+    //Itemların Drag yapılabilmesi ve UIStickerEffect(Outline) aktif edilmesi için gerekli unsurlar
     private void ToggleDragHandlers(bool enable)
     {
         if (itemBehaviourDragAndOutline == null) return;
