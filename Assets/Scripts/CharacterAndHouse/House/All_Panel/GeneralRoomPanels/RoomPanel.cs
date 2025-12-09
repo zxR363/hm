@@ -14,6 +14,9 @@ public class RoomPanel : MonoBehaviour
     public RoomType roomType;
     public Transform objectContainer;
     
+    // Constant filename for the entire game
+    private const string SAVE_FILENAME = "AvatarWorldData.json";
+    
     // Dictionary for fast lookup: InstanceID -> RoomObjectData
     private Dictionary<int, RoomObjectData> trackedObjects = new Dictionary<int, RoomObjectData>();
     
@@ -49,26 +52,24 @@ public class RoomPanel : MonoBehaviour
     private string GetUniqueID(GameObject obj)
     {
         // Build hierarchy path relative to this RoomPanel
-        // Example: "RoomPanel1/Kitchen/Fridge/Apple"
         string path = obj.name.Replace("(Clone)", "").Trim();
         Transform current = obj.transform.parent;
         
-        // Traverse up until we hit the RoomPanel's transform or null
         while (current != null && current != this.transform)
         {
             path = $"{current.name.Replace("(Clone)", "").Trim()}/{path}";
             current = current.parent;
         }
         
-        // Prepend RoomPanel name for global uniqueness in the scene file
-        return $"{this.name}/{path}";
+        // Include SCENE NAME and RoomPanel Name for global uniqueness
+        // Example: "HouseScene/RoomPanel1/Kitchen/Fridge/Apple"
+        string sceneName = SceneManager.GetActiveScene().name;
+        return $"{sceneName}/{this.name}/{path}";
     }
 
     private RoomPanel GetOwnerPanel(Transform objTr)
     {
         // Find the CLOSEST RoomPanel in the parent hierarchy
-        // This ensures that if we have nested RoomPanels, the child panel owns its objects,
-        // and the parent panel ignores them.
         Transform curr = objTr;
         while (curr != null)
         {
@@ -170,15 +171,14 @@ public class RoomPanel : MonoBehaviour
 
     public void SaveRoomState()
     {
-        string filename = SceneManager.GetActiveScene().name + ".json";
         RoomDataWrapper wrapper;
 
-        // 1. Load existing data
-        if (PersistenceManager.Exists(filename))
+        // 1. Load existing data from GLOBAL file
+        if (PersistenceManager.Exists(SAVE_FILENAME))
         {
             try 
             {
-                wrapper = PersistenceManager.Load<RoomDataWrapper>(filename);
+                wrapper = PersistenceManager.Load<RoomDataWrapper>(SAVE_FILENAME);
             }
             catch
             {
@@ -193,9 +193,11 @@ public class RoomPanel : MonoBehaviour
         if (wrapper == null) wrapper = new RoomDataWrapper();
         if (wrapper.objects == null) wrapper.objects = new List<RoomObjectData>();
 
-        // 2. Remove OLD data belonging to THIS RoomPanel
-        // We identify our data by the prefix "RoomPanelName/"
-        string myPrefix = this.name + "/";
+        // 2. Remove OLD data belonging to THIS RoomPanel in THIS Scene
+        // Prefix: "SceneName/RoomPanelName/"
+        string sceneName = SceneManager.GetActiveScene().name;
+        string myPrefix = $"{sceneName}/{this.name}/";
+        
         wrapper.objects.RemoveAll(x => x.objectID.StartsWith(myPrefix));
 
         // 3. Get current objects from THIS RoomPanel (Recursive)
@@ -209,8 +211,6 @@ public class RoomPanel : MonoBehaviour
         foreach (RoomObject roomObj in myObjects)
         {
             // OWNERSHIP CHECK:
-            // Only save this object if THIS RoomPanel is its closest owner.
-            // If it belongs to a nested RoomPanel, let that panel save it.
             if (GetOwnerPanel(roomObj.transform) != this)
             {
                 continue;
@@ -235,30 +235,27 @@ public class RoomPanel : MonoBehaviour
         // 5. Add new objects to the wrapper
         wrapper.objects.AddRange(newObjects);
         
-        PersistenceManager.Save(filename, wrapper);
+        PersistenceManager.Save(SAVE_FILENAME, wrapper);
         
-        Debug.Log($"[RoomPanel] Saved {newObjects.Count} objects to {filename}. \nPaths:\n{string.Join("\n", debugSavedPaths)}");
+        Debug.Log($"[RoomPanel] Saved {newObjects.Count} objects to {SAVE_FILENAME}. \nPaths:\n{string.Join("\n", debugSavedPaths)}");
     }
 
     public void LoadRoomState()
     {
-        // Use Scene Name for filename
-        string filename = SceneManager.GetActiveScene().name + ".json";
-        
-        if (!PersistenceManager.Exists(filename)) 
+        if (!PersistenceManager.Exists(SAVE_FILENAME)) 
         {
             _savedStateCache = new Dictionary<string, Queue<RoomObjectData>>();
             return;
         }
 
-        RoomDataWrapper wrapper = PersistenceManager.Load<RoomDataWrapper>(filename);
+        RoomDataWrapper wrapper = PersistenceManager.Load<RoomDataWrapper>(SAVE_FILENAME);
         if (wrapper == null || wrapper.objects == null) 
         {
             _savedStateCache = new Dictionary<string, Queue<RoomObjectData>>();
             return;
         }
 
-        Debug.Log($"[RoomPanel] Loading {wrapper.objects.Count} objects from {filename}");
+        Debug.Log($"[RoomPanel] Loading objects from {SAVE_FILENAME}");
 
         // 1. Populate Cache
         _savedStateCache = new Dictionary<string, Queue<RoomObjectData>>();
@@ -271,14 +268,12 @@ public class RoomPanel : MonoBehaviour
         }
         
         // 2. Proactively apply to ALL existing objects in hierarchy (Recursive)
-        // This ensures inactive objects or deep hierarchy objects are updated immediately
-        // and maintains the same order as SaveRoomState (Depth-First)
         Transform root = transform;
         RoomObject[] allRoomObjects = root.GetComponentsInChildren<RoomObject>(true);
 
         foreach (RoomObject roomObj in allRoomObjects)
         {
-            // OWNERSHIP CHECK for Loading too
+            // OWNERSHIP CHECK
             if (GetOwnerPanel(roomObj.transform) != this)
             {
                 continue;
@@ -343,10 +338,9 @@ public class RoomPanel : MonoBehaviour
 
     public List<RoomObjectData> GetSavedData()
     {
-        string filename = SceneManager.GetActiveScene().name + ".json";
-        if (!PersistenceManager.Exists(filename)) return new List<RoomObjectData>();
+        if (!PersistenceManager.Exists(SAVE_FILENAME)) return new List<RoomObjectData>();
         
-        RoomDataWrapper wrapper = PersistenceManager.Load<RoomDataWrapper>(filename);
+        RoomDataWrapper wrapper = PersistenceManager.Load<RoomDataWrapper>(SAVE_FILENAME);
         return wrapper != null ? wrapper.objects : new List<RoomObjectData>();
     }
     
