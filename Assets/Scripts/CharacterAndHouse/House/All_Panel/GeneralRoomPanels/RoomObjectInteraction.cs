@@ -32,7 +32,7 @@ public class RoomObjectInteraction : MonoBehaviour, IInteractable
             }
             else
             {
-                // 2. Try RawImage component (since user mentioned using RawImage)
+            // 2. Try RawImage component (since user mentioned using RawImage)
                 RawImage rawImg = GetComponent<RawImage>();
                 if (rawImg != null)
                 {
@@ -44,6 +44,19 @@ public class RoomObjectInteraction : MonoBehaviour, IInteractable
                     Debug.LogWarning($"[SpriteChanger] No Image or RawImage component found on {name}!");
                 }
             }
+            
+            _isInteracted = true;
+            
+            // Notify RoomObject that we changed, so RoomPanel can save us
+            RoomObject roomObj = GetComponent<RoomObject>();
+            if (roomObj != null)
+            {
+                roomObj.NotifyChange(true);
+            }
+            else
+            {
+                Debug.LogError($"[RoomObjectInteraction] CRITICAL: RoomObject component is MISSING on {name}! This object will NOT be saved.");
+            }
         }
 
         if (destroyTool)
@@ -53,5 +66,30 @@ public class RoomObjectInteraction : MonoBehaviour, IInteractable
         }
         
         return false;
+    }
+
+    private bool _isInteracted = false;
+    public bool IsInteracted => _isInteracted;
+
+    public void RestoreState(bool interacted)
+    {
+        _isInteracted = interacted;
+        if (_isInteracted && newSprite != null)
+        {
+             // Apply the sprite/texture immediately without interaction logic
+            Image img = GetComponent<Image>();
+            if (img != null)
+            {
+                img.sprite = newSprite;
+            }
+            else
+            {
+                RawImage rawImg = GetComponent<RawImage>();
+                if (rawImg != null)
+                {
+                    rawImg.texture = newSprite.texture;
+                }
+            }
+        }
     }
 }

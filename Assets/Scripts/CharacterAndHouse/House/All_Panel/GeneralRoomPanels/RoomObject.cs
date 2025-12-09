@@ -58,17 +58,17 @@ public class RoomObject : MonoBehaviour
         }
     }
 
-    public void NotifyChange()
+    public void NotifyChange(bool saveNow = false)
     {
         if (_currentRoomPanel != null)
         {
-            _currentRoomPanel.NotifyObjectChanged(this.gameObject);
+            _currentRoomPanel.NotifyObjectChanged(this.gameObject, saveNow);
         }
     }
     
     // Call this if state changes (like open/close)
     public void NotifyStateChange()
     {
-         NotifyChange();
+         NotifyChange(true);
     }
 }
