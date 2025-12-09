@@ -11,8 +11,8 @@ public class RoomDataWrapper
 
 public class RoomPanel : MonoBehaviour
 {
-    public RoomType roomType;
-    public Transform objectContainer;
+    public RoomType roomType; //Silinecek
+    public Transform objectContainer; //Silinecek
     
     // Constant filename for the entire game
     private const string SAVE_FILENAME = "AvatarWorldData.json";
