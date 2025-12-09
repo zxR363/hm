@@ -192,14 +192,39 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                     rootMax = Vector3.Max(rootMax, rootCorners[i]);
                 }
 
+                // --- SCREEN BOUNDS CLAMPING (ADDITION) ---
+                // Calculate Screen Safe Area in World Space
+                Camera cam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+                if (cam == null && canvas.renderMode != RenderMode.ScreenSpaceOverlay) cam = Camera.main;
+
+                Vector3 screenMin, screenMax;
+
+                if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                {
+                    Rect safeArea = Screen.safeArea;
+                    screenMin = new Vector3(safeArea.xMin, safeArea.yMin, -float.MaxValue);
+                    screenMax = new Vector3(safeArea.xMax, safeArea.yMax, float.MaxValue);
+                }
+                else
+                {
+                    Rect safeArea = Screen.safeArea;
+                    float zDepth = dragGhost.transform.position.z - cam.transform.position.z;
+                    screenMin = cam.ScreenToWorldPoint(new Vector3(safeArea.xMin, safeArea.yMin, zDepth));
+                    screenMax = cam.ScreenToWorldPoint(new Vector3(safeArea.xMax, safeArea.yMax, zDepth));
+                }
+
+                // Intersect Parent Bounds with Screen Bounds
+                Vector3 finalMin = Vector3.Max(rootMin, screenMin);
+                Vector3 finalMax = Vector3.Min(rootMax, screenMax);
+
                 Vector3 currentPos = dragGhost.transform.position;
                 Vector3 clampedPos = currentPos;
 
                 Vector3 offset = bounds.center - currentPos;
                 Vector3 extents = bounds.extents;
 
-                Vector3 minLimit = rootMin - offset + extents;
-                Vector3 maxLimit = rootMax - offset - extents;
+                Vector3 minLimit = finalMin - offset + extents;
+                Vector3 maxLimit = finalMax - offset - extents;
 
                 clampedPos.x = Mathf.Clamp(currentPos.x, minLimit.x, maxLimit.x);
                 clampedPos.y = Mathf.Clamp(currentPos.y, minLimit.y, maxLimit.y);

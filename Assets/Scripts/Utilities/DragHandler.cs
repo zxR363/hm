@@ -69,7 +69,6 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             Vector3[] parentCorners = new Vector3[4];
             parentRect.GetWorldCorners(parentCorners);
             
-            // Calculate Parent Min/Max in World Space
             Vector3 parentMin = parentCorners[0];
             Vector3 parentMax = parentCorners[0];
             for (int i = 1; i < 4; i++)
@@ -78,23 +77,65 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
                 parentMax = Vector3.Max(parentMax, parentCorners[i]);
             }
 
+            // --- SCREEN BOUNDS CLAMPING (ADDITION) ---
+            // Calculate Screen Safe Area in World Space
+            Camera cam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+            if (cam == null && canvas.renderMode != RenderMode.ScreenSpaceOverlay) cam = Camera.main;
+
+            Vector3 screenMin, screenMax;
+
+            if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                // For Overlay, World Space is roughly Screen Space but scaled? 
+                // Actually, GetWorldCorners on UI elements in Overlay mode returns Screen Space coordinates.
+                // So we can compare directly with Screen.safeArea.
+                Rect safeArea = Screen.safeArea;
+                screenMin = new Vector3(safeArea.xMin, safeArea.yMin, -float.MaxValue);
+                screenMax = new Vector3(safeArea.xMax, safeArea.yMax, float.MaxValue);
+            }
+            else
+            {
+                // For Camera modes, convert Safe Area to World Space
+                Rect safeArea = Screen.safeArea;
+                Vector3 minScreen = new Vector3(safeArea.xMin, safeArea.yMin, cam.nearClipPlane);
+                Vector3 maxScreen = new Vector3(safeArea.xMax, safeArea.yMax, cam.nearClipPlane);
+                
+                // We need a depth for WorldToWorldPoint? No, ScreenToWorldPoint.
+                // Assuming UI is on a plane, we need the corners at the UI depth.
+                // But simpler: just intersect the World Bounds of the Parent with the Frustum?
+                // Or just use Viewport 0-1.
+                
+                // Let's use Viewport 0,0 and 1,1 converted to World Point at the object's depth
+                float zDepth = transform.position.z - cam.transform.position.z;
+                screenMin = cam.ViewportToWorldPoint(new Vector3(0, 0, zDepth));
+                screenMax = cam.ViewportToWorldPoint(new Vector3(1, 1, zDepth));
+                
+                // Safe Area adjustment for Viewport (approximate if needed, or use ScreenToWorldPoint with safeArea pixels)
+                screenMin = cam.ScreenToWorldPoint(new Vector3(safeArea.xMin, safeArea.yMin, zDepth));
+                screenMax = cam.ScreenToWorldPoint(new Vector3(safeArea.xMax, safeArea.yMax, zDepth));
+            }
+
+            // Intersect Parent Bounds with Screen Bounds
+            Vector3 finalMin = Vector3.Max(parentMin, screenMin);
+            Vector3 finalMax = Vector3.Min(parentMax, screenMax);
+
             // Calculate required clamp in World Space
             Vector3 currentPos = transform.position;
             Vector3 clampedPos = currentPos;
 
             // Bounds.min = Center - Extents
-            // We want: Bounds.min >= ParentMin  =>  (Pos + Offset - Extents) >= ParentMin
-            // We want: Bounds.max <= ParentMax  =>  (Pos + Offset + Extents) <= ParentMax
+            // We want: Bounds.min >= FinalMin  =>  (Pos + Offset - Extents) >= FinalMin
+            // We want: Bounds.max <= FinalMax  =>  (Pos + Offset + Extents) <= FinalMax
             
             // Calculate Offset from Transform Position to Bounds Center
             Vector3 offset = bounds.center - currentPos;
             Vector3 extents = bounds.extents;
 
-            // Min Limit: Pos >= ParentMin - Offset + Extents
-            Vector3 minLimit = parentMin - offset + extents;
+            // Min Limit: Pos >= FinalMin - Offset + Extents
+            Vector3 minLimit = finalMin - offset + extents;
             
-            // Max Limit: Pos <= ParentMax - Offset - Extents
-            Vector3 maxLimit = parentMax - offset - extents;
+            // Max Limit: Pos <= FinalMax - Offset - Extents
+            Vector3 maxLimit = finalMax - offset - extents;
 
             // Clamp
             clampedPos.x = Mathf.Clamp(currentPos.x, minLimit.x, maxLimit.x);
