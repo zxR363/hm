@@ -59,6 +59,12 @@ public class UIStickerEffect : MonoBehaviour
         UpdateMaterial();
     }
 
+    public void SetOutlineColor(Color color)
+    {
+        outlineColor = color;
+        UpdateMaterial();
+    }
+
     private void UpdateMaterial()
     {
         if (_material != null)

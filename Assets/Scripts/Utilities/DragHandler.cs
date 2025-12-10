@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -11,11 +12,22 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     [SerializeField] private float dragSpeed = 1f;
     [SerializeField] private bool clampToParent = true;
 
+    private ItemPlacement _itemPlacement;
+    private UIStickerEffect[] _stickerEffects; // Changed to array
+    private Collider2D _dragCollider;
+    
+    [SerializeField] private Color validColor = Color.white;
+    [SerializeField] private Color invalidColor = Color.red;
+
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
+        _itemPlacement = GetComponent<ItemPlacement>();
+        // Find all sticker effects in children as well
+        _stickerEffects = GetComponentsInChildren<UIStickerEffect>(true);
+        _dragCollider = GetComponent<Collider2D>();
 
         if (canvasGroup == null)
         {
@@ -35,6 +47,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         canvasGroup.blocksRaycasts = false;
     }
 
+    private bool _isValidPlacement = false;
+
     public void OnDrag(PointerEventData eventData)
     {
         // Apply Drag Speed
@@ -45,11 +59,92 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         {
             ClampToParent();
         }
+
+        CheckPlacement(eventData);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         canvasGroup.blocksRaycasts = true;
+
+        if (_itemPlacement != null && !_isValidPlacement)
+        {
+            // Invalid placement - logic to handle bad drop (e.g., destroy)
+            Debug.Log("DRAG ITEM SILINDI");
+            Destroy(gameObject);
+        }
+    }
+    private void CheckPlacement(PointerEventData eventData)
+    {
+        if (_itemPlacement == null)
+        {
+            Debug.LogWarning($"[DragHandler] No ItemPlacement component found on {name}");
+            return;
+        }
+
+        if (_dragCollider == null)
+        {
+             // Try to get it again if it was added dynamically or missed
+             _dragCollider = GetComponent<Collider2D>();
+             if (_dragCollider == null)
+             {
+                 Debug.LogWarning($"[DragHandler] No Collider2D found on {name} for placement check!");
+                 return;
+             }
+        }
+
+        _isValidPlacement = false;
+        
+        // Use Collider Overlap instead of UI Raycast
+        List<Collider2D> results = new List<Collider2D>();
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.NoFilter(); // Check everything
+        
+        int count = _dragCollider.OverlapCollider(filter, results);
+
+        if (count > 0)
+        {
+            foreach (Collider2D hitCollider in results)
+            {
+                GameObject hitObj = hitCollider.gameObject;
+                // Skip self
+                if (hitObj == gameObject) continue;
+
+                PlacementArea area = hitObj.GetComponent<PlacementArea>();
+                if (area == null)
+                {
+                    area = hitObj.GetComponentInParent<PlacementArea>();
+                }
+
+                if (area != null)
+                {
+                    // Debug.Log($"[DragHandler] Collider Hit PlacementArea: {area.name} (Type: {area.type})");
+                    
+                    if (_itemPlacement.allowedType == PlacementType.Both || 
+                        _itemPlacement.allowedType == area.type)
+                    {
+                        _isValidPlacement = true;
+                    }
+                    
+                    // If we found a valid placement, we can stop searching. 
+                    // However, if we found an INVALID one but we might still be touching a VALID one (overlap), 
+                    // we should probably keep looking until we find a valid one or run out.
+                    if (_isValidPlacement) break; 
+                }
+            }
+        }
+
+        if (_stickerEffects != null)
+        {
+            foreach (var effect in _stickerEffects)
+            {
+               if(effect != null)
+               {
+                   effect.SetOutlineColor(_isValidPlacement ? validColor : invalidColor);
+                   effect.enabled = true;
+               }
+            }
+        }
     }
 
     private void ClampToParent()
