@@ -27,7 +27,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         _itemPlacement = GetComponent<ItemPlacement>();
         // Find all sticker effects in children as well
         _stickerEffects = GetComponentsInChildren<UIStickerEffect>(true);
-        _dragCollider = GetComponent<Collider2D>();
+        _dragCollider = GetComponentInChildren<Collider2D>(); // Changed to include children
 
         if (canvasGroup == null)
         {
@@ -47,7 +47,18 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         canvasGroup.blocksRaycasts = false;
     }
 
-    private bool _isValidPlacement = false;
+    public bool IsValidPlacement { get; private set; } = true; // Default true to avoid accidental destruction on start
+
+    void Start()
+    {
+         // Validate initial placement
+         CheckPlacement();
+    }
+
+    public void ForceValidation()
+    {
+        CheckPlacement();
+    }
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -60,21 +71,15 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             ClampToParent();
         }
 
-        CheckPlacement(eventData);
+        CheckPlacement();
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         canvasGroup.blocksRaycasts = true;
-
-        if (_itemPlacement != null && !_isValidPlacement)
-        {
-            // Invalid placement - logic to handle bad drop (e.g., destroy)
-            Debug.Log("DRAG ITEM SILINDI");
-            Destroy(gameObject);
-        }
+        // Destruction logic moved to SlidePanelItemButton
     }
-    private void CheckPlacement(PointerEventData eventData)
+    private void CheckPlacement()
     {
         if (_itemPlacement == null)
         {
@@ -88,12 +93,17 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
              _dragCollider = GetComponent<Collider2D>();
              if (_dragCollider == null)
              {
-                 Debug.LogWarning($"[DragHandler] No Collider2D found on {name} for placement check!");
+                 _dragCollider = GetComponentInChildren<Collider2D>();
+             }
+             
+             if (_dragCollider == null)
+             {
+                 Debug.LogWarning($"[DragHandler] No Collider2D found on {name} or children for placement check!");
                  return;
              }
         }
 
-        _isValidPlacement = false;
+        IsValidPlacement = false;
         
         // Use Collider Overlap instead of UI Raycast
         List<Collider2D> results = new List<Collider2D>();
@@ -123,13 +133,13 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
                     if (_itemPlacement.allowedType == PlacementType.Both || 
                         _itemPlacement.allowedType == area.type)
                     {
-                        _isValidPlacement = true;
+                        IsValidPlacement = true;
                     }
                     
                     // If we found a valid placement, we can stop searching. 
                     // However, if we found an INVALID one but we might still be touching a VALID one (overlap), 
                     // we should probably keep looking until we find a valid one or run out.
-                    if (_isValidPlacement) break; 
+                    if (IsValidPlacement) break; 
                 }
             }
         }
@@ -140,7 +150,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             {
                if(effect != null)
                {
-                   effect.SetOutlineColor(_isValidPlacement ? validColor : invalidColor);
+                   effect.SetOutlineColor(IsValidPlacement ? validColor : invalidColor);
                    effect.enabled = true;
                }
             }

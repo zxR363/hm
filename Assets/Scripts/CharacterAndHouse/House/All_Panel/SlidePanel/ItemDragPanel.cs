@@ -376,14 +376,8 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         if (dragGhost == null) return;
 
-        // Check Placement Validity first
-        if (!_isValidPlacement)
-        {
-            Debug.Log("[ItemDragPanel] Invalid Placement. Destroying.");
-            Destroy(dragGhost);
-            dragGhost = null;
-            return;
-        }
+        // Check Placement Validity - REMOVED auto destroy
+        // if (!_isValidPlacement) ...
 
         // ... existing interaction and placement logic ...
         

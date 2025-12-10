@@ -50,8 +50,32 @@ public class SlidePanelItemButton : MonoBehaviour
             // If it was active, it stays reset (toggled off) and CLOSE the panel
             else
             {
+                ValidateAndCleanUp();
                 ToggleDragHandlers(false);
                 ItemSelectionPanelController.Instance.ClosePanel();
+            }
+        }
+    }
+
+    private void ValidateAndCleanUp()
+    {
+        Debug.Log("ValidateAndCleanUP");
+        if (itemBehaviourDragAndOutline == null) return;
+
+        // Check if any DragHandler on the item is in an invalid state
+        DragHandler[] handlers = itemBehaviourDragAndOutline.GetComponentsInChildren<DragHandler>(true);
+        Debug.Log($"[SlidePanelItemButton] Validating {handlers.Length} handlers on {itemBehaviourDragAndOutline.name}");
+
+        foreach (var handler in handlers)
+        {
+            handler.ForceValidation(); // Make sure the state is up to date!
+            
+            Debug.Log($"[SlidePanelItemButton] Checking Handler: {handler.name}, IsValid: {handler.IsValidPlacement}");
+            if (!handler.IsValidPlacement)
+            {
+                Debug.Log($"[SlidePanelItemButton] Item {handler.name} is in INVALID placement. Destroying.");
+                Destroy(handler.gameObject);
+                // Continue to check other items just in case
             }
         }
     }
@@ -63,13 +87,11 @@ public class SlidePanelItemButton : MonoBehaviour
 
         //Find all IItemBehaviours in the container and its children
         IItemBehaviours[] items = itemBehaviourDragAndOutline.GetComponentsInChildren<IItemBehaviours>(true);
-        Debug.Log("BAKLIM");
         foreach (var item in items)
         {
             DragHandler dragHandler = item.GetComponent<DragHandler>();
             if (dragHandler != null)
             {
-                Debug.Log("DragHandler enabled: " + enable);
                 dragHandler.enabled = enable;
             }
         }

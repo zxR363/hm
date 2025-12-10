@@ -107,7 +107,7 @@ public class RoomPanel : MonoBehaviour
             data = savedData;
             data.instance = obj;
             
-            Debug.Log($"[RoomPanel] Applied saved state to registered object: {uniqueID}");
+            //Debug.Log($"[RoomPanel] Applied saved state to registered object: {uniqueID}");
         }
         else
         {
@@ -117,7 +117,7 @@ public class RoomPanel : MonoBehaviour
 
         trackedObjects.Add(id, data);
         
-        Debug.Log($"[RoomPanel] Registered {obj.name} as {uniqueID}");
+        //Debug.Log($"[RoomPanel] Registered {obj.name} as {uniqueID}");
     }
 
     public void UnregisterObject(GameObject obj)
@@ -237,7 +237,7 @@ public class RoomPanel : MonoBehaviour
         
         PersistenceManager.Save(SAVE_FILENAME, wrapper);
         
-        Debug.Log($"[RoomPanel] Saved {newObjects.Count} objects to {SAVE_FILENAME}. \nPaths:\n{string.Join("\n", debugSavedPaths)}");
+        //Debug.Log($"[RoomPanel] Saved {newObjects.Count} objects to {SAVE_FILENAME}. \nPaths:\n{string.Join("\n", debugSavedPaths)}");
     }
 
     public void LoadRoomState()
@@ -255,7 +255,7 @@ public class RoomPanel : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[RoomPanel] Loading objects from {SAVE_FILENAME}");
+        //Debug.Log($"[RoomPanel] Loading objects from {SAVE_FILENAME}");
 
         // 1. Populate Cache
         _savedStateCache = new Dictionary<string, Queue<RoomObjectData>>();
@@ -299,7 +299,7 @@ public class RoomPanel : MonoBehaviour
             }
         }
         
-        Debug.Log($"[RoomPanel] Proactively restored {trackedObjects.Count} objects in hierarchy.");
+        //Debug.Log($"[RoomPanel] Proactively restored {trackedObjects.Count} objects in hierarchy.");
     }
 
     private void ApplyDataToObj(GameObject obj, RoomObjectData data)
@@ -333,7 +333,7 @@ public class RoomPanel : MonoBehaviour
             }
         }
         
-        Debug.Log($"[RoomPanel] Restored state for {obj.name}");
+        //Debug.Log($"[RoomPanel] Restored state for {obj.name}");
     }
 
     public List<RoomObjectData> GetSavedData()
