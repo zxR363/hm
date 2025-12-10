@@ -7,7 +7,7 @@ public class UIStickerEffect : MonoBehaviour
 {
     [Header("Settings")]
     public Color outlineColor = Color.white;
-    [Range(0, 30)]
+    [Range(0, 50)]
     public float outlineWidth = 2f;
 
     private Image _image;
