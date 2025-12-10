@@ -132,18 +132,22 @@ public class RoomPanel : MonoBehaviour
     public void NotifyObjectChanged(GameObject obj, bool saveNow = false)
     {
         int id = obj.GetInstanceID();
+        //Debug.Log($"[RoomPanel] NotifyObjectChanged received for {obj.name} (ID: {id}). SaveNow: {saveNow}");
+        
         if (trackedObjects.TryGetValue(id, out RoomObjectData data))
         {
             UpdateObjectData(data, obj);
         }
         else
         {
+            //Debug.Log($"[RoomPanel] Object {obj.name} not found in tracked list. Registering now.");
             // Should be registered, but if not, register it now
             RegisterObject(obj);
         }
 
         if (saveNow)
         {
+            //Debug.Log("[RoomPanel] Triggering Immediate Save.");
             SaveRoomState();
         }
     }
@@ -166,6 +170,11 @@ public class RoomPanel : MonoBehaviour
         if (obj.TryGetComponent<RoomObjectInteraction>(out var interaction))
         {
             data.customStates["isInteracted"] = interaction.IsInteracted.ToString();
+            if(!string.IsNullOrEmpty(interaction.CurrentSourceItemName))
+            {
+                 data.customStates["interactedSource"] = interaction.CurrentSourceItemName;
+                 Debug.Log($"[RoomPanel] Saving Interaction: {obj.name} -> Source: {interaction.CurrentSourceItemName}");
+            }
         }
     }
 
@@ -228,6 +237,10 @@ public class RoomPanel : MonoBehaviour
             };
             
             UpdateObjectData(data, obj);
+            
+            // FORCE SERIALIZATION: Ensure dictionary is flushed to lists
+            data.OnBeforeSerialize();
+            
             newObjects.Add(data);
             debugSavedPaths.Add(uniqueID);
         }
@@ -328,7 +341,19 @@ public class RoomPanel : MonoBehaviour
             {
                 if (bool.TryParse(interactedStr, out bool isInteracted))
                 {
-                    interaction.RestoreState(isInteracted);
+                    // Restore source Name if available
+                    string sourceName = null;
+                    if (data.customStates.TryGetValue("interactedSource", out var sName))
+                    {
+                        sourceName = sName;
+                        Debug.Log($"[RoomPanel] Loading Interaction: {obj.name} -> Found Source: {sourceName}");
+                    }
+                    else
+                    {
+                        // Debug.Log($"[RoomPanel] Loading Interaction: {obj.name} -> No Source Key Found");
+                    }
+                    
+                    interaction.RestoreState(isInteracted, sourceName);
                 }
             }
         }

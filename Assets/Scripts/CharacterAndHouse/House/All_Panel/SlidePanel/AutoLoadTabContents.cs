@@ -53,6 +53,13 @@ public class AutoLoadTabContents : MonoBehaviour
                 {
                     GameObject instance = Instantiate(prefab, contentTransform);
                     
+                    // PERSISTENCE: Inject the path into the ItemDragPanel
+                    ItemDragPanel idp = instance.GetComponent<ItemDragPanel>();
+                    if (idp != null)
+                    {
+                        idp.ResourcePath = resourcePath; 
+                    }
+                    
                     // Ensure it has necessary components (optional, but good for safety)
                     if (instance.GetComponent<ItemSelection>() == null)
                     {

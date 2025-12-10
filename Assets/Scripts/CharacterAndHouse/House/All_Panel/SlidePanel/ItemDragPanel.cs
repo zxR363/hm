@@ -13,6 +13,11 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     [SerializeField] private Vector2 originalSizeDelta;
 
     [SerializeField] private GameObject itemPrefab; // spawn edilecek yeni item
+    public GameObject ItemPrefab => itemPrefab; // Public getter for persistence lookup
+    
+    // Stores the full Resources path for this item (assigned by AutoLoadTabContents)
+    public string ResourcePath; 
+    
     private GameObject dragGhost; // geçici görsel kopya
     private Transform dragRoot;   // aktif RoomPanel
 
@@ -76,10 +81,6 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             }
             else
             {
-                // Not moved enough yet, pass to scrollrect just to keep it responsive?
-                // Or wait? Usually waiting is better to avoid jitter.
-                // But ScrollRect might need immediate updates. 
-                // Let's pass to ScrollRect tentatively.
                 if (parentScrollRect != null) parentScrollRect.OnDrag(eventData);
             }
             return;
@@ -130,6 +131,11 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         // Geçici görsel kopya oluştur
         dragGhost = Instantiate(itemPrefab, transform.position, Quaternion.identity, dragRoot);
+
+        // PERSISTENCE: Pass the Resource Path to the new object
+        RoomObject ghostRoomObj = dragGhost.GetComponent<RoomObject>();
+        if (ghostRoomObj == null) ghostRoomObj = dragGhost.AddComponent<RoomObject>();
+        ghostRoomObj.loadedFromResourcePath = ResourcePath;
 
         RectTransform ghostRT = dragGhost.GetComponent<RectTransform>();
         ghostRT.localScale = originalScale;

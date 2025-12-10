@@ -23,6 +23,9 @@ public class RoomObject : MonoBehaviour
     private Quaternion _lastRotation;
 
     [SerializeField] private int defaultSortingOrder = 20;
+    
+    // Stores the Resources path this object was loaded from (for Persistence)
+    public string loadedFromResourcePath;
 
     private void Start()
     {
@@ -70,9 +73,24 @@ public class RoomObject : MonoBehaviour
 
     public void NotifyChange(bool saveNow = false)
     {
+        //Debug.Log($"[RoomObject] NotifyChange called on {name}. SaveNow: {saveNow}. Panel: {_currentRoomPanel}");
         if (_currentRoomPanel != null)
         {
             _currentRoomPanel.NotifyObjectChanged(this.gameObject, saveNow);
+        }
+        else
+        {
+             // Retry finding panel?
+             _currentRoomPanel = GetComponentInParent<RoomPanel>();
+             if (_currentRoomPanel != null)
+                _currentRoomPanel.NotifyObjectChanged(this.gameObject, saveNow);
+             else
+             {
+                 // Do nothing. This happens when:
+                 // 1. Object is being dragged (Ghost) -> No RoomPanel yet.
+                 // 2. Object is just instantiated before parenting.
+                 // Debug.LogWarning($"[RoomObject] NotifyChange ignored. No RoomPanel found on {name}.");
+             }
         }
     }
     
