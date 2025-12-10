@@ -245,6 +245,8 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 ghostRT.localPosition = pos;
             }
         }
+        
+        CheckPlacement();
     }
 
     private Bounds? GetCompoundColliderBounds(Transform root)
@@ -293,10 +295,98 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         return new Rect(min.x, min.y, max.x - min.x, max.y - min.y);
     }
 
+    private bool _isValidPlacement = true; // Default to true if no placement component
+    [SerializeField] private Color validColor = Color.white;
+    [SerializeField] private Color invalidColor = Color.red;
+
+
+
+    private void CheckPlacement()
+    {
+        if (dragGhost == null) return;
+
+        ItemPlacement itemPlacement = dragGhost.GetComponent<ItemPlacement>();
+        if (itemPlacement == null)
+        {
+             _isValidPlacement = true; // No restriction
+             return; 
+        }
+
+        Collider2D ghostCollider = dragGhost.GetComponent<Collider2D>();
+        if (ghostCollider == null)
+        {
+             // If no collider, we can't check placement areas via physics.
+             // Assume valid? or Invalid? 
+             // User said: "Placement ... determined by Item's Collider".
+             // If missing, maybe warn?
+             _isValidPlacement = true; 
+             return;
+        }
+
+        _isValidPlacement = false;
+        
+        // Use Collider Overlap
+        List<Collider2D> results = new List<Collider2D>();
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.NoFilter();
+        
+        int count = ghostCollider.OverlapCollider(filter, results);
+
+        if (count > 0)
+        {
+            foreach (Collider2D hitCollider in results)
+            {
+                GameObject hitObj = hitCollider.gameObject;
+                if (hitObj == dragGhost) continue;
+
+                PlacementArea area = hitObj.GetComponent<PlacementArea>();
+                if (area == null)
+                {
+                    area = hitObj.GetComponentInParent<PlacementArea>();
+                }
+
+                if (area != null)
+                {
+                    if (itemPlacement.allowedType == PlacementType.Both || 
+                        itemPlacement.allowedType == area.type)
+                    {
+                        _isValidPlacement = true;
+                    }
+                    if (_isValidPlacement) break; 
+                }
+            }
+        }
+
+        // Apply Visuals
+        UIStickerEffect[] effects = dragGhost.GetComponentsInChildren<UIStickerEffect>(true);
+        if (effects != null)
+        {
+            foreach (var effect in effects)
+            {
+               if(effect != null)
+               {
+                   effect.SetOutlineColor(_isValidPlacement ? validColor : invalidColor);
+                   effect.enabled = true;
+               }
+            }
+        }
+    }
+
     private void EndItemDrag()
     {
         if (dragGhost == null) return;
 
+        // Check Placement Validity first
+        if (!_isValidPlacement)
+        {
+            Debug.Log("[ItemDragPanel] Invalid Placement. Destroying.");
+            Destroy(dragGhost);
+            dragGhost = null;
+            return;
+        }
+
+        // ... existing interaction and placement logic ...
+        
         // 1. Check for Interactions (IInteractable)
         PointerEventData pointerData = new PointerEventData(EventSystem.current)
         {
@@ -305,6 +395,9 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);
+        
+        // ... (rest of the method)
+
 
         Debug.Log($"[ItemDragPanel] Raycast Hit Count: {results.Count}");
 

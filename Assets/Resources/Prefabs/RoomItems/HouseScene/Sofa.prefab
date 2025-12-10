@@ -16,6 +16,8 @@ GameObject:
   - component: {fileID: 2079440879224763311}
   - component: {fileID: 8744845031073238384}
   - component: {fileID: 9019666070914928065}
+  - component: {fileID: 6598206877464811452}
+  - component: {fileID: 7738124481429719911}
   m_Layer: 5
   m_Name: Sofa
   m_TagString: Untagged
@@ -189,3 +191,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f481e932d57cd644b7877aabeb6571c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dragSpeed: 1
+  clampToParent: 1
+  validColor: {r: 1, g: 1, b: 1, a: 1}
+  invalidColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!114 &6598206877464811452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8309925619944345605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8acf3af91b1a3f419ab38f7ec8b757f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allowedType: 1
+--- !u!114 &7738124481429719911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8309925619944345605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89070a1b4766fce4093d485c6c7671b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineColor: {r: 1, g: 1, b: 1, a: 1}
+  outlineWidth: 2
