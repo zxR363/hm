@@ -113,10 +113,13 @@ public class SlidePanelItemButton : MonoBehaviour
 
     public static void ResetAll()
     {
+        
         for (int i = allButtons.Count - 1; i >= 0; i--)
         {
             if (allButtons[i] != null)
             {
+                // Ensure we clean up any invalid items associated with this button before closing/resetting
+                allButtons[i].ValidateAndCleanUp();
                 allButtons[i].ResetScale();
             }
             else
