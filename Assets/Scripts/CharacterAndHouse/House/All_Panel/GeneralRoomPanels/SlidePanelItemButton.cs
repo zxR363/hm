@@ -109,6 +109,7 @@ public class SlidePanelItemButton : MonoBehaviour
                         {
                             Debug.Log($"[ValidateAndCleanUp] Item {handler.name} moved to resolve conflict.");
                             anyChange = true;
+                            handler.UpdateCurrentPositionAsValid();
                             // SYNC IMMEDIATELY: So the next item in this loop sees the empty spot!
                             Physics2D.SyncTransforms();
                         }
@@ -120,6 +121,12 @@ public class SlidePanelItemButton : MonoBehaviour
                         Destroy(handler.gameObject);
                         anyChange = true;
                     }
+                }
+                else
+                {
+                    // USER REQUEST: Update persistence here. If it survived validation, it's safe.
+                    //handler.UpdateCurrentPositionAsValid();
+                    // Debug.Log($"[ValidateAndCleanUp] Item {handler.name} is Valid.");
                 }
             }
 

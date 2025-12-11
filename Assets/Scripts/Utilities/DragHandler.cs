@@ -135,14 +135,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     public void OnEndDrag(PointerEventData eventData)
     {
         canvasGroup.blocksRaycasts = true;
-        // Revert logic moved to Validation phase (SlidePanelItemButton)
     }
 
-    /// <summary>
-    /// Attempts to revert the item to its last known valid position.
-    /// Returns TRUE if reverted successfully.
-    /// Returns FALSE if no valid history exists (should probably be destroyed).
-    /// </summary>
     /// <summary>
     /// Attempts to revert the item to its last known valid position.
     /// Returns TRUE if reverted successfully.
@@ -154,7 +148,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         {
             transform.localPosition = _lastValidLocalPosition.Value;
             CheckPlacement(); // Re-validate to update visuals (Red -> White)
-            Debug.Log($"[DragHandler] Reverted to last valid position: {_lastValidLocalPosition.Value}");
+            // Debug.Log($"[DragHandler] {name} Reverting to SAVED Valid Position: {_lastValidLocalPosition.Value}");
             return true;
         }
         
@@ -169,7 +163,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     public void UpdateCurrentPositionAsValid()
     {
         _lastValidLocalPosition = transform.localPosition;
-        Debug.Log($"[DragHandler] Updated valid position baseline to: {_lastValidLocalPosition}");
+        startPosition = rectTransform.anchoredPosition; // Update startPosition for "Back Home" logic
+        // Debug.Log($"[DragHandler] {name} Saved NEW Valid Position: {_lastValidLocalPosition}");
     }
 
     private void CheckPlacement()
@@ -219,68 +214,49 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         {
             foreach (Collider2D hitCollider in results)
             {
+                // ... (Existing Ignores)
                 GameObject hitObj = hitCollider.gameObject;
-                // Skip self (Reference check)
                 if (hitObj == gameObject) continue;
-                // Skip children (if collider is on a child)
                 if (hitObj.transform.IsChildOf(transform)) continue;
 
-                // FIX: Ignore Drag Ghosts or items currently being dragged (blocksRaycasts = false)
                 CanvasGroup hitCG = hitObj.GetComponent<CanvasGroup>();
                 if (hitCG == null) hitCG = hitObj.GetComponentInParent<CanvasGroup>();
                 if (hitCG != null && !hitCG.blocksRaycasts) continue;
 
-                // 1. Check for ItemPlacement Collision (Overlap with another item)
+                // 1. Placement Check (Collision)
                 ItemPlacement otherPlacement = hitObj.GetComponent<ItemPlacement>();
                 if (otherPlacement != null)
                 {
-                    // USER REQUEST: If EITHER item has PlacementType.All, they are compatible.
-                    // All acts as a "Wildcard" that allows overlap.
-                    if (_itemPlacement.allowedType == PlacementType.All || otherPlacement.allowedType == PlacementType.All)
-                    {
-                        // Compatible overlap, ignore collision
-                    }
+                    if (_itemPlacement.allowedType == PlacementType.All || otherPlacement.allowedType == PlacementType.All) { /* Allowed */ }
                     else
                     {
                         collisionDetected = true;
-                        if (name.Contains("Sofa") || name.Contains("Fridge")) // Filter spam to relevant items
-                        {
-                             // Reduce log spam unless critical
-                             // Debug.Log($"[DragHandler] {name} (ID:{gameObject.GetInstanceID()}) Collided with {hitObj.name} (ID:{hitObj.GetInstanceID()}). Invalid.");
-                        }
-                        break;
+                        // Debug.Log($"[DragHandler] {name} Invalid: Collided with {hitObj.name}");
+                        break; 
                     }
                 }
 
-                // 2. Check for PlacementArea
+                // 2. Area Check
                 PlacementArea area = hitObj.GetComponent<PlacementArea>();
-                if (area == null)
-                {
-                    area = hitObj.GetComponentInParent<PlacementArea>();
-                }
-
+                if (area == null) area = hitObj.GetComponentInParent<PlacementArea>();
+                
                 if (area != null)
                 {
-                    // Debug.Log($"[DragHandler] Collider Hit PlacementArea: {area.name} (Type: {area.type})");
-                    
-                    if (_itemPlacement.allowedType == PlacementType.Both || 
-                        _itemPlacement.allowedType == area.type)
+                    if (_itemPlacement.allowedType == PlacementType.Both || _itemPlacement.allowedType == area.type)
                     {
                         areaFound = true;
                     }
-                    
-                    // Do not break here because we might strictly find an item collision later in the list?
-                    // But if collisionDetected is checked first above, we are safe?
-                    // Wait, results list order is undefined. We must iterate ALL to ensure no collision.
-                    // But we used 'break' on collision. So if we haven't broken, we haven't found collision.
-                    // But we might find area first, then collision.
-                    // So we can mark areaFound = true.
-                    // The break is ONLY on collision.
                 }
             }
         }
         
         IsValidPlacement = !collisionDetected && areaFound;
+
+        if (!IsValidPlacement)
+        {
+             if (collisionDetected) { /* Logged above */ }
+             else if (!areaFound) Debug.Log($"[DragHandler] {name} Invalid: No Valid Placement Area Found! (Count={count})");
+        }
 
         if (_stickerEffects != null)
         {
