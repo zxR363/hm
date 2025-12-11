@@ -311,6 +311,12 @@ public class RoomPanel : MonoBehaviour
                     trackedObjects.Add(id, savedData);
             }
         }
+
+        // CRITICAL FIX: Clear the cache after initial load.
+        // Any data remaining in the cache corresponds to objects that do not exist in the scene.
+        // Keeping it causes "Zombie Data" bugs where new items (dragged later) accidentally 
+        // match the ID of a deleted/missing item and snap to its old position.
+        _savedStateCache.Clear();
         
         //Debug.Log($"[RoomPanel] Proactively restored {trackedObjects.Count} objects in hierarchy.");
     }

@@ -73,9 +73,14 @@ public class SlidePanelItemButton : MonoBehaviour
             Debug.Log($"[SlidePanelItemButton] Checking Handler: {handler.name}, IsValid: {handler.IsValidPlacement}");
             if (!handler.IsValidPlacement)
             {
-                Debug.Log($"[SlidePanelItemButton] Item {handler.name} is in INVALID placement. Destroying.");
-                Destroy(handler.gameObject);
-                // Continue to check other items just in case
+                Debug.Log($"[SlidePanelItemButton] Item {handler.name} is in INVALID placement. Attempting Revert.");
+                // Try to Revert to a safe history position.
+                // If fails (New Item with no history), we Destroy it (Clean Cleanup).
+                if (!handler.TryResetPosition())
+                {
+                    Debug.Log($"[SlidePanelItemButton] Item {handler.name} has no valid history. Destroying.");
+                    Destroy(handler.gameObject);
+                }
             }
         }
     }

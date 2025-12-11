@@ -311,6 +311,13 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         if (dragGhost == null) return;
 
+        // USER REQUEST: Only objects with IItemBehaviours should exhibit this collision logic.
+        if (dragGhost.GetComponent<IItemBehaviours>() == null)
+        {
+             _isValidPlacement = true;
+             return;
+        }
+
         ItemPlacement itemPlacement = dragGhost.GetComponent<ItemPlacement>();
         if (itemPlacement == null)
         {
@@ -336,6 +343,10 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         ContactFilter2D filter = new ContactFilter2D();
         filter.NoFilter();
         
+        _isValidPlacement = false;
+        bool areaFound = false;
+        bool collisionDetected = false;
+
         int count = ghostCollider.OverlapCollider(filter, results);
 
         if (count > 0)
@@ -345,6 +356,26 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 GameObject hitObj = hitCollider.gameObject;
                 if (hitObj == dragGhost) continue;
 
+                // 1. Check for ItemPlacement Collision (Overlap with another item)
+                ItemPlacement otherPlacement = hitObj.GetComponent<ItemPlacement>();
+                if (otherPlacement != null)
+                {
+                    // USER REQUEST: If EITHER item has PlacementType.All, they are compatible.
+                    // All acts as a "Wildcard" that allows overlap.
+                    if (itemPlacement.allowedType == PlacementType.All || otherPlacement.allowedType == PlacementType.All)
+                    {
+                         // Compatible overlap, ignore collision
+                    }
+                    else
+                    {
+                        collisionDetected = true;
+                        // Debug.Log($"[ItemDragPanel] Collision with {hitObj.name}. CollisionDetected=True");
+                        // We don't break here because we might need to find a valid area first to know "it would be valid if not for collision"
+                        // But technically, if collisionDetected is true, result is false anyway.
+                    }
+                }
+
+                // 2. Check for PlacementArea (Valid Zone)
                 PlacementArea area = hitObj.GetComponent<PlacementArea>();
                 if (area == null)
                 {
@@ -356,12 +387,15 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                     if (itemPlacement.allowedType == PlacementType.Both || 
                         itemPlacement.allowedType == area.type)
                     {
-                        _isValidPlacement = true;
+                        areaFound = true;
                     }
-                    if (_isValidPlacement) break; 
                 }
             }
         }
+        
+        // Final Status: Must find a Valid Area AND Not collide with another Item
+        _isValidPlacement = areaFound && !collisionDetected;
+
 
         // Apply Visuals
         UIStickerEffect[] effects = dragGhost.GetComponentsInChildren<UIStickerEffect>(true);
@@ -382,10 +416,7 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         if (dragGhost == null) return;
 
-        // Check Placement Validity - REMOVED auto destroy
-        // if (!_isValidPlacement) ...
-
-        // ... existing interaction and placement logic ...
+        // Check Placement Validity - Moved check downwards to "Clean Logic"
         
         // 1. Check for Interactions (IInteractable)
         PointerEventData pointerData = new PointerEventData(EventSystem.current)
@@ -461,7 +492,8 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             }
         }
 
-        if (targetPanel != null)
+        // Logic Check: Target Panel Found + Valid Placement (Area+NoCollision)
+        if (targetPanel != null && _isValidPlacement)
         {
             CanvasGroup ghostCG = dragGhost.GetComponent<CanvasGroup>();
             ghostCG.alpha = 1f;
@@ -503,6 +535,15 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             if (itemSelection != null)
             {
                 itemSelection.ResetSortingOrder();
+            }
+
+            // REFRESH DRAG HANDLER BASELINE
+            // This is critical to prevent "jumps" on the next drag.
+            // We tell DragHandler: "Forget your ghost life. You live here now. This is your home."
+            DragHandler handler = dragGhost.GetComponent<DragHandler>();
+            if (handler != null)
+            {
+                handler.UpdateCurrentPositionAsValid();
             }
             
             Debug.Log($"Item {targetPanel.name} paneline bırakıldı.");

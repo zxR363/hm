@@ -2,5 +2,6 @@ public enum PlacementType
 {
     Floor,
     Wall,
-    Both
+    Both,
+    All,
 }
