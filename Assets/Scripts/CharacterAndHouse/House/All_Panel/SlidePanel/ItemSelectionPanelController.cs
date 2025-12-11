@@ -24,6 +24,7 @@ public class ItemSelectionPanelController : MonoBehaviour
     public Transform RightLimit => rightLimit; 
 
     private bool isActive = false;
+    private int currentTabIndex = 0; // Track active tab for filtering
 
     private AutoLoadTabContents autoLoadTabContents;
     private bool isActiveLoadTabContents = false;
@@ -142,7 +143,7 @@ public class ItemSelectionPanelController : MonoBehaviour
         }
 
         // Apply sorting order to ALL canvases under panelRoot (Recursive)
-        ApplySortingOrderToAll();
+        //ApplySortingOrderToAll();
 
         SelectTab(0); // Default first tab
 
@@ -160,6 +161,7 @@ public class ItemSelectionPanelController : MonoBehaviour
     public void SelectTab(int index)
     {
         Debug.Log("SelectTab called");
+        currentTabIndex = index;
         // 1. Ensure all tabs are active (to prevent state loss)
         for (int i = 0; i < tabContents.Count; i++)
         {
@@ -250,7 +252,16 @@ public class ItemSelectionPanelController : MonoBehaviour
         foreach (var item in items)
         {
             Canvas c = item.GetComponent<Canvas>();
-            if (c != null) _cachedItemCanvases.Add(c);
+            if (c == null)
+            {
+                c = item.gameObject.AddComponent<Canvas>();
+                // Also ensure GraphicRaycaster if we are adding Canvas
+                if (item.GetComponent<GraphicRaycaster>() == null)
+                {
+                    item.gameObject.AddComponent<GraphicRaycaster>();
+                }
+            }
+            _cachedItemCanvases.Add(c);
         }
 
         // Cache TabButton Canvases
@@ -326,6 +337,25 @@ public class ItemSelectionPanelController : MonoBehaviour
         {
             if (c == null) continue;
             
+            // USER REQUEST FIX: Force items in inactive tabs to stay hidden/blocked
+            // This prevents "Ghost Clicks" from items in hidden tabs that happen to be in the visible Y-range
+            if (currentTabIndex < tabContents.Count && tabContents[currentTabIndex] != null)
+            {
+                 if (!c.transform.IsChildOf(tabContents[currentTabIndex].transform))
+                 {
+                     // Force Hide if it's not already hidden
+                     if (c.sortingOrder == -50)
+                     {
+                         c.overrideSorting = true;
+                         c.sortingOrder = -50;
+                         var cg = EnsureCanvasGroup(c.gameObject);
+                         cg.blocksRaycasts = false;
+                     }
+                     // Skip visibility calculation for this item entirely
+                     continue; 
+                 }
+            }
+            
             bool isVisible = true;
             // Convert Item position to Panel Space
             Vector3 localPos = panelRoot.transform.InverseTransformPoint(c.transform.position);
@@ -339,6 +369,14 @@ public class ItemSelectionPanelController : MonoBehaviour
                 {
                     c.overrideSorting = true;
                     c.sortingOrder = contentSortingOrder + 3;
+                    // USER REQUEST: Enable interaction for ITEMS when visible
+                    var cg = EnsureCanvasGroup(c.gameObject);
+                    cg.blocksRaycasts = false;
+                }
+                else
+                {
+                    var cg = EnsureCanvasGroup(c.gameObject);
+                    cg.blocksRaycasts = true;
                 }
             }
             else
@@ -347,6 +385,8 @@ public class ItemSelectionPanelController : MonoBehaviour
                 {
                     c.overrideSorting = true;
                     c.sortingOrder = -50;
+                    var cg = EnsureCanvasGroup(c.gameObject);
+                    cg.blocksRaycasts = true;
                 }
             }
         }
@@ -407,12 +447,27 @@ public class ItemSelectionPanelController : MonoBehaviour
                 c.gameObject.AddComponent<GraphicRaycaster>();
             }
 
-            // Check if this Canvas belongs to an ItemSelection object OR is part of a TabButton hierarchy
-            if (c.GetComponent<ItemSelection>() != null || c.GetComponentInParent<TabButton>() != null)
+            // Check if this Canvas belongs to an ItemSelection object
+            if (c.GetComponent<ItemSelection>() != null)
             {
                 c.enabled = true; // Ensure it's enabled
                 c.overrideSorting = true;
-                c.sortingOrder = -50; // Default to HIDDEN to prevent pop-in
+                c.sortingOrder = -50; 
+                
+                // USER REQUEST: Disable interaction for ITEMS initially
+                var cg = EnsureCanvasGroup(c.gameObject);
+                cg.blocksRaycasts = false;
+            }
+            // Check if it is part of a TabButton hierarchy (Do NOT disable interaction)
+            else if (c.GetComponentInParent<TabButton>() != null)
+            {
+                c.enabled = true;
+                c.overrideSorting = true;
+                c.sortingOrder = -50;
+                
+                // TabButtons should stay interactive even if technically hidden sorting-wise?
+                // Or maybe the user just doesn't want me to explicit set it to false.
+                // Leaving it as default (likely true).
             }
             else
             {
