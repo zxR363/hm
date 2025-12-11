@@ -26,6 +26,7 @@ public class SlidePanelController : MonoBehaviour
     {
         if (!IsOpen)
         {
+            Debug.Log($"[SlidePanelController] TogglePanel: Opening. (IsOpen was false)");
             panel.gameObject.SetActive(true); // Açmadan önce aktif hale getir
             panel.anchoredPosition = closedPos; // Pozisyonu sıfırla
             // Use overshoot to increase the swing amplitude
@@ -33,7 +34,11 @@ public class SlidePanelController : MonoBehaviour
         }
         else
         {
+            Debug.Log($"[SlidePanelController] TogglePanel: Closing. (IsOpen was true). Calling ResetAll.");
             // Fixed: Single animation to close the panel
+            // Move ResetAll to start so validation happens immediately (and while active)
+            SlidePanelItemButton.ResetAll();
+
             // Use overshoot for closing as well to match the style
             panel.DOAnchorPos(closedPos, duration).SetEase(closeEase, overshoot)
                 .OnComplete(() => 
@@ -42,7 +47,6 @@ public class SlidePanelController : MonoBehaviour
                         itemSelectionPanel.SetActive(false);
                     
                     panel.gameObject.SetActive(false);
-                    SlidePanelItemButton.ResetAll(); // Reset buttons
                 });
         }
 
@@ -56,11 +60,13 @@ public class SlidePanelController : MonoBehaviour
              return;
         }
 
+        // Move ResetAll to start
+        SlidePanelItemButton.ResetAll();
+
         panel.DOAnchorPos(closedPos, duration).SetEase(closeEase, overshoot)
             .OnComplete(() => 
             {
                 panel.gameObject.SetActive(false);
-                SlidePanelItemButton.ResetAll(); // Reset buttons
             });
 
         IsOpen = false;

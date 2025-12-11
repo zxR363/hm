@@ -220,9 +220,15 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             foreach (Collider2D hitCollider in results)
             {
                 GameObject hitObj = hitCollider.gameObject;
-                // Skip self
+                // Skip self (Reference check)
                 if (hitObj == gameObject) continue;
-                // Also skip DragGhost if somehow interacting? (Unlikely here, this is the real object)
+                // Skip children (if collider is on a child)
+                if (hitObj.transform.IsChildOf(transform)) continue;
+
+                // FIX: Ignore Drag Ghosts or items currently being dragged (blocksRaycasts = false)
+                CanvasGroup hitCG = hitObj.GetComponent<CanvasGroup>();
+                if (hitCG == null) hitCG = hitObj.GetComponentInParent<CanvasGroup>();
+                if (hitCG != null && !hitCG.blocksRaycasts) continue;
 
                 // 1. Check for ItemPlacement Collision (Overlap with another item)
                 ItemPlacement otherPlacement = hitObj.GetComponent<ItemPlacement>();
@@ -237,7 +243,11 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
                     else
                     {
                         collisionDetected = true;
-                        // Debug.Log($"[DragHandler] Collision with {hitObj.name}. Invalid.");
+                        if (name.Contains("Sofa") || name.Contains("Fridge")) // Filter spam to relevant items
+                        {
+                             // Reduce log spam unless critical
+                             // Debug.Log($"[DragHandler] {name} (ID:{gameObject.GetInstanceID()}) Collided with {hitObj.name} (ID:{hitObj.GetInstanceID()}). Invalid.");
+                        }
                         break;
                     }
                 }

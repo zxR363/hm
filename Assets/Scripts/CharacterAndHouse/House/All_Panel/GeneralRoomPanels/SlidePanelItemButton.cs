@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class SlidePanelItemButton : MonoBehaviour
 {
@@ -50,37 +51,83 @@ public class SlidePanelItemButton : MonoBehaviour
             // If it was active, it stays reset (toggled off) and CLOSE the panel
             else
             {
-                ValidateAndCleanUp();
+                // ValidateAndCleanUp() is already called by ResetAll() above
                 ToggleDragHandlers(false);
                 ItemSelectionPanelController.Instance.ClosePanel();
             }
         }
     }
 
-    private void ValidateAndCleanUp()
+    /// <summary>
+    /// Validates all active items in the scene.
+    /// Uses an iterative "Stability Loop" to handle cascading reverts (e.g., A moves back to X, pushing B out).
+    /// </summary>
+    public static void ValidateAndCleanUp()
     {
-        Debug.Log("ValidateAndCleanUP");
-        if (itemBehaviourDragAndOutline == null) return;
-
-        // Check if any DragHandler on the item is in an invalid state
-        DragHandler[] handlers = itemBehaviourDragAndOutline.GetComponentsInChildren<DragHandler>(true);
-        Debug.Log($"[SlidePanelItemButton] Validating {handlers.Length} handlers on {itemBehaviourDragAndOutline.name}");
-
-        foreach (var handler in handlers)
+        // Find all active handlers in the scene
+        // We use a query potentially multiple times or cache it? caching is better if list doesn't change drastically (destroys remove from scene but list ref stays)
+        // Actually, since we might destroy objects, we should be careful.
+        // But FindObjectsOfType returns a snapshot array.
+        
+        int maxIterations = 5;
+        
+        for (int i = 0; i < maxIterations; i++)
         {
-            handler.ForceValidation(); // Make sure the state is up to date!
+            bool anyChange = false;
             
-            Debug.Log($"[SlidePanelItemButton] Checking Handler: {handler.name}, IsValid: {handler.IsValidPlacement}");
-            if (!handler.IsValidPlacement)
+            // 1. Refresh list (in case of destroys) and Force Validation
+            // CRITICAL FIX: Use (true) to find Inactive DragHandlers. 
+            // The scripts might be disabled by SlidePanelItemButton.ToggleDragHandlers, but we still need to validate their positions!
+            var handlers = FindObjectsOfType<DragHandler>(true).Where(h => h.gameObject.activeInHierarchy).ToList();
+            Debug.Log($"[ValidateAndCleanUp] Iteration {i+1}. Found {handlers.Count} handlers.");
+            
+            // SYNC PHYSICS: Ensure all previous moves are registered in the physics world/colliders
+            Physics2D.SyncTransforms();
+
+            foreach (var h in handlers)
             {
-                Debug.Log($"[SlidePanelItemButton] Item {handler.name} is in INVALID placement. Attempting Revert.");
-                // Try to Revert to a safe history position.
-                // If fails (New Item with no history), we Destroy it (Clean Cleanup).
-                if (!handler.TryResetPosition())
+                // Force validation logic to update IsValidPlacement status
+                // If the component is disabled, OnEnable/Update won't run, so this is crucial.
+                h.ForceValidation();
+            }
+
+            // 2. Resolve Conflicts
+            foreach (var handler in handlers)
+            {
+                // Skip if destroyed in previous inner loop (though we refreshed list, so safe for this pass)
+                if (handler == null) continue;
+
+                if (!handler.IsValidPlacement)
                 {
-                    Debug.Log($"[SlidePanelItemButton] Item {handler.name} has no valid history. Destroying.");
-                    Destroy(handler.gameObject);
+                    Debug.Log($"[ValidateAndCleanUp] Conflict Found: {handler.name} is Invalid.");
+                    Vector3 beforePos = handler.transform.localPosition;
+                    
+                    if (handler.TryResetPosition())
+                    {
+                        // Check if it actually moved (distance check)
+                        if (Vector3.Distance(beforePos, handler.transform.localPosition) > 0.01f)
+                        {
+                            Debug.Log($"[ValidateAndCleanUp] Item {handler.name} moved to resolve conflict.");
+                            anyChange = true;
+                            // SYNC IMMEDIATELY: So the next item in this loop sees the empty spot!
+                            Physics2D.SyncTransforms();
+                        }
+                    }
+                    else
+                    {
+                        // Revert failed (No history), needs to be removed
+                        Debug.Log($"[ValidateAndCleanUp] Item {handler.name} destroyed (No valid history).");
+                        Destroy(handler.gameObject);
+                        anyChange = true;
+                    }
                 }
+            }
+
+            // If no changes occurred this pass, we are stable.
+            if (!anyChange)
+            {
+                // Debug.Log($"[ValidateAndCleanUp] Stability reached at iteration {i}.");
+                break;
             }
         }
     }
@@ -118,13 +165,13 @@ public class SlidePanelItemButton : MonoBehaviour
 
     public static void ResetAll()
     {
-        
+        // One global validation pass for efficiency
+        ValidateAndCleanUp();
+
         for (int i = allButtons.Count - 1; i >= 0; i--)
         {
             if (allButtons[i] != null)
             {
-                // Ensure we clean up any invalid items associated with this button before closing/resetting
-                allButtons[i].ValidateAndCleanUp();
                 allButtons[i].ResetScale();
             }
             else
