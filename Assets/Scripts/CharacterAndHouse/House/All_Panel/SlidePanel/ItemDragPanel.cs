@@ -157,7 +157,16 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             ghostCanvas.sortingOrder = 104; 
         }
         Debug.Log("Drag Started. Default SORT="+ defaultDragGHostSortOrder);
+        
+        // Show Garbage Bin
+        if (GarbageBinController.Instance != null)
+        {
+            GarbageBinController.Instance.Show();
+            _wasHoveringBin = false;
+        }
     }
+
+    private bool _wasHoveringBin = false;
 
     private void UpdateItemDrag(PointerEventData eventData)
     {
@@ -253,6 +262,22 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         }
         
         CheckPlacement();
+        
+        // Garbage Bin Hover Logic
+        if (GarbageBinController.Instance != null)
+        {
+            bool isOverBin = GarbageBinController.Instance.IsPointerOverBin(eventData.position);
+            if (isOverBin && !_wasHoveringBin)
+            {
+                GarbageBinController.Instance.OnHoverEnter();
+                _wasHoveringBin = true;
+            }
+            else if (!isOverBin && _wasHoveringBin)
+            {
+                GarbageBinController.Instance.OnHoverExit();
+                _wasHoveringBin = false;
+            }
+        }
     }
 
     private Bounds? GetCompoundColliderBounds(Transform root)
@@ -415,6 +440,20 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     private void EndItemDrag()
     {
         if (dragGhost == null) return;
+        
+        // Check for Garbage Bin Drop
+        if (GarbageBinController.Instance != null)
+        {
+            if (GarbageBinController.Instance.IsPointerOverBin(Input.mousePosition))
+            {
+                Debug.Log($"[ItemDragPanel] Dropped on Garbage Bin. Destroying ghost (Cancel Spawn).");
+                GarbageBinController.Instance.Hide();
+                Destroy(dragGhost);
+                dragGhost = null;
+                return; // Exit fast
+            }
+            GarbageBinController.Instance.Hide();
+        }
 
         // Check Placement Validity - Moved check downwards to "Clean Logic"
         

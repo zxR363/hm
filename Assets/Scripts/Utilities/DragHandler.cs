@@ -110,7 +110,16 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         }
 
         canvasGroup.blocksRaycasts = false;
+        
+        // Show Garbage Bin
+        if (GarbageBinController.Instance != null)
+        {
+            GarbageBinController.Instance.Show();
+            _wasHoveringBin = false;
+        }
     }
+
+    private bool _wasHoveringBin = false;
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -130,11 +139,54 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         }
 
         CheckPlacement();
+        
+        // Garbage Bin Hover Logic
+        if (GarbageBinController.Instance != null)
+        {
+            bool isOverBin = GarbageBinController.Instance.IsPointerOverBin(eventData.position);
+            if (isOverBin && !_wasHoveringBin)
+            {
+                GarbageBinController.Instance.OnHoverEnter();
+                _wasHoveringBin = true;
+            }
+            else if (!isOverBin && _wasHoveringBin)
+            {
+                GarbageBinController.Instance.OnHoverExit();
+                _wasHoveringBin = false;
+            }
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         canvasGroup.blocksRaycasts = true;
+        
+        // Check for Garbage Bin Drop
+        if (GarbageBinController.Instance != null)
+        {
+            if (GarbageBinController.Instance.IsPointerOverBin(eventData.position))
+            {
+                Debug.Log($"[DragHandler] {name} Dropped on Garbage Bin. Destroying...");
+                GarbageBinController.Instance.Hide();
+                Destroy(gameObject);
+                return; // Exit fast
+            }
+            GarbageBinController.Instance.Hide();
+        }
+        
+        CheckPlacement();
+
+        if (IsValidPlacement)
+        {
+            // USER REQUEST: Update "startPoint" so if we revert later (e.g. Everyone Back Home),
+            // we revert to THIS valid spot, not the ancient original spot.
+            UpdateCurrentPositionAsValid();
+            startPosition = rectTransform.anchoredPosition; 
+        }
+        else
+        {
+            TryResetPosition();
+        }
     }
 
     /// <summary>
