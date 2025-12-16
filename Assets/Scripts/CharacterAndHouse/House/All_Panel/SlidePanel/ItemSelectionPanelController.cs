@@ -126,6 +126,12 @@ public class ItemSelectionPanelController : MonoBehaviour
                 {
                     if (scrollRect.content != null) EnsureTransparentImage(scrollRect.content.gameObject);
                     if (scrollRect.viewport != null) EnsureTransparentImage(scrollRect.viewport.gameObject);
+
+                    // Auto-Optimize Scroll
+                    if (contentObj.GetComponent<ScrollOptimizer>() == null)
+                    {
+                        contentObj.AddComponent<ScrollOptimizer>();
+                    }
                 }
             }
         }
