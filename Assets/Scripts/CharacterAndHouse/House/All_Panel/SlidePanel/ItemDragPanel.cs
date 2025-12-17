@@ -278,6 +278,12 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 _wasHoveringBin = false;
             }
         }
+        
+        // Auto-Scroll Logic
+        if (DragAutoScroller.Instance != null)
+        {
+            DragAutoScroller.Instance.ProcessDrag(eventData.position);
+        }
     }
 
     private Bounds? GetCompoundColliderBounds(Transform root)

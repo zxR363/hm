@@ -17,6 +17,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     [Tooltip("If true, this item will adjust its Canvas SortingOrder based on Y-position collisions.")]
     [SerializeField] private bool enableDepthSorting = true;
     
+    [Header("Bos olmaması gerekiyor derinliğe göre hangi canvas ayarlanacak")]
     [Tooltip("The Canvas to adjust. If null, uses the one on this object.")]
     [SerializeField] private Canvas explicitDepthCanvas; 
 
@@ -25,8 +26,14 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     [Tooltip("Sorting Order for the object IN FRONT (Lower Y).RoomObject Default +1")]
     [SerializeField] private int sortingOrderFront = 21;
-    
+
+    [Tooltip("Sorting Order when NOT dragging (Idle). Default 20.")]
+    [SerializeField] private int restingSortingOrder = 20;
+
     public Canvas GetDepthCanvas() => explicitDepthCanvas != null ? explicitDepthCanvas : canvas;
+    
+    // Cache for child canvases to support recursive sorting
+    private Canvas[] _childCanvases;
 
     private ItemPlacement _itemPlacement;
     private UIStickerEffect[] _stickerEffects; // Changed to array
@@ -98,6 +105,14 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         canvasGroup = GetComponent<CanvasGroup>();
         parentRect = rectTransform.parent as RectTransform; // Cache parent rect
 
+        // FIX: Stop parent ScrollRect (if any) to prevent fighting for input
+        ScrollRect parentScroll = GetComponentInParent<ScrollRect>();
+        if (parentScroll != null)
+        {
+            parentScroll.StopMovement();
+            parentScroll.OnEndDrag(eventData); // Forcefully end scroll drag
+        }
+
         if (canvas == null)
         {
              Debug.LogWarning("[DragHandler] Canvas not found in OnBeginDrag!");
@@ -135,6 +150,16 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         else
         {
             dragOffset = Vector2.zero;
+        }
+
+
+
+        // Cache child canvases for recursive sorting
+        // We do this OnBeginDrag to ensure we catch any enabled/disabled changes
+        Canvas rootCanvas = GetDepthCanvas();
+        if (rootCanvas != null)
+        {
+             _childCanvases = rootCanvas.GetComponentsInChildren<Canvas>(true);
         }
 
         canvasGroup.blocksRaycasts = false;
@@ -186,12 +211,26 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
         // Collision-Based Depth Sort (New Request)
         CheckDepthCollision();
+        
+        // Auto-Scroll Logic
+        if (DragAutoScroller.Instance != null)
+        {
+            DragAutoScroller.Instance.ProcessDrag(eventData.position);
+        }
     }
 
     private void CheckDepthCollision()
     {
         // 1. Check if Feature is Enabled
         if (!enableDepthSorting || _myCollider == null) return;
+
+        // USER REQUEST: Validation - If explicitDepthCanvas is missing, Abort to prevent bugs.
+        if (explicitDepthCanvas == null)
+        {
+             Debug.LogWarning($"[DragHandler] {name}: Depth Sorting enabled but 'Explicit Depth Canvas' is NULL! Aborting sort to prevent bugs.");
+             Debug.Log($"[DragHandler] {name}: Depth Sorting enabled but 'Explicit Depth Canvas' is NULL! Aborting sort to prevent bugs.");
+             return;
+        }
         
         Canvas myTargetCanvas = GetDepthCanvas();
         if (myTargetCanvas == null) return;
@@ -227,6 +266,9 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             // 3. Compare and Sort
             if (otherTargetCanvas != null)
             {
+                // Safety Check: Don't sort HIDDEN items (assigned -50 by ItemSelectionPanel)
+                if (otherTargetCanvas.sortingOrder == -50) continue;
+
                 // Compare Y (Pixels? World?)
                 // Use transform.position.y (Feet logic relies on Pivot being correct)
                 float myY = transform.position.y;
@@ -241,34 +283,78 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
                     // If my canvas isn't already "Back", force it.
                     if (myTargetCanvas.sortingOrder != sortingOrderBack)
                     {
-                        myTargetCanvas.overrideSorting = true;
-                        myTargetCanvas.sortingOrder = sortingOrderBack;
+                        SetRecursiveSortingOrder(myTargetCanvas, sortingOrderBack);
                     }
                     // For the other object (if it's not me), force it forward.
                     if (otherTargetCanvas.sortingOrder != sortingOrderFront)
                     {
-                        otherTargetCanvas.overrideSorting = true;
-                        otherTargetCanvas.sortingOrder = sortingOrderFront;
+                        SetRecursiveSortingOrder(otherTargetCanvas, sortingOrderFront);
                     }
                 }
                 else
                 {
                     // I am lower, so I go front.
-                    if (myTargetCanvas.sortingOrder != sortingOrderFront)
-                    {
-                        myTargetCanvas.overrideSorting = true;
-                        myTargetCanvas.sortingOrder = sortingOrderFront;
-                    }
-                    if (otherTargetCanvas.sortingOrder != sortingOrderBack)
-                    {
-                         otherTargetCanvas.overrideSorting = true;
-                         otherTargetCanvas.sortingOrder = sortingOrderBack;
-                    }
+                if (myTargetCanvas.sortingOrder != sortingOrderFront)
+                {
+                    SetRecursiveSortingOrder(myTargetCanvas, sortingOrderFront);
+                }
+                if (otherTargetCanvas.sortingOrder != sortingOrderBack)
+                {
+                     // For other object, we might not have cached its children!
+                     // We fall back to simple assignment unless we want to be expensive.
+                     // Simple assignment is usually OK for the "Other" object if we assume it follows the same logic?
+                     // BUT, if the "Other" object also has children, they will look wrong ("Behavioral Distortion" on the OTHER object).
+                     // Ideally, we should do recursive on them too.
+                     SetRecursiveSortingOrder(otherTargetCanvas, sortingOrderBack);
                 }
             }
         }
     }
+    }
 
+
+private void SetRecursiveSortingOrder(Canvas root, int targetOrder)
+{
+    if (root == null) return;
+    
+    int currentRootOrder = root.sortingOrder;
+    if (currentRootOrder == targetOrder) return;
+    
+    int diff = targetOrder - currentRootOrder;
+    
+    // Update Root
+    root.overrideSorting = true;
+    root.sortingOrder = targetOrder;
+    
+    // Update Children (if cached matches root)
+    // Note: If we are updating "Other" object, _childCanvases belongs to US, not them.
+    // So we must fetch children dynamically for 'root' if it's not us.
+    
+    Canvas[] targets = null;
+    Canvas myCanvas = GetDepthCanvas();
+    
+    if (root == myCanvas && _childCanvases != null)
+    {
+        targets = _childCanvases; // Use Cache
+    }
+    else
+    {
+        targets = root.GetComponentsInChildren<Canvas>(true); // Expensive but necessary for correctness
+    }
+    
+    if (targets != null)
+    {
+        foreach (var c in targets)
+        {
+            if (c == root) continue; // Already handled root
+            
+            // USER REQUEST: Strict Rule: Parent=X -> Child=X+1
+            // We force overrideSorting = true for ALL children found.
+            c.overrideSorting = true;
+            c.sortingOrder = targetOrder + 1;
+        }
+    }
+}        
     public void OnEndDrag(PointerEventData eventData)
     {
         canvasGroup.blocksRaycasts = true;
@@ -288,13 +374,21 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         
         CheckPlacement();
 
-        if (IsValidPlacement)
+    if (IsValidPlacement)
+    {
+        // Restore Default Sorting Order (Recursive)
+        // This brings the object back to the "Interaction Layer" (e.g. 50)
+        Canvas c = GetDepthCanvas();
+        if (c != null)
         {
-            // USER REQUEST: Update "startPoint" so if we revert later (e.g. Everyone Back Home),
-            // we revert to THIS valid spot, not the ancient original spot.
-            UpdateCurrentPositionAsValid();
-            startPosition = rectTransform.anchoredPosition; 
+             SetRecursiveSortingOrder(c, restingSortingOrder);
         }
+
+        // USER REQUEST: Update "startPoint" so if we revert later (e.g. Everyone Back Home),
+        // we revert to THIS valid spot, not the ancient original spot.
+        UpdateCurrentPositionAsValid();
+        startPosition = rectTransform.anchoredPosition; 
+    }    
         else
         {
             TryResetPosition();
