@@ -126,6 +126,7 @@ public class ItemSelectionPanelController : MonoBehaviour
                 {
                     if (scrollRect.content != null) EnsureTransparentImage(scrollRect.content.gameObject);
                     if (scrollRect.viewport != null) EnsureTransparentImage(scrollRect.viewport.gameObject);
+
                 }
             }
         }
@@ -261,6 +262,7 @@ public class ItemSelectionPanelController : MonoBehaviour
                     item.gameObject.AddComponent<GraphicRaycaster>();
                 }
             }
+
             _cachedItemCanvases.Add(c);
         }
 

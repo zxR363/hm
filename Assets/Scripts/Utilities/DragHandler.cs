@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using System.Collections.Generic;
 
 public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -12,12 +13,33 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     [SerializeField] private float dragSpeed = 1f;
     [SerializeField] private bool clampToParent = true;
 
+    [Header("Depth Sorting (Collision)- Derinlik Sıralama")]
+    [Tooltip("If true, this item will adjust its Canvas SortingOrder based on Y-position collisions.")]
+    [SerializeField] private bool enableDepthSorting = true;
+    
+    [Tooltip("The Canvas to adjust. If null, uses the one on this object.")]
+    [SerializeField] private Canvas explicitDepthCanvas; 
+
+    [Tooltip("Sorting Order for the object BEHIND (Higher Y).RoomObject Default")]
+    [SerializeField] private int sortingOrderBack = 20;
+
+    [Tooltip("Sorting Order for the object IN FRONT (Lower Y).RoomObject Default +1")]
+    [SerializeField] private int sortingOrderFront = 21;
+    
+    public Canvas GetDepthCanvas() => explicitDepthCanvas != null ? explicitDepthCanvas : canvas;
+
     private ItemPlacement _itemPlacement;
     private UIStickerEffect[] _stickerEffects; // Changed to array
     private Collider2D _dragCollider;
     
+    [Header("Outline (Sticker Effect) renkleri")]
     [SerializeField] private Color validColor = Color.white;
     [SerializeField] private Color invalidColor = Color.red;
+
+    private Image image;
+    private Collider2D _myCollider; // Cache collider
+    private ContactFilter2D _contactFilter;
+    private List<Collider2D> _overlappedColliders = new List<Collider2D>();
 
     private Vector2 startPosition;
 
@@ -26,6 +48,12 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
+        image = GetComponent<Image>();
+        _myCollider = GetComponent<Collider2D>();
+        
+        // Setup filter for triggers/colliders
+        _contactFilter.useTriggers = true;
+        _contactFilter.useLayerMask = false; // Check all layers or specify if needed
         _itemPlacement = GetComponent<ItemPlacement>();
         // Find all sticker effects in children as well
         _stickerEffects = GetComponentsInChildren<UIStickerEffect>(true);
@@ -153,6 +181,90 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             {
                 GarbageBinController.Instance.OnHoverExit();
                 _wasHoveringBin = false;
+            }
+        }
+
+        // Collision-Based Depth Sort (New Request)
+        CheckDepthCollision();
+    }
+
+    private void CheckDepthCollision()
+    {
+        // 1. Check if Feature is Enabled
+        if (!enableDepthSorting || _myCollider == null) return;
+        
+        Canvas myTargetCanvas = GetDepthCanvas();
+        if (myTargetCanvas == null) return;
+
+        // Use OverlapCollider to find neighbors
+        // Note: _contactFilter is set to triggers=true, layers=all in Awake
+        int count = _myCollider.OverlapCollider(_contactFilter, _overlappedColliders);
+        
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D other = _overlappedColliders[i];
+            
+            // Safety Check
+            if (other == null || other.gameObject == gameObject) continue;
+
+            // 2. Identify Target Canvas of the Other Object
+            // Try to find DragHandler on other object to respect its explicit canvas setting
+            Canvas otherTargetCanvas = null;
+            DragHandler otherHandler = other.GetComponent<DragHandler>();
+            
+            if (otherHandler != null)
+            {
+                // If it's a draggable item, ask it what canvas to sort
+                if (!otherHandler.enableDepthSorting) continue; // Respect its setting? Or force? Let's assume if I collide, I care.
+                otherTargetCanvas = otherHandler.GetDepthCanvas();
+            }
+            else
+            {
+                // Fallback: Just look for a Canvas on the collided object
+                otherTargetCanvas = other.GetComponent<Canvas>();
+            }
+
+            // 3. Compare and Sort
+            if (otherTargetCanvas != null)
+            {
+                // Compare Y (Pixels? World?)
+                // Use transform.position.y (Feet logic relies on Pivot being correct)
+                float myY = transform.position.y;
+                float otherY = other.transform.position.y;
+                
+                // Logic: Higher Y (Top of Screen) = Behind = Order 100
+                //        Lower Y (Bottom of Screen) = Front  = Order 101
+                
+                if (myY > otherY)
+                {
+                    // I am higher (Valid color area?), so I go back.
+                    // If my canvas isn't already "Back", force it.
+                    if (myTargetCanvas.sortingOrder != sortingOrderBack)
+                    {
+                        myTargetCanvas.overrideSorting = true;
+                        myTargetCanvas.sortingOrder = sortingOrderBack;
+                    }
+                    // For the other object (if it's not me), force it forward.
+                    if (otherTargetCanvas.sortingOrder != sortingOrderFront)
+                    {
+                        otherTargetCanvas.overrideSorting = true;
+                        otherTargetCanvas.sortingOrder = sortingOrderFront;
+                    }
+                }
+                else
+                {
+                    // I am lower, so I go front.
+                    if (myTargetCanvas.sortingOrder != sortingOrderFront)
+                    {
+                        myTargetCanvas.overrideSorting = true;
+                        myTargetCanvas.sortingOrder = sortingOrderFront;
+                    }
+                    if (otherTargetCanvas.sortingOrder != sortingOrderBack)
+                    {
+                         otherTargetCanvas.overrideSorting = true;
+                         otherTargetCanvas.sortingOrder = sortingOrderBack;
+                    }
+                }
             }
         }
     }

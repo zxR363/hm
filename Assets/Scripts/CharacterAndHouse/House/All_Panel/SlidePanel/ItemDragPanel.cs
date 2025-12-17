@@ -575,7 +575,7 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             {
                 itemSelection.ResetSortingOrder();
             }
-
+            
             // REFRESH DRAG HANDLER BASELINE
             // This is critical to prevent "jumps" on the next drag.
             // We tell DragHandler: "Forget your ghost life. You live here now. This is your home."

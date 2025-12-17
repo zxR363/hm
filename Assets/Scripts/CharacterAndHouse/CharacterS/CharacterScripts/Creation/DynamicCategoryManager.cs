@@ -4,8 +4,10 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
+//KARAKTER SECIM EKRANINDAKI
 public class DynamicCategoryManager : MonoBehaviour
 {
+    [Header("KARAKTER SECIM EKRANI Dynamic Category Manager")]
     [Header("UI References")]
     public Transform categoryGridParent;      // Alt klasör butonları için GridLayout
     public Transform optionGridParent;        // Sprite seçenekleri için GridLayout
