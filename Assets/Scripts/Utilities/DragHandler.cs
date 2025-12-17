@@ -30,6 +30,9 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     [Tooltip("Sorting Order when NOT dragging (Idle). Default 20.")]
     [SerializeField] private int restingSortingOrder = 20;
 
+    [HideInInspector]
+    [SerializeField] private string _uniqueId; // Persistence ID
+
     // definition moved below
     // public Canvas GetDepthCanvas() => explicitDepthCanvas != null ? explicitDepthCanvas : canvas;
     
@@ -83,6 +86,13 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     void Start()
     {
+         // PERSISTENCE CHECK: Self-Destruct if marked as deleted
+         if (!string.IsNullOrEmpty(_uniqueId) && DeletedObjectManager.Instance.IsDeleted(_uniqueId))
+         {
+             Destroy(gameObject);
+             return; // Stop initialization
+         }
+
          // Validate initial placement
          CheckPlacement();
          
@@ -91,6 +101,21 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
          {
              _lastValidLocalPosition = transform.localPosition;
          }
+    }
+
+    private void OnValidate()
+    {
+        // AUTO-GENERATE ID (Zero Setup)
+        // If ID is empty (or we are duplicating/resetting), generate a new one.
+        // Needs proper logic to avoid regenerating on every script reload, but OnValidate runs on load.
+        // We only generate if empty.
+        #if UNITY_EDITOR
+        if (string.IsNullOrEmpty(_uniqueId))
+        {
+            _uniqueId = System.Guid.NewGuid().ToString();
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+        #endif
     }
 
     public void ForceValidation()
@@ -425,6 +450,13 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
             if (GarbageBinController.Instance.IsPointerOverBin(eventData.position))
             {
                 Debug.Log($"[DragHandler] {name} Dropped on Garbage Bin. Destroying...");
+                
+                // SAVE DELETION STATE
+                if (!string.IsNullOrEmpty(_uniqueId))
+                {
+                    DeletedObjectManager.Instance.MarkAsDeleted(_uniqueId);
+                }
+
                 GarbageBinController.Instance.Hide();
                 Destroy(gameObject);
                 return; // Exit fast
