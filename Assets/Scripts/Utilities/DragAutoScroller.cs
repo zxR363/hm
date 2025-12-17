@@ -6,15 +6,17 @@ public class DragAutoScroller : MonoBehaviour
     public static DragAutoScroller Instance { get; private set; }
 
     [Header("Target")]
-    [Tooltip("Assign the Main Room ScrollRect here.")]
     public ScrollRect targetScrollRect;
 
     [Header("Settings")]
-    [Tooltip("Distance from screen edge to trigger SCROLL.")]
-    [SerializeField] private float edgeThreshold = 100f;
+    public float edgeThreshold = 100f;
+    public float maxScrollSpeed = 1500f; 
     
-    [Tooltip("Scroll speed multiplier.")]
-    [SerializeField] private float scrollSpeed = 500f; // Pixels per second
+    [Header("Debug")]
+    public bool debugMode = false;
+
+    private bool _isActive = false;
+    private bool _wasInertiaEnabled;
 
     private void Awake()
     {
@@ -22,42 +24,104 @@ public class DragAutoScroller : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    /// <summary>
-    /// Call this from OnDrag methods.
-    /// </summary>
-    /// <param name="pointerScreenPos">Input.mousePosition or eventData.position</param>
     public void ProcessDrag(Vector2 pointerScreenPos)
     {
-        if (targetScrollRect == null) return;
+        if (!_isActive)
+        {
+             if(debugMode) Debug.Log($"[DragAutoScroller] WAKING UP!");
+             _isActive = true;
+             
+             if (targetScrollRect != null)
+             {
+                 _wasInertiaEnabled = targetScrollRect.inertia;
+                 targetScrollRect.inertia = false; // Turn off Unity Physics
+             }
+        }
+    }
 
-        // Reset velocity to ensure smooth manual control, 
-        // or add to it? Usually setting normalized position is smoother for "Pushing",
-        // but ScrollRect.velocity is better for physics. Let's try velocity.
+    private void LateUpdate()
+    {
+        // 1. Input Check
+        if (!Input.GetMouseButton(0) && Input.touchCount == 0)
+        {
+            if (_isActive)
+            {
+                if(debugMode) Debug.Log("[DragAutoScroller] Stopping.");
+                _isActive = false;
+                if (targetScrollRect != null) 
+                {
+                    targetScrollRect.velocity = Vector2.zero; // Stop
+                    targetScrollRect.inertia = _wasInertiaEnabled; // Restore
+                }
+            }
+            return;
+        }
+
+        if (!_isActive || targetScrollRect == null || targetScrollRect.content == null) return;
+
+        // 3. Calculate Immediate Frame Step (Position Delta)
+        // User requested Position-based approach to remove "Acceleration Freeze"
+        float speed = CalculateRawSpeed(Input.mousePosition);
         
-        Vector2 velocity = Vector2.zero;
+        // 4. Zero Check
+        if (speed == 0f) return;
+
+        // 5. Bounds Check & Soft Landing
+        float normPos = targetScrollRect.horizontalNormalizedPosition;
+        float brakeThreshold = 0.05f; 
+
+        if (speed > 0) // Going Right
+        {
+            if (normPos <= 0.001f) speed = 0f;
+            else if (normPos < brakeThreshold)
+            {
+                float brakeFactor = normPos / brakeThreshold;
+                speed *= brakeFactor;
+            }
+        }
+        else if (speed < 0) // Going Left
+        {
+            if (normPos >= 0.999f) speed = 0f;
+            else if (normPos > (1f - brakeThreshold))
+            {
+                float remaining = 1f - normPos;
+                float brakeFactor = remaining / brakeThreshold;
+                speed *= brakeFactor;
+            }
+        }
+
+        // 6. Direct Translation (Restored)
+        // Velocity approach failed (no movement), so we return to Direct Translation.
+        if (speed != 0f)
+        {
+            float dt = Time.unscaledDeltaTime;
+            Vector2 pos = targetScrollRect.content.anchoredPosition;
+            pos.x += speed * dt; // Move directly based on frame speed
+            targetScrollRect.content.anchoredPosition = pos;
+        }
+    }
+
+    private float CalculateRawSpeed(Vector2 pointerPos)
+    {
+        float screenWidth = Screen.width;
+        float minFactor = 0.7f; // Start strong
+
+        // Left Edge
+        if (pointerPos.x < edgeThreshold)
+        {
+            float rawFactor = Mathf.Clamp01((edgeThreshold - pointerPos.x) / edgeThreshold);
+            float factor = Mathf.Lerp(minFactor, 1f, rawFactor);
+            return maxScrollSpeed * factor; 
+        }
+        // Right Edge
+        else if (pointerPos.x > screenWidth - edgeThreshold)
+        {
+            float distFromEdge = pointerPos.x - (screenWidth - edgeThreshold);
+            float rawFactor = Mathf.Clamp01(distFromEdge / edgeThreshold);
+            float factor = Mathf.Lerp(minFactor, 1f, rawFactor);
+            return -maxScrollSpeed * factor;
+        }
         
-        // Check Horizontal Edges
-        if (pointerScreenPos.x < edgeThreshold)
-        {
-            // Left Edge -> Scroll Right (Content moves Right to show Left)
-            // Wait, ScrollRect velocity: positive x moves content right.
-            velocity.x = scrollSpeed; 
-        }
-        else if (pointerScreenPos.x > Screen.width - edgeThreshold)
-        {
-            // Right Edge -> Scroll Left
-            velocity.x = -scrollSpeed;
-        }
-
-        // Check Vertical (Optional, usually for Rooms it's Horizontal)
-        // If needed:
-        // if (pointerScreenPos.y < edgeThreshold) velocity.y = scrollSpeed;
-        // else if (pointerScreenPos.y > Screen.height - edgeThreshold) velocity.y = -scrollSpeed;
-
-        if (velocity != Vector2.zero)
-        {
-            // Apply smoothly
-            targetScrollRect.velocity = Vector2.Lerp(targetScrollRect.velocity, velocity, Time.deltaTime * 10f);
-        }
+        return 0f;
     }
 }

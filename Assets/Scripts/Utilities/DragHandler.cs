@@ -170,28 +170,20 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             GarbageBinController.Instance.Show();
             _wasHoveringBin = false;
         }
+
+        _isDragging = true;
+        _lastPointerData = eventData;
     }
 
     private bool _wasHoveringBin = false;
 
+    private bool _isDragging = false;
+    private PointerEventData _lastPointerData;
+
     public void OnDrag(PointerEventData eventData)
     {
-        if (parentRect == null) return;
-
-        // Move to: Local Mouse Pos + Offset
-        Vector2 localMousePos;
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, eventData.position, eventData.pressEventCamera, out localMousePos))
-        {
-            rectTransform.localPosition = localMousePos + dragOffset;
-        }
-
-        // Clamp to Parent Bounds
-        if (clampToParent)
-        {
-            ClampToParent();
-        }
-
-        CheckPlacement();
+        // Just cache data and trigger side effects (AutoScroll, Bin, etc.)
+        _lastPointerData = eventData;
         
         // Garbage Bin Hover Logic
         if (GarbageBinController.Instance != null)
@@ -209,13 +201,48 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             }
         }
 
-        // Collision-Based Depth Sort (New Request)
-        CheckDepthCollision();
-        
-        // Auto-Scroll Logic
+        // Auto-Scroll Logic (Keep this here to trigger wakeup)
         if (DragAutoScroller.Instance != null)
         {
             DragAutoScroller.Instance.ProcessDrag(eventData.position);
+        }
+    }
+
+    private void LateUpdate()
+    {
+        // FRAME-PERFECT DRAG SYNC
+        // We update position in LateUpdate to ensure we are pinned to the mouse
+        // AFTER any Auto-Scrolling has moved our parent. This prevents "Drift/Jitter".
+        if (_isDragging && parentRect != null)
+        {
+             UpdateDragPosition();
+             
+             // Clamp and Collision Check every frame
+             if (clampToParent) ClampToParent();
+             CheckPlacement();
+             CheckDepthCollision();
+        }
+    }
+
+    private void UpdateDragPosition()
+    {
+        if (parentRect == null) return;
+        
+        // Use Input.mousePosition directly for smoothest frame-rate independent tracking
+        // Or if using Touch, we might need to cache the pointer ID. 
+        // For simplicity assuming Mouse/Single Touch or using cached event camera.
+        Vector2 screenPos = Input.mousePosition; 
+        
+        // If we have cached event data (for camera etc), use it? 
+        // Input.mousePosition is usually fine for Screen Space Overlay/Camera.
+        // But for "PressEventCamera", we should use what we started with.
+        
+        Camera cam = _lastPointerData?.pressEventCamera;
+        
+        Vector2 localMousePos;
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, screenPos, cam, out localMousePos))
+        {
+            rectTransform.localPosition = localMousePos + dragOffset;
         }
     }
 
@@ -224,16 +251,18 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         // 1. Check if Feature is Enabled
         if (!enableDepthSorting || _myCollider == null) return;
 
-        // USER REQUEST: Validation - If explicitDepthCanvas is missing, Abort to prevent bugs.
-        if (explicitDepthCanvas == null)
+        // 1. Check if Feature is Enabled
+        if (!enableDepthSorting || _myCollider == null) return;
+
+        // USER FIX: Relaxed check. If explicitDepthCanvas is missing, fall back to 'canvas'.
+        Canvas myTargetCanvas = GetDepthCanvas();
+        
+        if (myTargetCanvas == null)
         {
-             Debug.LogWarning($"[DragHandler] {name}: Depth Sorting enabled but 'Explicit Depth Canvas' is NULL! Aborting sort to prevent bugs.");
-             Debug.Log($"[DragHandler] {name}: Depth Sorting enabled but 'Explicit Depth Canvas' is NULL! Aborting sort to prevent bugs.");
+             // Only log if WE REALLY DON'T HAVE A CANVAS
+             Debug.LogWarning($"[DragHandler] {name}: Depth Sorting enabled but NO Canvas found (Explicit or Parent)! Aborting.");
              return;
         }
-        
-        Canvas myTargetCanvas = GetDepthCanvas();
-        if (myTargetCanvas == null) return;
 
         // Use OverlapCollider to find neighbors
         // Note: _contactFilter is set to triggers=true, layers=all in Awake
@@ -283,12 +312,15 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
                     // If my canvas isn't already "Back", force it.
                     if (myTargetCanvas.sortingOrder != sortingOrderBack)
                     {
+                        // Debug.Log($"[DragHandler] {name} ({myY}) > {other.name} ({otherY}) -> Going BACK ({sortingOrderBack}).");
                         SetRecursiveSortingOrder(myTargetCanvas, sortingOrderBack);
                     }
                     // For the other object (if it's not me), force it forward.
                     if (otherTargetCanvas.sortingOrder != sortingOrderFront)
                     {
-                        SetRecursiveSortingOrder(otherTargetCanvas, sortingOrderFront);
+                        // Debug.Log($"[DragHandler] Pushing {other.name} FRONT ({sortingOrderFront}).");
+                        // Protection: If I am a child of 'other', don't let 'other' force ME to front.
+                        SetRecursiveSortingOrder(otherTargetCanvas, sortingOrderFront, ignoreCanvas: myTargetCanvas);
                     }
                 }
                 else
@@ -296,16 +328,15 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
                     // I am lower, so I go front.
                 if (myTargetCanvas.sortingOrder != sortingOrderFront)
                 {
+                    // Debug.Log($"[DragHandler] {name} ({myY}) <= {other.name} ({otherY}) -> Going FRONT ({sortingOrderFront}).");
                     SetRecursiveSortingOrder(myTargetCanvas, sortingOrderFront);
                 }
                 if (otherTargetCanvas.sortingOrder != sortingOrderBack)
                 {
-                     // For other object, we might not have cached its children!
-                     // We fall back to simple assignment unless we want to be expensive.
-                     // Simple assignment is usually OK for the "Other" object if we assume it follows the same logic?
-                     // BUT, if the "Other" object also has children, they will look wrong ("Behavioral Distortion" on the OTHER object).
-                     // Ideally, we should do recursive on them too.
-                     SetRecursiveSortingOrder(otherTargetCanvas, sortingOrderBack);
+                     // Debug.Log($"[DragHandler] Pushing {other.name} BACK ({sortingOrderBack}).");
+                     // Protection: If I am a child of 'other', don't let 'other' force ME to back (if I wanted to be front.. wait logic handles this)
+                     // Actually logic is pairwise. But consistent.
+                     SetRecursiveSortingOrder(otherTargetCanvas, sortingOrderBack, ignoreCanvas: myTargetCanvas);
                 }
             }
         }
@@ -313,14 +344,18 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     }
 
 
-private void SetRecursiveSortingOrder(Canvas root, int targetOrder)
+private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignoreCanvas = null)
 {
     if (root == null) return;
-    
+    // Check Root
+    if (root == ignoreCanvas) return;
+
     int currentRootOrder = root.sortingOrder;
-    if (currentRootOrder == targetOrder) return;
     
-    int diff = targetOrder - currentRootOrder;
+    // OPTIMIZATION: If already at target, skip expensive children scan of "Other" objects
+    // This prevents GetComponentsInChildren from running every frame.
+    // We assume if root is correct, children are also correct (from previous set).
+    if (currentRootOrder == targetOrder) return;
     
     // Update Root
     root.overrideSorting = true;
@@ -347,16 +382,20 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder)
         foreach (var c in targets)
         {
             if (c == root) continue; // Already handled root
-            
+            if (c == ignoreCanvas) continue; // Don't touch the canvas we're trying to ignore
+
             // USER REQUEST: Strict Rule: Parent=X -> Child=X+1
             // We force overrideSorting = true for ALL children found.
             c.overrideSorting = true;
-            c.sortingOrder = targetOrder + 1;
+            //c.sortingOrder = targetOrder + 1;
+            c.sortingOrder = targetOrder;
+            // Debug.Log($"[DragHandler] Recursion: Child {c.name} set to {c.sortingOrder} (Parent Target: {targetOrder})");
         }
     }
 }        
     public void OnEndDrag(PointerEventData eventData)
     {
+        _isDragging = false;
         canvasGroup.blocksRaycasts = true;
         
         // Check for Garbage Bin Drop
