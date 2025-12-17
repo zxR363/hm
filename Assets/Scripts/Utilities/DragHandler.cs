@@ -30,7 +30,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     [Tooltip("Sorting Order when NOT dragging (Idle). Default 20.")]
     [SerializeField] private int restingSortingOrder = 20;
 
-    public Canvas GetDepthCanvas() => explicitDepthCanvas != null ? explicitDepthCanvas : canvas;
+    // definition moved below
+    // public Canvas GetDepthCanvas() => explicitDepthCanvas != null ? explicitDepthCanvas : canvas;
     
     // Cache for child canvases to support recursive sorting
     private Canvas[] _childCanvases;
@@ -246,6 +247,25 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         }
     }
 
+    // FIX: Only use the 'canvas' found in Awake if it is THIS object's canvas.
+    // If we use 'canvas' (which is GetComponentInParent), we might sort the Room's Root Canvas
+    // which messes up the entire hierarchy.
+    public Canvas GetDepthCanvas() 
+    {
+        if (explicitDepthCanvas != null) return explicitDepthCanvas;
+        
+        // Try to find a canvas strictly on THIS object or immediate children?
+        // Actually, just checking if 'canvas' is on this gameObject is enough safety?
+        // Awake: canvas = GetComponentInParent<Canvas>(); -> This could be parent.
+        
+        Canvas localCanvas = GetComponent<Canvas>();
+        if (localCanvas != null) return localCanvas;
+
+        return null; // Do NOT fall back to shared parent canvas.
+    }
+    
+    // ...
+
     private void CheckDepthCollision()
     {
         // 1. Check if Feature is Enabled
@@ -259,8 +279,9 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         
         if (myTargetCanvas == null)
         {
-             // Only log if WE REALLY DON'T HAVE A CANVAS
-             Debug.LogWarning($"[DragHandler] {name}: Depth Sorting enabled but NO Canvas found (Explicit or Parent)! Aborting.");
+             // We can't sort if we don't have our own canvas.
+             // We decided NOT to sort the shared parent canvas to avoid chaos.
+             // Return silently or with debug log if debugging.
              return;
         }
 
