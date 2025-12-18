@@ -230,12 +230,21 @@ public class RoomPanel : MonoBehaviour
             data.customStates["anchorMaxY"] = rect.anchorMax.y.ToString();
             data.customStates["pivotX"] = rect.pivot.x.ToString();
             data.customStates["pivotY"] = rect.pivot.y.ToString();
+
+            // NEW: Size (Width/Height)
+            data.customStates["sizeDeltaX"] = rect.sizeDelta.x.ToString();
+            data.customStates["sizeDeltaY"] = rect.sizeDelta.y.ToString();
         }
         else
         {
             data.position = obj.transform.localPosition;
         }
         data.rotation = obj.transform.localRotation;
+        
+        // NEW: Local Scale (for both UI and 3D)
+        data.customStates["scaleX"] = obj.transform.localScale.x.ToString();
+        data.customStates["scaleY"] = obj.transform.localScale.y.ToString();
+        data.customStates["scaleZ"] = obj.transform.localScale.z.ToString();
 
         if (obj.TryGetComponent<RoomObjectInteraction>(out var interaction))
         {
@@ -559,6 +568,17 @@ public class RoomPanel : MonoBehaviour
 
     private void ApplyDataToObj(GameObject obj, RoomObjectData data)
     {
+        // NEW: Apply Scale (Generic for all objects)
+        if (data.customStates.TryGetValue("scaleX", out var scX) && 
+            data.customStates.TryGetValue("scaleY", out var scY) && 
+            data.customStates.TryGetValue("scaleZ", out var scZ))
+        {
+            if (float.TryParse(scX, out float sX) && float.TryParse(scY, out float sY) && float.TryParse(scZ, out float sZ))
+            {
+                obj.transform.localScale = new Vector3(sX, sY, sZ);
+            }
+        }
+
         if (obj.TryGetComponent<RectTransform>(out var rect))
         {
             // CHANGE: Restore Anchors/Pivot FIRST to ensure coordinate system matches
@@ -582,9 +602,18 @@ public class RoomPanel : MonoBehaviour
 
             // CHANGE: Force update to ensure anchors take effect before position
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+
+            // NEW: Apply SizeDelta (Width/Height) if saved
+            if (data.customStates.TryGetValue("sizeDeltaX", out var szX) && data.customStates.TryGetValue("sizeDeltaY", out var szY))
+            {
+                if (float.TryParse(szX, out float sdX) && float.TryParse(szY, out float sdY))
+                {
+                    rect.sizeDelta = new Vector2(sdX, sdY);
+                }
+            }
             
             // CHANGE: Direct apply from stored Position (which is now AnchoredPosition3D)
-            Debug.Log($"[RoomPanel] Applying Persistence to {obj.name}: Pos3D={data.position} | Anchors=({rect.anchorMin}, {rect.anchorMax}) | Pivot={rect.pivot}");
+            Debug.Log($"[RoomPanel] Applying Persistence to {obj.name}: Pos3D={data.position} | Anchors=({rect.anchorMin}, {rect.anchorMax}) | Pivot={rect.pivot} | Size={rect.sizeDelta}");
             rect.anchoredPosition3D = data.position;
             
             // Legacy/Fallback check (Optional, but direct assignment is preferred now)
