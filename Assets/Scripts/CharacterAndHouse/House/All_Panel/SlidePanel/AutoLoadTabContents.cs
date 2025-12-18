@@ -42,6 +42,12 @@ public class AutoLoadTabContents : MonoBehaviour
             string resourcePath = $"Prefabs/RoomItems/{sceneName}/{folderName}";
             
             Debug.Log($"[AutoLoadTabContents] Loading from: {resourcePath}");
+            
+            // CLEAR EXISTING CONTENT to prevent duplicates and ensure fresh data (correct ResourcePath)
+            foreach (Transform child in contentTransform)
+            {
+                Destroy(child.gameObject);
+            }
 
             GameObject[] loadedPrefabs = Resources.LoadAll<GameObject>(resourcePath);
 
@@ -57,7 +63,7 @@ public class AutoLoadTabContents : MonoBehaviour
                     ItemDragPanel idp = instance.GetComponent<ItemDragPanel>();
                     if (idp != null)
                     {
-                        idp.ResourcePath = resourcePath; 
+                        idp.ResourcePath = $"{resourcePath}/{prefab.name}"; 
                     }
                     
                     // Ensure it has necessary components (optional, but good for safety)

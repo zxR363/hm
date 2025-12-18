@@ -9,6 +9,9 @@ public class RoomObjectData : ISerializationCallbackReceiver
     public Vector3 position;
     public Quaternion rotation;
     
+    // Path to valid Resources prefab (if spawned dynamically)
+    public string resourcePath;
+    
     [System.NonSerialized]
     public Dictionary<string, string> customStates = new Dictionary<string, string>();
 

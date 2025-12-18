@@ -517,24 +517,40 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 }
             }
         }
-
         // 2. Place in IRoomPanel (Updated Logic)
-        // Find which IRoomPanel we dropped onto
+        // Find which IRoomPanel we dropped onto using Raycast results (Respects Z-Order/Depth)
         IRoomPanel targetPanel = null;
-        IRoomPanel[] roomPanels = FindObjectsOfType<IRoomPanel>()
-            .Where(p => p.gameObject.activeInHierarchy)
-            .ToArray();
-
-        foreach (var panel in roomPanels)
+        
+        foreach (var result in results)
         {
-            if (RectTransformUtility.RectangleContainsScreenPoint(
-                panel.GetComponent<RectTransform>(), 
-                Input.mousePosition, 
-                canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera))
+            var panel = result.gameObject.GetComponent<IRoomPanel>();
+            // If component is not on the hit object, check parent (optional, but safe for composite UI)
+            if (panel == null) panel = result.gameObject.GetComponentInParent<IRoomPanel>();
+            
+            if (panel != null && panel.gameObject.activeInHierarchy)
             {
                 targetPanel = panel;
-                break;
+                Debug.Log($"[ItemDragPanel] Found Target Panel via Raycast: {targetPanel.name}");
+                break; // Found the top-most panel
             }
+        }
+
+        // Limit fallback scope
+        if (targetPanel == null)
+        {
+             // Fallback to legacy check if Raycast missed (rare)
+             IRoomPanel[] roomPanels = FindObjectsOfType<MonoBehaviour>().OfType<IRoomPanel>().ToArray(); 
+             foreach (var panel in roomPanels)
+             {
+                 if (RectTransformUtility.RectangleContainsScreenPoint(
+                     panel.GetComponent<RectTransform>(), 
+                     Input.mousePosition, 
+                     canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera))
+                 {
+                     targetPanel = panel;
+                     break;
+                 }
+             }
         }
 
         // Logic Check: Target Panel Found + Valid Placement (Area+NoCollision)
@@ -563,13 +579,18 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             // Use Unity's built-in worldPositionStays=true to preserve visual position/scale
             dragGhost.transform.SetParent(targetContainer, true); 
             
+            // PARENTING LOGIC
+            // 1. Initial Parent: Target Container (Content)
+            Transform finalParent = targetContainer;
+            dragGhost.transform.SetParent(finalParent, true); 
+            
             // FIX: Only flatten Z position to ensure it's not behind the background
             Vector3 localPos = dragGhost.transform.localPosition;
             localPos.z = 0;
             dragGhost.transform.localPosition = localPos;
 
             // FIX: Ensure Layer matches
-            dragGhost.layer = targetContainer.gameObject.layer;
+            dragGhost.layer = finalParent.gameObject.layer;
             
             // Register logic
             if (dragGhost.GetComponent<RoomObject>() == null)
@@ -583,8 +604,6 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             }
             
             // REFRESH DRAG HANDLER BASELINE
-            // This is critical to prevent "jumps" on the next drag.
-            // We tell DragHandler: "Forget your ghost life. You live here now. This is your home."
             DragHandler handler = dragGhost.GetComponent<DragHandler>();
             if (handler != null)
             {

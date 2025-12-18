@@ -86,12 +86,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     void Start()
     {
-         // PERSISTENCE CHECK: Self-Destruct if marked as deleted
-         if (!string.IsNullOrEmpty(_uniqueId) && DeletedObjectManager.Instance.IsDeleted(_uniqueId))
-         {
-             Destroy(gameObject);
-             return; // Stop initialization
-         }
+
 
          // Validate initial placement
          CheckPlacement();
@@ -451,12 +446,6 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
             {
                 Debug.Log($"[DragHandler] {name} Dropped on Garbage Bin. Destroying...");
                 
-                // SAVE DELETION STATE
-                if (!string.IsNullOrEmpty(_uniqueId))
-                {
-                    DeletedObjectManager.Instance.MarkAsDeleted(_uniqueId);
-                }
-
                 GarbageBinController.Instance.Hide();
                 Destroy(gameObject);
                 return; // Exit fast

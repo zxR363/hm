@@ -39,13 +39,15 @@ public class RoomObject : MonoBehaviour
 
         // Find the parent RoomPanel
         _currentRoomPanel = GetComponentInParent<RoomPanel>();
+        Debug.Log($"[RoomObject] {name} INITIALIZED. Parent Panel: {(_currentRoomPanel != null ? _currentRoomPanel.name : "NULL")}");
+
         if (_currentRoomPanel != null)
         {
             _currentRoomPanel.RegisterObject(this.gameObject);
         }
         else
         {
-            Debug.LogWarning($"RoomObject {name} is not a child of a RoomPanel!");
+            Debug.LogWarning($"[RoomObject] {name} is not a child of a RoomPanel! Detection Failed.");
         }
 
         _lastPosition = transform.position;
@@ -68,6 +70,20 @@ public class RoomObject : MonoBehaviour
             NotifyChange();
             _lastPosition = transform.position;
             _lastRotation = transform.rotation;
+        }
+    }
+
+    private void OnTransformParentChanged()
+    {
+        // When parent changes (e.g. dropped from Canvas to Room), try to find Panel again
+        if (_currentRoomPanel == null)
+        {
+             _currentRoomPanel = GetComponentInParent<RoomPanel>();
+             if (_currentRoomPanel != null)
+             {
+                 Debug.Log($"[RoomObject] {name} parent changed. Found RoomPanel: {_currentRoomPanel.name}. Registering... Path: '{loadedFromResourcePath}'");
+                 _currentRoomPanel.RegisterObject(this.gameObject);
+             }
         }
     }
 
