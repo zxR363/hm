@@ -7,12 +7,13 @@ using UnityEngine.SceneManagement;
 public class RoomDataWrapper
 {
     public List<RoomObjectData> objects = new List<RoomObjectData>();
+    public List<string> deletedObjectIDs = new List<string>(); // Support for explicit deletion persistence
 }
 
 public class RoomPanel : MonoBehaviour
 {
-    public RoomType roomType; //Silinecek
-    public Transform objectContainer; //Silinecek
+    public RoomType roomType; // Legacy field
+    public Transform objectContainer; // Legacy field
     
     // Constant filename for the entire game
     private const string SAVE_FILENAME = "RoomObjectData.json";
@@ -23,7 +24,12 @@ public class RoomPanel : MonoBehaviour
     // Cache for saved data to apply when objects register
     private Dictionary<string, Queue<RoomObjectData>> _savedStateCache;
 
+    // List of IDs that were explicitly deleted and should be destroyed on load
+    private HashSet<string> _loadedDeletedIDs;
+    private HashSet<string> _runtimeDeletedIDs = new HashSet<string>();
+
     private bool _isLoading = false;
+    private bool _isQuitting = false;
 
     private void Awake()
     {
@@ -41,6 +47,12 @@ public class RoomPanel : MonoBehaviour
 
     private void OnDisable()
     {
+        SaveRoomState();
+    }
+
+    private void OnApplicationQuit()
+    {
+        _isQuitting = true;
         SaveRoomState();
     }
 
@@ -81,10 +93,6 @@ public class RoomPanel : MonoBehaviour
         _isLoading = false;
         _savedStateCache = null; // Cleanup
     }
-    
-    // ... SaveRoomState remains same (omitted for brevity in replacement, but ensures it matches existing) ...
-    // Note: The instruction asked to rewrite SaveRoomState too? No, just "Rewrite RoomPanel".
-    // I will preserve SaveRoomState as is, but Replace LoadRoomState logic.
 
     private string GetUniqueID(GameObject obj)
     {
@@ -99,14 +107,12 @@ public class RoomPanel : MonoBehaviour
         }
         
         // Include SCENE NAME and RoomPanel Name for global uniqueness
-        // Example: "HouseScene/RoomPanel1/Kitchen/Fridge/Apple"
         string sceneName = SceneManager.GetActiveScene().name;
         return $"{sceneName}/{this.name}/{path}";
     }
 
     private RoomPanel GetOwnerPanel(Transform objTr)
     {
-        // Find the CLOSEST RoomPanel in the parent hierarchy
         Transform curr = objTr;
         while (curr != null)
         {
@@ -125,14 +131,22 @@ public class RoomPanel : MonoBehaviour
         if (trackedObjects.ContainsKey(id)) return;
 
         string uniqueID = GetUniqueID(obj);
-        // Debug.Log($"[RoomPanel] Registering: {uniqueID} (IsLoading: {_isLoading})");
+        
+        // CHECK EXPLICIT DELETION FIRST
+        // If this ID is in the "Deleted List" from the loaded state, we must DESTROY it.
+        // This handles "Pre-placed objects deleted by player".
+        if (_loadedDeletedIDs != null && _loadedDeletedIDs.Contains(uniqueID))
+        {
+             Debug.Log($"[RoomPanel] KILLING DELETED OBJECT: {obj.name} (ID: {uniqueID}). Found in Deleted List.");
+             Destroy(obj);
+             return;
+        }
 
-        // Check path early (Debug)
-        RoomObject ro = obj.GetComponent<RoomObject>();
-        string rPath = ro != null ? ro.loadedFromResourcePath : "NULL_COMP";
-        Debug.Log($"[RoomPanel] Registering {obj.name}. ID: {uniqueID}. ResourcePath: '{rPath}'");
+        // RoomObject ro = obj.GetComponent<RoomObject>();
+        // string rPath = ro != null ? ro.loadedFromResourcePath : "NULL_COMP";
+        // Debug.Log($"[RoomPanel] Registering {obj.name}. ID: {uniqueID}. ResourcePath: '{rPath}'");
 
-        // ZOMBIE CHECK (Deletion Persistence)
+        // ZOMBIE / CACHE CHECK
         if (_isLoading)
         {
             if (_savedStateCache == null)
@@ -141,7 +155,9 @@ public class RoomPanel : MonoBehaviour
             }
             else if (!_savedStateCache.ContainsKey(uniqueID))
             {
-                 Debug.LogWarning($"[RoomPanel] Registering '{uniqueID}' (Len:{uniqueID.Length}) - NOT FOUND IN CACHE. \nAvailable Keys:\n{string.Join("\n", _savedStateCache.Keys)}");
+                 // LOGIC: If validation (isLoading) is active, AND the object is NOT in the cache,
+                 // It might be a new object from editor or a zombie.
+                 Debug.LogWarning($"[RoomPanel] Registering '{uniqueID}' - NOT FOUND IN CACHE.");
             }
             else if (_savedStateCache[uniqueID].Count == 0)
             {
@@ -170,19 +186,11 @@ public class RoomPanel : MonoBehaviour
         }
         else
         {
-             Debug.Log($"[RoomPanel {this.GetInstanceID()}] CACHE MISS for {uniqueID}. IsLoading: {_isLoading}. CacheNull: {_savedStateCache == null}. HasKey: {(_savedStateCache != null && _savedStateCache.ContainsKey(uniqueID))}");
+             // Debug.Log($"[RoomPanel] CACHE MISS for {uniqueID}. IsLoading: {_isLoading}.");
              UpdateObjectData(data, obj);
         }
 
         trackedObjects.Add(id, data);
-    }
-
-    private bool _isQuitting = false;
-
-    private void OnApplicationQuit()
-    {
-        _isQuitting = true;
-        SaveRoomState();
     }
 
     public void UnregisterObject(GameObject obj)
@@ -192,7 +200,21 @@ public class RoomPanel : MonoBehaviour
         int id = obj.GetInstanceID();
         if (trackedObjects.ContainsKey(id))
         {
+            Debug.Log($"[RoomPanel] Unregistering Object: {obj.name} (ID: {id})");
+            
+            // TRACK DELETION AT RUNTIME
+            RoomObjectData data = trackedObjects[id];
+            if (!string.IsNullOrEmpty(data.objectID))
+            {
+                if (_runtimeDeletedIDs == null) _runtimeDeletedIDs = new HashSet<string>();
+                _runtimeDeletedIDs.Add(data.objectID);
+            }
+            
             trackedObjects.Remove(id);
+        }
+        else
+        {
+            Debug.LogWarning($"[RoomPanel] Unregister FAILED. Object {obj.name} (ID: {id}) not found in trackedObjects.");
         }
     }
 
@@ -223,7 +245,7 @@ public class RoomPanel : MonoBehaviour
             data.customStates["anchoredX"] = rect.anchoredPosition.x.ToString();
             data.customStates["anchoredY"] = rect.anchoredPosition.y.ToString();
             
-            // Save Anchors and Pivot to ensure position means the same thing on load
+            // Save Anchors and Pivot
             data.customStates["anchorMinX"] = rect.anchorMin.x.ToString();
             data.customStates["anchorMinY"] = rect.anchorMin.y.ToString();
             data.customStates["anchorMaxX"] = rect.anchorMax.x.ToString();
@@ -269,11 +291,16 @@ public class RoomPanel : MonoBehaviour
 
         if (wrapper == null) wrapper = new RoomDataWrapper();
         if (wrapper.objects == null) wrapper.objects = new List<RoomObjectData>();
+        if (wrapper.deletedObjectIDs == null) wrapper.deletedObjectIDs = new List<string>();
 
         // 2. Remove OLD data belonging to THIS RoomPanel in THIS Scene
         string sceneName = SceneManager.GetActiveScene().name;
         string myPrefix = $"{sceneName}/{this.name}/";
         wrapper.objects.RemoveAll(x => x.objectID.StartsWith(myPrefix));
+        // Remove old deleted entries for this scope (to be replaced by runtime list)
+        // Actually, we should probably merge? But simple replacement prevents stale data buildup for now.
+        // wrapper.deletedObjectIDs.RemoveAll(x => x.StartsWith(myPrefix)); 
+        // NOTE: Keeping them might be safer, but for now we rely on _runtimeDeletedIDs containing everything that matters.
 
         // 3. Save ONLY Registered Objects
         List<RoomObjectData> newObjects = new List<RoomObjectData>();
@@ -292,10 +319,7 @@ public class RoomPanel : MonoBehaviour
                  data.resourcePath = roomObj.loadedFromResourcePath;
             }
             
-            // DEBUG: Unconditional Log
-            // Debug.Log($"[RoomPanel] SAVING LOOP: {obj.name} | Path: '{data.resourcePath}' | ID: {data.objectID}");
-            
-            // DEBUG: Check if we are saving new objects
+            // Check if we are saving new objects
             if (!string.IsNullOrEmpty(data.resourcePath))
             {
                 Debug.Log($"[RoomPanel] SAVE ITEM: {obj.name} (ID: {data.objectID}) | Path: {data.resourcePath}");
@@ -311,10 +335,25 @@ public class RoomPanel : MonoBehaviour
         }
 
         wrapper.objects.AddRange(newObjects);
+        
+        // 4. Save DELETED Objects
+        if (_runtimeDeletedIDs != null && _runtimeDeletedIDs.Count > 0)
+        {
+            // Simple merge: Add runtime ones, distinct.
+            foreach (var delID in _runtimeDeletedIDs)
+            {
+                if (!wrapper.deletedObjectIDs.Contains(delID) && delID.StartsWith(myPrefix))
+                {
+                    wrapper.deletedObjectIDs.Add(delID);
+                }
+            }
+            Debug.Log($"[RoomPanel] SAVING DELETED LIST: Total {_runtimeDeletedIDs.Count} runtime deletions processed.");
+        }
+
         PersistenceManager.Save(SAVE_FILENAME, wrapper);
     }
     
-    // Renamed from LoadRoomState to be internal helper
+    // Internal helper to load state into memory cache
     private void LoadRoomStateIntoCache()
     {
         if (!PersistenceManager.Exists(SAVE_FILENAME)) return;
@@ -339,11 +378,25 @@ public class RoomPanel : MonoBehaviour
             }
         }
         
+        // LOAD DELETED IDs
+        _loadedDeletedIDs = new HashSet<string>();
+        if (wrapper.deletedObjectIDs != null)
+        {
+            foreach (var id in wrapper.deletedObjectIDs)
+            {
+                if (id.StartsWith(myPrefix))
+                {
+                    _loadedDeletedIDs.Add(id);
+                    // Also add to runtime list so we preserve old deletions even if we don't re-delete anything
+                    _runtimeDeletedIDs.Add(id);
+                }
+            }
+        }
+        
         // Flag that we have valid load data
         _isLoading = true;
     }
 
-    // Helper for Spawning
     private void SpawnObjectFromData(RoomObjectData data)
     {
         data.OnAfterDeserialize();
@@ -363,31 +416,12 @@ public class RoomPanel : MonoBehaviour
 
                 Transform parent = objectContainer != null ? objectContainer : transform;
 
-                // PATH RECONSTRUCTION (Restored):
-                // The objectID contains the full path (e.g. HouseScene/Content/Room1Panel/Sofa).
-                // We need to place it in Room1Panel, not just 'parent' (Content).
-                 string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-                 // Assuming 'this.name' is 'Content' or the Manager's name. 
-                 // If this script is on 'Content', myPrefix is "HouseScene/Content/".
-                 
-                 // Dynamic Prefix Calculation
-                 // We want to find the path relative to 'parent'.
-                 // If parent is 'Content', and ID is '.../Content/Room1Panel/Sofa', we want 'Room1Panel'.
-                 
-                 // Strategy: Find the child in 'parent' that matches the path segment in ID.
-                 // 1. Get Path relative to 'parent'? 
-                 // Hard to know parent's full path string if it's not generated same way.
-                 // But we know ID is "Scene/Parent/.../Item".
-                 
-                 // Robust Approach:
-                 // Check if any child of 'parent' is mentioned in the ID.
+                // PATH RECONSTRUCTION
                  foreach (Transform child in parent)
                  {
                      if (data.objectID.Contains("/" + child.name + "/"))
                      {
                          parent = child;
-                         // Support nested? Only 1 level deep for now as per user structure (RoomPanel).
-                         // Could be recursive but let's stick to RoomPanel level.
                          break;
                      }
                  }
@@ -397,7 +431,7 @@ public class RoomPanel : MonoBehaviour
                     _savedStateCache[data.objectID] = new Queue<RoomObjectData>();
                 _savedStateCache[data.objectID].Enqueue(data);
                 
-                Debug.Log($"[RoomPanel {this.GetInstanceID()}] Pre-Spawn Cache Injection for {data.objectID}. Queue Size: {_savedStateCache[data.objectID].Count}");
+                Debug.Log($"[RoomPanel {this.GetInstanceID()}] Pre-Spawn Cache Injection for {data.objectID}.");
 
                 GameObject instance = Instantiate(prefabToSpawn, parent);
                 
@@ -412,158 +446,16 @@ public class RoomPanel : MonoBehaviour
                 // CRITICAL FIX: Manually register immediately while Cache is valid.
                 Debug.Log($"[RoomPanel] Manual Register: {instance.name}");
                 RegisterObject(instance);
-                // So we should NOT Dequeue?
-                // No, we already Dequeued.
-                
-                // FIX: Temporarily put it back in cache or handle registration explicitly?
-                // Simpler: RegisterObject is called in Start().
-                // We can just ApplyDataToObj here, and when RegisterObject is called, it sees it's already updated?
-                // No. RegisterObject might reset or look for data.
-                
-            }
-                
-                // Instantiate triggers Awake/Start immediately?
-                // Yes. So RegisterObject runs recursively HERE.
-                // So putting it back in cache works perfectly.
-            }
-        }
-
-
-    public void LoadRoomState()
-    {
-        if (!PersistenceManager.Exists(SAVE_FILENAME)) return;
-
-        RoomDataWrapper wrapper = PersistenceManager.Load<RoomDataWrapper>(SAVE_FILENAME);
-        if (wrapper == null || wrapper.objects == null) return;
-
-        // Filter data for THIS RoomPanel
-        string sceneName = SceneManager.GetActiveScene().name;
-        string myPrefix = $"{sceneName}/{this.name}/";
-        Debug.Log($"[RoomPanel] LoadRoomState Started. MyPrefix: '{myPrefix}'. Total Objects in JSON: {wrapper.objects.Count}");
-
-        List<RoomObjectData> myData = new List<RoomObjectData>();
-        foreach(var obj in wrapper.objects)
-        {
-             if (obj.objectID.StartsWith(myPrefix))
-             {
-                 myData.Add(obj);
-                 //Debug.Log($"[RoomPanel] Accepted ID: {obj.objectID}");
-             }
-             else
-             {
-                 //Debug.Log($"[RoomPanel] Rejected ID: {obj.objectID} (No Match)");
-             }
-        }
-
-        // Map for fast lookup of SAVED data
-        Dictionary<string, RoomObjectData> savedMap = myData.ToDictionary(x => x.objectID, x => x);
-
-        // --- STEP 1: PRUNING (Delete objects not in Save File) ---
-        // We look at currently tracked objects. If their ID is NOT in the savedMap, they are deleted.
-        List<int> toDestroyKeys = new List<int>();
-        
-        foreach (var kvp in trackedObjects)
-        {
-            // If instance is null, just remove from dictionary later
-            if (kvp.Value.instance == null) 
-            {
-                toDestroyKeys.Add(kvp.Key);
-                continue;
-            }
-
-            string currentID = kvp.Value.objectID;
-            
-            // Check existence in Save Data
-            if (!savedMap.ContainsKey(currentID))
-            {
-                // This object exists in scene but was NOT in the save file. DELETE IT.
-                // Assuming "Save File Exists" means we have a complete state.
-                // NOTE: Static objects should be in the save file if they were saved at least once.
-                // If this is the FIRST run ever, specific logic might be needed, but usually Save happens on Disable.
-                Debug.Log($"[RoomPanel] Deleting missing object: {kvp.Value.instance.name} ({currentID})");
-                Destroy(kvp.Value.instance);
-                toDestroyKeys.Add(kvp.Key);
             }
             else
             {
-                // It exists. Update it.
-                RoomObjectData savedData = savedMap[currentID];
-                savedData.OnAfterDeserialize(); // Restore Dictionary
-                ApplyDataToObj(kvp.Value.instance, savedData);
-                
-                // Update track record
-                trackedObjects[kvp.Key] = savedData;
-                savedData.instance = kvp.Value.instance;
-                
-                // Remove from map to mark as "Handled"
-                savedMap.Remove(currentID);
+                Debug.LogWarning($"[RoomPanel] Failed to load resource: {data.resourcePath}");
             }
         }
-
-        // Clean up dictionary
-        foreach (int key in toDestroyKeys) trackedObjects.Remove(key);
-
-
-        // --- STEP 2: SPAWNING (Create objects in Save File but not in Scene) ---
-        // Any item remaining in savedMap is "Missing" and needs to be spawned.
-        
-        // Cache data for ApplyData (RoomObject.Register will call this)
-        if (_savedStateCache == null) _savedStateCache = new Dictionary<string, Queue<RoomObjectData>>();
-        
-        foreach (var kvp in savedMap)
+        else
         {
-            RoomObjectData data = kvp.Value;
-            data.OnAfterDeserialize();
-
-            // Store in cache so when it registers, it gets this data
-            if (!_savedStateCache.ContainsKey(data.objectID))
-                _savedStateCache[data.objectID] = new Queue<RoomObjectData>();
-            _savedStateCache[data.objectID].Enqueue(data);
-
-            // Instantiate if possible
-            if (!string.IsNullOrEmpty(data.resourcePath))
-            {
-                GameObject prefab = Resources.Load<GameObject>(data.resourcePath);
-                if (prefab != null)
-                {
-                    Transform parent = objectContainer != null ? objectContainer : transform;
-                    
-                    // CRITICAL FIX: Put data in Cache BEFORE Instantiate so RegisterObject finds it immediately.
-                    if (!_savedStateCache.ContainsKey(data.objectID))
-                        _savedStateCache[data.objectID] = new Queue<RoomObjectData>();
-                    _savedStateCache[data.objectID].Enqueue(data);
-
-                    Debug.Log($"[RoomPanel {this.GetInstanceID()}] Pre-Spawn Cache Injection for {data.objectID}. Queue Size: {_savedStateCache[data.objectID].Count} | IsLoading: {_isLoading}");
-
-                    GameObject instance = Instantiate(prefab, parent);
-                    
-                    // Set Name to match ID suffix for consistency
-                    // Extract name from ID: "Scene/Panel/ObjName"
-                    string[] parts = data.objectID.Split('/');
-                    if (parts.Length > 0) instance.name = parts[parts.Length - 1]; 
-                    
-                    // CRITICAL FIX: Manually register immediately while Cache is valid.
-                    // RoomObject.Start() runs too late (after cache cleanup).
-                    RegisterObject(instance);
-                    
-                    Debug.Log($"[RoomPanel] Spawned {instance.name} from {data.resourcePath}");
-                }
-                else
-                {
-                    Debug.LogWarning($"[RoomPanel] Failed to load resource: {data.resourcePath}");
-                }
-            }
-            else
-            {
-                // Static object that was deleted? No, if it was static and not in scene, it's gone?
-                // Or static object that was mistakenly destroyed?
-                // Without resourcePath, we can't spawn it.
-                 Debug.LogWarning($"[RoomPanel] Cannot spawn {data.objectID}: No ResourcePath saved.");
-            }
+             Debug.LogWarning($"[RoomPanel] Cannot spawn {data.objectID}: No ResourcePath saved.");
         }
-        
-        // Cleanup cache logic is handled in RegisterObject mostly, but we can clear it next frame?
-        // No, keep it for the frame.
     }
 
     private void ApplyDataToObj(GameObject obj, RoomObjectData data)
@@ -581,7 +473,7 @@ public class RoomPanel : MonoBehaviour
 
         if (obj.TryGetComponent<RectTransform>(out var rect))
         {
-            // CHANGE: Restore Anchors/Pivot FIRST to ensure coordinate system matches
+            // Restore Anchors/Pivot FIRST
             if (data.customStates.TryGetValue("anchorMinX", out var amX) && data.customStates.TryGetValue("anchorMinY", out var amY))
             {
                 if (float.TryParse(amX, out float minX) && float.TryParse(amY, out float minY))
@@ -600,7 +492,7 @@ public class RoomPanel : MonoBehaviour
                     rect.pivot = new Vector2(pivX, pivY);
             }
 
-            // CHANGE: Force update to ensure anchors take effect before position
+            // Force update to ensure anchors take effect before position
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
 
             // NEW: Apply SizeDelta (Width/Height) if saved
@@ -612,21 +504,8 @@ public class RoomPanel : MonoBehaviour
                 }
             }
             
-            // CHANGE: Direct apply from stored Position (which is now AnchoredPosition3D)
-            Debug.Log($"[RoomPanel] Applying Persistence to {obj.name}: Pos3D={data.position} | Anchors=({rect.anchorMin}, {rect.anchorMax}) | Pivot={rect.pivot} | Size={rect.sizeDelta}");
+            // Direct apply from stored Position (AnchoredPosition3D)
             rect.anchoredPosition3D = data.position;
-            
-            // Legacy/Fallback check (Optional, but direct assignment is preferred now)
-            /*
-            if (data.customStates.TryGetValue("anchoredX", out var xStr) &&
-                data.customStates.TryGetValue("anchoredY", out var yStr))
-            {
-                if (float.TryParse(xStr, out float x) && float.TryParse(yStr, out float y))
-                {
-                    rect.anchoredPosition = new Vector2(x, y);
-                }
-            }
-            */
         }
         else
         {
@@ -641,24 +520,15 @@ public class RoomPanel : MonoBehaviour
             {
                 if (bool.TryParse(interactedStr, out bool isInteracted))
                 {
-                    // Restore source Name if available
                     string sourceName = null;
                     if (data.customStates.TryGetValue("interactedSource", out var sName))
                     {
                         sourceName = sName;
-                        Debug.Log($"[RoomPanel] Loading Interaction: {obj.name} -> Found Source: {sourceName}");
                     }
-                    else
-                    {
-                        // Debug.Log($"[RoomPanel] Loading Interaction: {obj.name} -> No Source Key Found");
-                    }
-                    
                     interaction.RestoreState(isInteracted, sourceName);
                 }
             }
         }
-        
-        //Debug.Log($"[RoomPanel] Restored state for {obj.name}");
     }
 
     public List<RoomObjectData> GetSavedData()

@@ -56,6 +56,7 @@ public class RoomObject : MonoBehaviour
 
     private void OnDestroy()
     {
+        Debug.Log($"[RoomObject] OnDestroy called for {name}. Unregistering from Panel: {(_currentRoomPanel != null ? _currentRoomPanel.name : "NULL")}");
         if (_currentRoomPanel != null)
         {
             _currentRoomPanel.UnregisterObject(this.gameObject);
@@ -75,15 +76,26 @@ public class RoomObject : MonoBehaviour
 
     private void OnTransformParentChanged()
     {
-        // When parent changes (e.g. dropped from Canvas to Room), try to find Panel again
-        if (_currentRoomPanel == null)
+        // When parent changes, we MUST check if the RoomPanel has changed.
+        // Previous logic ignored this if _currentRoomPanel was not null, which is wrong if we moved to a new Panel.
+        
+        RoomPanel newPanel = GetComponentInParent<RoomPanel>();
+        
+        if (newPanel != _currentRoomPanel)
         {
-             _currentRoomPanel = GetComponentInParent<RoomPanel>();
-             if (_currentRoomPanel != null)
-             {
-                 Debug.Log($"[RoomObject] {name} parent changed. Found RoomPanel: {_currentRoomPanel.name}. Registering... Path: '{loadedFromResourcePath}'");
+            // Unregister from old
+            if (_currentRoomPanel != null)
+            {
+                 _currentRoomPanel.UnregisterObject(this.gameObject);
+            }
+            
+            // Register to new
+            _currentRoomPanel = newPanel;
+            if (_currentRoomPanel != null)
+            {
+                 Debug.Log($"[RoomObject] {name} parent changed. New Panel: {_currentRoomPanel.name}. Registering... Path: '{loadedFromResourcePath}'");
                  _currentRoomPanel.RegisterObject(this.gameObject);
-             }
+            }
         }
     }
 
