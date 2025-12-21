@@ -676,8 +676,10 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
             }
 
             // Use Screen Bounds directly
-            Vector3 finalMin = screenMin;
-            Vector3 finalMax = screenMax;
+            // USER REQUEST: Allow 10 pixels of "Bleed" (Tolerance) outside the screen
+            float buffer = 10f;
+            Vector3 finalMin = screenMin - new Vector3(buffer, buffer, 0);
+            Vector3 finalMax = screenMax + new Vector3(buffer, buffer, 0);
 
             // Calculate Shift needed to keep Bounds inside Screen
             Vector3 shift = Vector3.zero;

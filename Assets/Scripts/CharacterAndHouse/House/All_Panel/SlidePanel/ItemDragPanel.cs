@@ -256,8 +256,15 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 }
 
                 // Intersect Parent Bounds with Screen Bounds
-                Vector3 finalMin = Vector3.Max(rootMin, screenMin);
-                Vector3 finalMax = Vector3.Min(rootMax, screenMax);
+                // USER REQUEST: Allow 10 pixels of "Bleed" (Tolerance) outside the screen
+                float buffer = 10f;
+                // Note: rootMin/Max are parent bounds (usually infinite/large for Game Area), Screen is the limit.
+                // We loosen the SCREEN limits.
+                Vector3 looseScreenMin = screenMin - new Vector3(buffer, buffer, 0);
+                Vector3 looseScreenMax = screenMax + new Vector3(buffer, buffer, 0);
+
+                Vector3 finalMin = Vector3.Max(rootMin, looseScreenMin);
+                Vector3 finalMax = Vector3.Min(rootMax, looseScreenMax);
 
                 Vector3 currentPos = dragGhost.transform.position;
                 Vector3 clampedPos = currentPos;
@@ -591,6 +598,11 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 ghostCanvas.sortingOrder = defaultDragGHostSortOrder; 
             }
 
+            // FIX: Ensure Unique Name to avoid ID Collision with previously deleted items (Zombie Fix)
+            // MUST be done BEFORE SetParent, because SetParent triggers OnTransformParentChanged -> RegisterObject immediately.
+            string uniqueSuffix = System.Guid.NewGuid().ToString().Substring(0, 8);
+            dragGhost.name = $"{dragGhost.name.Replace("(Clone)", "")}_{uniqueSuffix}";
+
             // Parent to the target room's object container (or transform if container is null)
             Transform targetContainer = targetPanel.objectContainer != null ? targetPanel.objectContainer : targetPanel.transform;
             
@@ -633,8 +645,9 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         else
         {
             // Dropped outside any room -> Cancel
+            Debug.LogError($"[ItemDragPanel] DROP FAILED! TargetPanel: {(targetPanel != null ? targetPanel.name : "NULL")}, IsValidPlacement: {_isValidPlacement}");
             Destroy(dragGhost);
-            Debug.Log("Item herhangi bir odaya bırakılmadı, iptal edildi.");
+            Debug.Log("Item herhangi bir odaya bırakılmadı veya yerleşim geçersiz, iptal edildi.");
         }
 
         dragGhost = null;
