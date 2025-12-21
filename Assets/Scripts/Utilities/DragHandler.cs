@@ -222,10 +222,10 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             }
         }
 
-        // Auto-Scroll Logic (Keep this here to trigger wakeup)
+        // Auto-Scroll Logic: Use RectTransform for Bounds-Aware Scrolling
         if (DragAutoScroller.Instance != null)
         {
-            DragAutoScroller.Instance.ProcessDrag(eventData.position);
+            DragAutoScroller.Instance.ProcessDrag(rectTransform);
         }
     }
 
@@ -615,14 +615,43 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
         RectTransform parentRect = rectTransform.parent as RectTransform;
         if (parentRect == null) return;
 
-        // 1. Try to get Compound Collider Bounds (World Space)
-        Bounds? colliderBounds = GetCompoundColliderBounds(transform);
+        // NEW: Get UNION of Collider Bounds and Visual Bounds (RectTransforms)
+        // This ensures that even if the Collider is small, we clamp the larger Visual Image.
+        Bounds combinedBounds = new Bounds(transform.position, Vector3.zero);
+        bool hasBounds = false;
 
+        // 1. Collider Bounds
+        Bounds? colliderBounds = GetCompoundColliderBounds(transform);
         if (colliderBounds.HasValue)
         {
-            // --- COLLIDER BASED CLAMPING ---
-            Bounds bounds = colliderBounds.Value;
+            combinedBounds = colliderBounds.Value;
+            hasBounds = true;
+        }
 
+        // 2. Visual Bounds (RectTransforms including children)
+        // We accumulate World Corners of all child Rects
+        var rects = GetComponentsInChildren<RectTransform>();
+        Vector3[] corners = new Vector3[4];
+        
+        foreach (var rt in rects)
+        {
+            rt.GetWorldCorners(corners);
+            if (!hasBounds)
+            {
+                // Initialize with first corner
+                combinedBounds = new Bounds(corners[0], Vector3.zero);
+                hasBounds = true;
+                // Encapsulate rest
+                for(int k=1; k<4; k++) combinedBounds.Encapsulate(corners[k]);
+            }
+            else
+            {
+                for(int k=0; k<4; k++) combinedBounds.Encapsulate(corners[k]);
+            }
+        }
+
+        if (hasBounds)
+        {
             // --- SCREEN BOUNDS CLAMPING ---
             // Calculate Screen Safe Area in World Space
             Camera cam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
@@ -654,35 +683,22 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
             Vector3 shift = Vector3.zero;
 
             // X Axis
-            if (bounds.min.x < finalMin.x)
-                shift.x = finalMin.x - bounds.min.x;
-            else if (bounds.max.x > finalMax.x)
-                shift.x = finalMax.x - bounds.max.x;
+            if (combinedBounds.min.x < finalMin.x)
+                shift.x = finalMin.x - combinedBounds.min.x;
+            else if (combinedBounds.max.x > finalMax.x)
+                shift.x = finalMax.x - combinedBounds.max.x;
 
             // Y Axis
-            if (bounds.min.y < finalMin.y)
-                shift.y = finalMin.y - bounds.min.y;
-            else if (bounds.max.y > finalMax.y)
-                shift.y = finalMax.y - bounds.max.y;
+            if (combinedBounds.min.y < finalMin.y)
+                shift.y = finalMin.y - combinedBounds.min.y;
+            else if (combinedBounds.max.y > finalMax.y)
+                shift.y = finalMax.y - combinedBounds.max.y;
 
             // Apply Shift
             if (shift != Vector3.zero)
             {
                 transform.position += shift;
             }
-        }
-        else
-        {
-            // --- FALLBACK: RECT TRANSFORM CLAMPING ---
-            Vector3 pos = rectTransform.localPosition;
-
-            Vector3 minPosition = parentRect.rect.min - rectTransform.rect.min;
-            Vector3 maxPosition = parentRect.rect.max - rectTransform.rect.max;
-
-            pos.x = Mathf.Clamp(pos.x, minPosition.x, maxPosition.x);
-            pos.y = Mathf.Clamp(pos.y, minPosition.y, maxPosition.y);
-
-            rectTransform.localPosition = pos;
         }
     }
 

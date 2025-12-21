@@ -188,12 +188,40 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         RectTransform rootRT = dragRoot.GetComponent<RectTransform>();
         if (rootRT != null)
         {
-            // 1. Try Collider Bounds
+            // NEW: Get UNION of Collider Bounds and Visual Bounds (RectTransforms)
+            Bounds combinedBounds = new Bounds(dragGhost.transform.position, Vector3.zero);
+            bool hasBounds = false;
+
+            // 1. Collider Bounds
             Bounds? colliderBounds = GetCompoundColliderBounds(dragGhost.transform);
-            
             if (colliderBounds.HasValue)
             {
-                Bounds bounds = colliderBounds.Value;
+                combinedBounds = colliderBounds.Value;
+                hasBounds = true;
+            }
+
+            // 2. Visual Bounds (RectTransforms including children)
+            var rects = dragGhost.GetComponentsInChildren<RectTransform>();
+            Vector3[] corners = new Vector3[4];
+            
+            foreach (var rt in rects)
+            {
+                rt.GetWorldCorners(corners);
+                if (!hasBounds)
+                {
+                    combinedBounds = new Bounds(corners[0], Vector3.zero);
+                    hasBounds = true;
+                    for(int k=1; k<4; k++) combinedBounds.Encapsulate(corners[k]);
+                }
+                else
+                {
+                    for(int k=0; k<4; k++) combinedBounds.Encapsulate(corners[k]);
+                }
+            }
+
+            if (hasBounds)
+            {
+                Bounds bounds = combinedBounds;
                 
                 // Get Root World Bounds
                 Vector3[] rootCorners = new Vector3[4];
@@ -207,8 +235,7 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                     rootMax = Vector3.Max(rootMax, rootCorners[i]);
                 }
 
-                // --- SCREEN BOUNDS CLAMPING (ADDITION) ---
-                // Calculate Screen Safe Area in World Space
+                // --- SCREEN BOUNDS CLAMPING ---
                 Camera cam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
                 if (cam == null && canvas.renderMode != RenderMode.ScreenSpaceOverlay) cam = Camera.main;
 
@@ -240,24 +267,15 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
                 Vector3 minLimit = finalMin - offset + extents;
                 Vector3 maxLimit = finalMax - offset - extents;
-
-                clampedPos.x = Mathf.Clamp(currentPos.x, minLimit.x, maxLimit.x);
-                clampedPos.y = Mathf.Clamp(currentPos.y, minLimit.y, maxLimit.y);
+                
+                // Only clamp if FinalMin < FinalMax (Valid Area)
+                if (minLimit.x <= maxLimit.x)
+                    clampedPos.x = Mathf.Clamp(currentPos.x, minLimit.x, maxLimit.x);
+                
+                if (minLimit.y <= maxLimit.y)
+                    clampedPos.y = Mathf.Clamp(currentPos.y, minLimit.y, maxLimit.y);
 
                 dragGhost.transform.position = clampedPos;
-            }
-            else
-            {
-                // 2. Fallback: RectTransform Bounds (Compound)
-                Rect compoundRect = GetCompoundRect(ghostRT);
-                
-                Vector3 minPosition = rootRT.rect.min - compoundRect.min;
-                Vector3 maxPosition = rootRT.rect.max - compoundRect.max;
-                
-                Vector3 pos = ghostRT.localPosition;
-                pos.x = Mathf.Clamp(pos.x, minPosition.x, maxPosition.x);
-                pos.y = Mathf.Clamp(pos.y, minPosition.y, maxPosition.y);
-                ghostRT.localPosition = pos;
             }
         }
         
@@ -279,10 +297,10 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             }
         }
         
-        // Auto-Scroll Logic
-        if (DragAutoScroller.Instance != null)
+        // Auto-Scroll Logic: Use RectTransform (ghostRT is local to Root, but AutoScroller handles World Coords)
+        if (DragAutoScroller.Instance != null && ghostRT != null)
         {
-            DragAutoScroller.Instance.ProcessDrag(eventData.position);
+            DragAutoScroller.Instance.ProcessDrag(ghostRT);
         }
     }
 

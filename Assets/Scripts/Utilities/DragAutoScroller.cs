@@ -17,6 +17,7 @@ public class DragAutoScroller : MonoBehaviour
 
     private bool _isActive = false;
     private bool _wasInertiaEnabled;
+    private RectTransform _currentItem; // Helper to track large items
 
     private void Awake()
     {
@@ -25,6 +26,19 @@ public class DragAutoScroller : MonoBehaviour
     }
 
     public void ProcessDrag(Vector2 pointerScreenPos)
+    {
+        _currentItem = null; 
+        ProcessDragInternal(pointerScreenPos);
+    }
+
+    public void ProcessDrag(RectTransform item)
+    {
+        _currentItem = item;
+        // We use the item to calculate edges, but pointer is fallback/trigger
+        ProcessDragInternal(Input.mousePosition);
+    }
+
+    private void ProcessDragInternal(Vector2 pointerScreenPos)
     {
         if (!_isActive)
         {
@@ -39,7 +53,9 @@ public class DragAutoScroller : MonoBehaviour
         }
     }
 
-    private void LateUpdate()
+    // UPDATED: Changed from LateUpdate to Update to run BEFORE DragHandler.LateUpdate logic
+    // This prevents "Jitter" where object updates position based on OLD parent position, then parent moves.
+    private void Update()
     {
         // 1. Input Check
         if (!Input.GetMouseButton(0) && Input.touchCount == 0)
@@ -48,6 +64,7 @@ public class DragAutoScroller : MonoBehaviour
             {
                 if(debugMode) Debug.Log("[DragAutoScroller] Stopping.");
                 _isActive = false;
+                _currentItem = null;
                 if (targetScrollRect != null) 
                 {
                     targetScrollRect.velocity = Vector2.zero; // Stop
@@ -60,7 +77,6 @@ public class DragAutoScroller : MonoBehaviour
         if (!_isActive || targetScrollRect == null || targetScrollRect.content == null) return;
 
         // 3. Calculate Immediate Frame Step (Position Delta)
-        // User requested Position-based approach to remove "Acceleration Freeze"
         float speed = CalculateRawSpeed(Input.mousePosition);
         
         // 4. Zero Check
@@ -90,8 +106,7 @@ public class DragAutoScroller : MonoBehaviour
             }
         }
 
-        // 6. Direct Translation (Restored)
-        // Velocity approach failed (no movement), so we return to Direct Translation.
+        // 6. Direct Translation
         if (speed != 0f)
         {
             float dt = Time.unscaledDeltaTime;
@@ -106,17 +121,65 @@ public class DragAutoScroller : MonoBehaviour
         float screenWidth = Screen.width;
         float minFactor = 0.7f; // Start strong
 
-        // Left Edge
-        if (pointerPos.x < edgeThreshold)
+        // Initialize with Pointer Pos
+        float leftEdgeVal = pointerPos.x;
+        float rightEdgeVal = pointerPos.x;
+
+        // NEW: If Item Provided, Check Compound Visual Bounds (Children included)
+        // This ensures that if a child Image is larger than the parent, it triggers the scroll.
+        if (_currentItem != null)
         {
-            float rawFactor = Mathf.Clamp01((edgeThreshold - pointerPos.x) / edgeThreshold);
+            float minX = float.MaxValue;
+            float maxX = float.MinValue;
+
+            // Get ALL RectTransforms (including root)
+            var rects = _currentItem.GetComponentsInChildren<RectTransform>();
+            Vector3[] corners = new Vector3[4];
+            
+            // Camera setup
+            Canvas c = _currentItem.GetComponentInParent<Canvas>();
+            Camera cam = (c != null && c.renderMode != RenderMode.ScreenSpaceOverlay) ? c.worldCamera : null;
+            if (cam == null) cam = Camera.main;
+            bool isScreenSpaceOverlay = (c != null && c.renderMode == RenderMode.ScreenSpaceOverlay);
+
+            foreach (var rt in rects)
+            {
+                // Optimization: Ignore non-visible or zero-scale items? 
+                // For now, check all.
+                
+                rt.GetWorldCorners(corners);
+                for(int i=0; i<4; i++)
+                {
+                    Vector2 screenPoint = corners[i];
+                    if (!isScreenSpaceOverlay && cam != null)
+                    {
+                        screenPoint = cam.WorldToScreenPoint(corners[i]);
+                    }
+                    
+                    if (screenPoint.x < minX) minX = screenPoint.x;
+                    if (screenPoint.x > maxX) maxX = screenPoint.x;
+                }
+            }
+            
+            // Combined Logic:
+            // Left Scroll: Use Left-most child edge vs Left Screen Edge
+            leftEdgeVal = Mathf.Min(leftEdgeVal, minX);
+            
+            // Right Scroll: Use Right-most child edge vs Right Screen Edge
+            rightEdgeVal = Mathf.Max(rightEdgeVal, maxX);
+        }
+
+        // Left Edge Logic
+        if (leftEdgeVal < edgeThreshold)
+        {
+            float rawFactor = Mathf.Clamp01((edgeThreshold - leftEdgeVal) / edgeThreshold);
             float factor = Mathf.Lerp(minFactor, 1f, rawFactor);
             return maxScrollSpeed * factor; 
         }
-        // Right Edge
-        else if (pointerPos.x > screenWidth - edgeThreshold)
+        // Right Edge Logic
+        else if (rightEdgeVal > screenWidth - edgeThreshold)
         {
-            float distFromEdge = pointerPos.x - (screenWidth - edgeThreshold);
+            float distFromEdge = rightEdgeVal - (screenWidth - edgeThreshold);
             float rawFactor = Mathf.Clamp01(distFromEdge / edgeThreshold);
             float factor = Mathf.Lerp(minFactor, 1f, rawFactor);
             return -maxScrollSpeed * factor;
