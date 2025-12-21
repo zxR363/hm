@@ -201,6 +201,8 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             }
 
             // 2. Visual Bounds (RectTransforms including children)
+            // REVERTED: User requested to use Visual Bounds again.
+            // Requirement: Clamp based on the WIDEST part (Visuals).
             var rects = dragGhost.GetComponentsInChildren<RectTransform>();
             Vector3[] corners = new Vector3[4];
             
@@ -239,32 +241,33 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 Camera cam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
                 if (cam == null && canvas.renderMode != RenderMode.ScreenSpaceOverlay) cam = Camera.main;
 
+                // REVERTED: Allow 15 pixels of "Bleed" (Tolerance) regarding the VISUAL EDGE.
+                float pixelBuffer = 30f;
+                Rect expandedRect = Screen.safeArea;
+                expandedRect.xMin -= pixelBuffer;
+                expandedRect.yMin -= pixelBuffer;
+                expandedRect.xMax += pixelBuffer;
+                expandedRect.yMax += pixelBuffer;
+                
                 Vector3 screenMin, screenMax;
 
                 if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
                 {
-                    Rect safeArea = Screen.safeArea;
-                    screenMin = new Vector3(safeArea.xMin, safeArea.yMin, -float.MaxValue);
-                    screenMax = new Vector3(safeArea.xMax, safeArea.yMax, float.MaxValue);
+                    screenMin = new Vector3(expandedRect.xMin, expandedRect.yMin, -float.MaxValue);
+                    screenMax = new Vector3(expandedRect.xMax, expandedRect.yMax, float.MaxValue);
                 }
                 else
                 {
-                    Rect safeArea = Screen.safeArea;
                     float zDepth = dragGhost.transform.position.z - cam.transform.position.z;
-                    screenMin = cam.ScreenToWorldPoint(new Vector3(safeArea.xMin, safeArea.yMin, zDepth));
-                    screenMax = cam.ScreenToWorldPoint(new Vector3(safeArea.xMax, safeArea.yMax, zDepth));
+                    screenMin = cam.ScreenToWorldPoint(new Vector3(expandedRect.xMin, expandedRect.yMin, zDepth));
+                    screenMax = cam.ScreenToWorldPoint(new Vector3(expandedRect.xMax, expandedRect.yMax, zDepth));
                 }
 
-                // Intersect Parent Bounds with Screen Bounds
-                // USER REQUEST: Allow 10 pixels of "Bleed" (Tolerance) outside the screen
-                float buffer = 10f;
-                // Note: rootMin/Max are parent bounds (usually infinite/large for Game Area), Screen is the limit.
-                // We loosen the SCREEN limits.
-                Vector3 looseScreenMin = screenMin - new Vector3(buffer, buffer, 0);
-                Vector3 looseScreenMax = screenMax + new Vector3(buffer, buffer, 0);
-
-                Vector3 finalMin = Vector3.Max(rootMin, looseScreenMin);
-                Vector3 finalMax = Vector3.Min(rootMax, looseScreenMax);
+                // FIX: Do NOT intersect with rootMin/rootMax (Parent/Canvas Bounds).
+                // The Canvas Bounds are strict (0,0), so Intersecting (Max) would cancel out our negative buffer (-15).
+                // Since dragRoot is the Root Canvas, Screen Bounds (Buffered) are sufficient and more correct.
+                Vector3 finalMin = screenMin;
+                Vector3 finalMax = screenMax;
 
                 Vector3 currentPos = dragGhost.transform.position;
                 Vector3 clampedPos = currentPos;

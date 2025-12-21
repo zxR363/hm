@@ -657,29 +657,34 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
             Camera cam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
             if (cam == null && canvas.renderMode != RenderMode.ScreenSpaceOverlay) cam = Camera.main;
 
+            // USER REQUEST: Allow 15 pixels of "Bleed" (Tolerance) outside the screen
+            // We expand the Screen/SafeArea Rect by 15 pixels on all sides
+            float pixelBuffer = 30f;
+            Rect expandedRect = Screen.safeArea;
+            expandedRect.xMin -= pixelBuffer;
+            expandedRect.yMin -= pixelBuffer;
+            expandedRect.xMax += pixelBuffer;
+            expandedRect.yMax += pixelBuffer;
+
             Vector3 screenMin, screenMax;
 
             if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
             {
-                Rect safeArea = Screen.safeArea;
-                screenMin = new Vector3(safeArea.xMin, safeArea.yMin, -float.MaxValue);
-                screenMax = new Vector3(safeArea.xMax, safeArea.yMax, float.MaxValue);
+                screenMin = new Vector3(expandedRect.xMin, expandedRect.yMin, -float.MaxValue);
+                screenMax = new Vector3(expandedRect.xMax, expandedRect.yMax, float.MaxValue);
             }
             else
             {
                 // For Camera modes, convert Safe Area to World Space
-                Rect safeArea = Screen.safeArea;
                 // Use the object's depth for accurate conversion
                 float zDepth = transform.position.z - cam.transform.position.z;
-                screenMin = cam.ScreenToWorldPoint(new Vector3(safeArea.xMin, safeArea.yMin, zDepth));
-                screenMax = cam.ScreenToWorldPoint(new Vector3(safeArea.xMax, safeArea.yMax, zDepth));
+                screenMin = cam.ScreenToWorldPoint(new Vector3(expandedRect.xMin, expandedRect.yMin, zDepth));
+                screenMax = cam.ScreenToWorldPoint(new Vector3(expandedRect.xMax, expandedRect.yMax, zDepth));
             }
 
             // Use Screen Bounds directly
-            // USER REQUEST: Allow 10 pixels of "Bleed" (Tolerance) outside the screen
-            float buffer = 10f;
-            Vector3 finalMin = screenMin - new Vector3(buffer, buffer, 0);
-            Vector3 finalMax = screenMax + new Vector3(buffer, buffer, 0);
+            Vector3 finalMin = screenMin;
+            Vector3 finalMax = screenMax;
 
             // Calculate Shift needed to keep Bounds inside Screen
             Vector3 shift = Vector3.zero;
