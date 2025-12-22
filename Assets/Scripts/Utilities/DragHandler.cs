@@ -67,7 +67,6 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         // Setup filter for triggers/colliders
         _contactFilter.useTriggers = true;
         _contactFilter.useLayerMask = false; // Check all layers or specify if needed
-        _contactFilter.useLayerMask = false; // Check all layers or specify if needed
         _itemPlacement = GetComponent<ItemPlacement>();
         _customGravity = GetComponent<CustomGravity>();
         
@@ -467,6 +466,24 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
 
     if (IsValidPlacement)
     {
+        // USER REQUEST: If valid drop AND has CustomGravity (Physics Item), 
+        // ensure it belongs to the Room Panel (detach from any stack).
+        // This prevents items from staying children of other items after being moved away.
+        // USER REQUEST: If valid drop, 
+        // ensure it belongs to the Room Panel (detach from any stack).
+        // This prevents items from staying children of other items after being moved away.
+        // REMOVED CustomGravity check: Applies to ALL items now.
+        IRoomPanel room = FindRoomPanelUnderMouse();
+        if (room != null)
+        {
+             Transform targetContainer = room.objectContainer != null ? room.objectContainer : room.transform;
+             if (transform.parent != targetContainer)
+             {
+                 transform.SetParent(targetContainer, true);
+                 // Debug.Log($"[DragHandler] EndDrag: Reparented to {room.name}");
+             }
+        }
+
         // Restore Default Sorting Order (Recursive)
         // This brings the object back to the "Interaction Layer" (e.g. 50)
         Canvas c = GetDepthCanvas();
@@ -730,5 +747,32 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
             bounds.Encapsulate(colliders[i].bounds);
         }
         return bounds;
+    }
+
+    // Helper from ItemDragPanel logic
+    private IRoomPanel FindRoomPanelUnderMouse()
+    {
+        PointerEventData pointerData = new PointerEventData(EventSystem.current)
+        {
+            position = Input.mousePosition
+        };
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, results);
+
+        foreach (var result in results)
+        {
+            // Skip self
+            if (result.gameObject == gameObject) continue;
+
+            var panel = result.gameObject.GetComponent<IRoomPanel>();
+            if (panel == null) panel = result.gameObject.GetComponentInParent<IRoomPanel>();
+
+            if (panel != null && panel.gameObject.activeInHierarchy)
+            {
+                return panel;
+            }
+        }
+        return null;
     }
 }

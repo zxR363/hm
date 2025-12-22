@@ -31,22 +31,11 @@ public class CustomGravity : MonoBehaviour
 
     public void StartFalling()
     {
-        // USER REQUEST: If already on an ILocation, do NOT start gravity logic.
-        // Check exact center point for an ILocation
-        Collider2D hit = Physics2D.OverlapPoint(transform.position, _contactFilter.layerMask);
-        if (hit != null)
-        {
-             bool isLocation = hit.GetComponent<ILocation>() != null || hit.GetComponentInParent<ILocation>() != null;
-             if (isLocation)
-             {
-                 // We are safe. Don't fall, don't snap. Just stay.
-                 _isFalling = false;
-                 Debug.Log($"[CustomGravity] Already on Location {hit.name}. Fall Cancelled.");
-                 return;
-             }
-        }
-
+        // USER FIX: Removed "OverlapPoint" safety check. 
+        // It was preventing falling if we dropped near a location but not exactly on it.
+        // We will let HandleFall() decide if we are grounded.
         _isFalling = true; // Start falling
+        // _snapTarget = null; // Removed
     }
 
     public void StopFalling()
@@ -138,7 +127,13 @@ public class CustomGravity : MonoBehaviour
                 {
                     // Landed!
                     _isFalling = false;
-                    Debug.Log($"[CustomGravity] Landed on {hit.collider.name}. (Loc: {isLocation}, Gnd: {isSolidGround}, Norm: {hit.normal})");
+                    
+                    // PROPOSED CHANGE: Parent to the object we landed on (Stacking)
+                    // This ensures that if we land on Item B, and B moves, we move with it.
+                    // If we land on Ground, we detach from B and attach to Ground.
+                    transform.SetParent(hit.transform, true);
+
+                    Debug.Log($"[CustomGravity] Landed on {hit.collider.name}. Parented to it.");
                     return;
                 }
             }
