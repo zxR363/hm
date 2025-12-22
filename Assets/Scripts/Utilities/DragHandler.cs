@@ -15,9 +15,10 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     [Header("Depth Sorting (Collision)- Derinlik Sıralama")]
     [Tooltip("If true, this item will adjust its Canvas SortingOrder based on Y-position collisions.")]
-    [SerializeField] private bool enableDepthSorting = true;
+    [SerializeField] private bool enableDepthSorting = false;
     
     [Header("Bos olmaması gerekiyor derinliğe göre hangi canvas ayarlanacak")]
+    [Header("Kendi Image'i olacak")]
     [Tooltip("The Canvas to adjust. If null, uses the one on this object.")]
     [SerializeField] private Canvas explicitDepthCanvas; 
 
