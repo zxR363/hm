@@ -39,7 +39,7 @@ public class RoomObject : MonoBehaviour
 
         // Find the parent RoomPanel
         _currentRoomPanel = GetComponentInParent<RoomPanel>();
-        Debug.Log($"[RoomObject] {name} INITIALIZED. Parent Panel: {(_currentRoomPanel != null ? _currentRoomPanel.name : "NULL")}");
+        //Debug.Log($"[RoomObject] {name} INITIALIZED. Parent Panel: {(_currentRoomPanel != null ? _currentRoomPanel.name : "NULL")}");
 
         if (_currentRoomPanel != null)
         {
@@ -56,7 +56,7 @@ public class RoomObject : MonoBehaviour
 
     private void OnDestroy()
     {
-        Debug.Log($"[RoomObject] OnDestroy called for {name}. Unregistering from Panel: {(_currentRoomPanel != null ? _currentRoomPanel.name : "NULL")}");
+        //Debug.Log($"[RoomObject] OnDestroy called for {name}. Unregistering from Panel: {(_currentRoomPanel != null ? _currentRoomPanel.name : "NULL")}");
         if (_currentRoomPanel != null)
         {
             _currentRoomPanel.UnregisterObject(this.gameObject);

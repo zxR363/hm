@@ -39,6 +39,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     // Cache for child canvases to support recursive sorting
     private Canvas[] _childCanvases;
 
+    private CustomGravity _customGravity;
     private ItemPlacement _itemPlacement;
     private UIStickerEffect[] _stickerEffects; // Changed to array
     private Collider2D _dragCollider;
@@ -65,7 +66,10 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         // Setup filter for triggers/colliders
         _contactFilter.useTriggers = true;
         _contactFilter.useLayerMask = false; // Check all layers or specify if needed
+        _contactFilter.useLayerMask = false; // Check all layers or specify if needed
         _itemPlacement = GetComponent<ItemPlacement>();
+        _customGravity = GetComponent<CustomGravity>();
+        
         // Find all sticker effects in children as well
         _stickerEffects = GetComponentsInChildren<UIStickerEffect>(true);
         _dragCollider = GetComponentInChildren<Collider2D>(); // Changed to include children
@@ -194,6 +198,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
         _isDragging = true;
         _lastPointerData = eventData;
+        
+        if (_customGravity != null) _customGravity.StopFalling();
     }
 
     private bool _wasHoveringBin = false;
@@ -437,7 +443,10 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
     public void OnEndDrag(PointerEventData eventData)
     {
         _isDragging = false;
+        _isDragging = false;
         canvasGroup.blocksRaycasts = true;
+        
+        if (_customGravity != null) _customGravity.StartFalling();
         
         // Check for Garbage Bin Drop
         if (GarbageBinController.Instance != null)

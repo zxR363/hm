@@ -132,6 +132,15 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         // Geçici görsel kopya oluştur
         dragGhost = Instantiate(itemPrefab, transform.position, Quaternion.identity, dragRoot);
 
+        // USER REQUEST: Disable Physics while dragging (Ghost)
+        Rigidbody2D rb = dragGhost.GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
+
         // PERSISTENCE: Pass the Resource Path to the new object
         RoomObject ghostRoomObj = dragGhost.GetComponent<RoomObject>();
         if (ghostRoomObj == null) ghostRoomObj = dragGhost.AddComponent<RoomObject>();
@@ -641,6 +650,15 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             if (handler != null)
             {
                 handler.UpdateCurrentPositionAsValid();
+            }
+
+            // USER REQUEST: Enable Gravity/Physics on Drop (Initial Spawn)
+            Rigidbody2D rb = dragGhost.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.isKinematic = false;
+                rb.velocity = Vector2.zero;
+                rb.angularVelocity = 0f;
             }
             
             Debug.Log($"Item {targetPanel.name} paneline bırakıldı.");
