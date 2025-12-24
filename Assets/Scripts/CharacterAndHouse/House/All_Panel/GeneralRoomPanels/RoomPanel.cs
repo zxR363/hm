@@ -90,9 +90,17 @@ public class RoomPanel : MonoBehaviour
             }
         }
         
+        // PHASE 4: PARENT LOGIC RESTORATION (Post-Spawn)
+        // Now that everyone is spawned, we must re-attach items to their "Gravity Parents" (Stacking).
+        // If "Apple" was saved while child of "Table", we find "Table" now and attach "Apple".
+        RestoreObjectHierarchy();
+
         _isLoading = false;
         _savedStateCache = null; // Cleanup
     }
+    
+    // NEW: Restore Parent-Child Relationships
+
 
     private string GetUniqueID(GameObject obj)
     {
@@ -183,6 +191,13 @@ public class RoomPanel : MonoBehaviour
             
             data = savedData;
             data.instance = obj;
+            
+            // FIX FOR SCENE OBJECTS: Stop gravity here too!
+            if (obj.TryGetComponent<CustomGravity>(out var gravity))
+            {
+               if (obj.name.Contains("Hummer")) Debug.Log($"[RoomPanel] RegisterObject CACHE HIT calling DisableAutoStart for {obj.name}. Frame: {Time.frameCount}");
+               gravity.DisableAutoStart();
+            }
         }
         else
         {
@@ -276,7 +291,93 @@ public class RoomPanel : MonoBehaviour
                  data.customStates["interactedSource"] = interaction.CurrentSourceItemName;
             }
         }
+        
+        // NEW: Save Parent Information (if attached to another RoomObject)
+        if (obj.transform.parent != null && obj.transform.parent != objectContainer) // Ensure we're not just parented to the root container
+        {
+             // FIX: Use GetComponentInParent to find the Root RoomObject even if attached to a child collider (Surface/Bone)
+             // AND INCLUDE INACTIVE: Because sometimes objects are inactive during save/cleanup.
+             var parents = obj.transform.parent.GetComponentsInParent<RoomObject>(true);
+             RoomObject parentRO = parents.Length > 0 ? parents[0] : null;
+             
+
+
+
+
+             // Ensure we don't pick ourselves and ensure it's not the RoomPanel itself (checked generic)
+             if (parentRO != null && parentRO.gameObject != obj.gameObject)
+             {
+                 // We are attached to another item (Stacking!)
+                 string pId = GetUniqueID(parentRO.gameObject);
+                 
+             if (data.objectID.Contains("Hummer")) Debug.Log($"[RoomPanel] FLOW: Found Parent RO '{parentRO.name}'. ID: '{pId}'");
+             
+             try 
+             {
+                 data.customStates["attachedParent"] = pId;
+             }
+             catch (System.Exception e)
+             {
+                 Debug.LogError($"[RoomPanel] EXCEPTION setting attachedParent: {e}");
+             }
+
+                 // NEW: Save the precise transform node (e.g. "Visuals/Surface")
+
+                 // NEW: Save the precise transform node (e.g. "Visuals/Surface")
+                 // because parenting to "Table" vs "Table/Surface" changes where LocalPosition puts us.
+                 string childPath = GetPathFromAncestor(parentRO.transform, obj.transform.parent);
+                 
+                 // DEBUG LOGGING
+                 /*
+                 if (!string.IsNullOrEmpty(childPath))
+                 {
+                     Debug.Log($"[RoomPanel] DEEP HIERARCHY: {obj.name} -> {parentRO.name} (via '{childPath}')");
+                 }
+                 */
+                 
+                 if (!string.IsNullOrEmpty(childPath))
+                 {
+                     data.customStates["attachedChildPath"] = childPath;
+                 }
+                 else
+                 {
+                     data.customStates.Remove("attachedChildPath");
+                 }
+             }
+             else
+             {
+                 // Parent is null or it is the container
+                 data.customStates.Remove("attachedParent");
+                 data.customStates.Remove("attachedChildPath");
+             }
+        }
+        else
+        {
+            // Parent is null or it is the container
+             data.customStates.Remove("attachedParent");
+             data.customStates.Remove("attachedChildPath");
+        }
+        
+        // Debug.Log($"[RoomPanel] Final States for {obj.name}: {string.Join(", ", data.customStates.Keys)}");
     }
+    
+    private string GetPathFromAncestor(Transform ancestor, Transform current)
+    {
+        if (current == ancestor) return "";
+        
+        string path = current.name;
+        Transform ptr = current.parent;
+        
+        while (ptr != null && ptr != ancestor)
+        {
+            path = ptr.name + "/" + path;
+            ptr = ptr.parent;
+        }
+        
+        if (ptr == null) return ""; // Ancestor not found in chain?
+        return path;
+    }
+
 
     public void SaveRoomState()
     {
@@ -330,12 +431,27 @@ public class RoomPanel : MonoBehaviour
             }
 
             UpdateObjectData(data, obj);
-            data.OnBeforeSerialize();
+            
+            // MANUAL SYNC (Refactored): Call the internal method to sync Lists
+            data.ForceSync();
+            
             newObjects.Add(data);
         }
 
         wrapper.objects.AddRange(newObjects);
         
+        // DEBUG: Audit Tracked Objects
+        Debug.Log($"[RoomPanel] --- AUDIT START ({trackedObjects.Count} objects) ---");
+        int hummerCount = 0;
+        foreach(var kvp in trackedObjects) {
+             var d = kvp.Value;
+             var o = d.instance;
+             string pName = o != null && o.transform.parent != null ? o.transform.parent.name : "NULL";
+             Debug.Log($"[Audit] ID: {d.objectID} | Name: {o.name} | Parent: {pName} | InstanceID: {kvp.Key}");
+             if (o.name.Contains("Hummer")) hummerCount++;
+        }
+        Debug.Log($"[RoomPanel] --- AUDIT END (Hummer Count: {hummerCount}) ---");
+
         // 4. Save DELETED Objects
         if (_runtimeDeletedIDs != null && _runtimeDeletedIDs.Count > 0)
         {
@@ -434,6 +550,13 @@ public class RoomPanel : MonoBehaviour
                 Debug.Log($"[RoomPanel {this.GetInstanceID()}] Pre-Spawn Cache Injection for {data.objectID}.");
 
                 GameObject instance = Instantiate(prefabToSpawn, parent);
+                
+                // CRITICAL FIX: Stop gravity immediately so it doesn't fall while we are restoring data
+                if (instance.TryGetComponent<CustomGravity>(out var gravity))
+                {
+                    if (instance.name.Contains("Hummer")) Debug.Log($"[RoomPanel] Calling DisableAutoStart for {instance.name}. Frame: {Time.frameCount}");
+                    gravity.DisableAutoStart();
+                }
                 
                 // ENSURE ROOM OBJECT EXISTS & HAS PATH
                 RoomObject roomObj = instance.GetComponent<RoomObject>();
@@ -547,5 +670,106 @@ public class RoomPanel : MonoBehaviour
                 Destroy(kvp.Value.instance);
         }
         trackedObjects.Clear();
+    }
+
+    private void RestoreObjectHierarchy()
+    {
+        Debug.Log($"[RoomPanel] RestoreObjectHierarchy Started. Processing {trackedObjects.Count} objects.");
+        
+        foreach (var kvp in trackedObjects)
+        {
+            RoomObjectData data = kvp.Value;
+            GameObject childObj = data.instance;
+
+            if (childObj == null) continue;
+            
+            // Check if this object should have a parent
+            if (data.customStates.TryGetValue("attachedParent", out string parentID))
+            {
+                // Find parent object
+                GameObject parentObj = null;
+                
+                // 1. Try finding in tracked objects (fast, precise)
+                foreach(var potentialParent in trackedObjects.Values)
+                {
+                    if (potentialParent.objectID == parentID && potentialParent.instance != null)
+                    {
+                        parentObj = potentialParent.instance;
+                        break;
+                    }
+                }
+                
+                if (parentObj != null)
+                {
+                    Transform targetParent = parentObj.transform;
+                    
+                    // DEEP HIERARCHY: Check if we need to attach to a specific child node
+                    if (data.customStates.TryGetValue("attachedChildPath", out string childPath))
+                    {
+                        Transform deepTarget = targetParent.Find(childPath);
+                        if (deepTarget != null)
+                        {
+                            targetParent = deepTarget;
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[RoomPanel] parent found '{parentObj.name}' but failed to find child path '{childPath}'. Defaulting to root.");
+                        }
+                    }
+
+                    // PERFORM REPARENTING
+                    childObj.transform.SetParent(targetParent, true); 
+                    
+                    if (childObj.name.Contains("Hummer")) Debug.Log($"[RoomPanel] REPARENTED Hummer to {targetParent.name}. Frame: {Time.frameCount}");
+
+                    if (childObj.name.Contains("Hummer")) Debug.Log($"[RoomPanel] REPARENTED Hummer to {targetParent.name}. Frame: {Time.frameCount}");
+
+                    // CANVAS SYNC: Main Gameobject (childObj) keeps its canvas. 
+                    // Children under it take canvas value from it.
+                    Canvas mainCanvas = childObj.GetComponent<Canvas>();
+                    
+                    // If the main object doesn't have a canvas, maybe we should look for one? 
+                    // But per user instruction, we look for "Ana Gameobject'in canvası" (Main GameObject's Canvas).
+                    // Assuming childObj is the Main GameObject being loaded.
+                    
+                    if (mainCanvas != null)
+                    {
+                        var nestedCanvases = childObj.GetComponentsInChildren<Canvas>(true);
+                        foreach (var cc in nestedCanvases)
+                        {
+                             // Skip the main canvas itself
+                             if (cc == mainCanvas) continue;
+                             
+                             cc.overrideSorting = true;
+                             cc.sortingLayerID = mainCanvas.sortingLayerID;
+                             cc.sortingOrder = mainCanvas.sortingOrder;
+                        }
+                        if (childObj.name.Contains("Hummer")) Debug.Log($"[RoomPanel] Internal Canvas Sync for {childObj.name}. Sub-canvases set to Order: {mainCanvas.sortingOrder}");
+                    }
+
+                    // Reset local transform properties if needed
+                    if (childObj.TryGetComponent<RectTransform>(out var rect))
+                    {
+                        rect.anchoredPosition3D = data.position;
+                    }
+                    else
+                    {
+                        childObj.transform.localPosition = data.position;
+                    }
+                    
+                    // CRITICAL: Stop gravity immediately so it doesn't fall off or reparent itself to floor
+                    if (childObj.TryGetComponent<CustomGravity>(out var gravity))
+                    {
+                        gravity.StopFalling();
+                    }
+                    
+                    Debug.Log($"[RoomPanel] RESTORE SUCCESS: {childObj.name} attached to {targetParent.name}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[RoomPanel] Restore Failed for {childObj.name}. Target Parent '{parentID}' not found.");
+                }
+            }
+        }
     }
 }

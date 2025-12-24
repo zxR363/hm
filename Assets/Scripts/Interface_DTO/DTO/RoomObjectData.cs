@@ -21,15 +21,22 @@ public class RoomObjectData : ISerializationCallbackReceiver
 
     public GameObject instance; // Sahnedeki obje referansı
 
-    public void OnBeforeSerialize()
+    // MANUAL SYNC METHOD
+    public void ForceSync()
     {
         _stateKeys.Clear();
         _stateValues.Clear();
+        
         foreach(var kvp in customStates)
         {
             _stateKeys.Add(kvp.Key);
             _stateValues.Add(kvp.Value);
         }
+    }
+
+    public void OnBeforeSerialize()
+    {
+        // Intentionally empty. We use ForceSync() manually.
     }
 
     public void OnAfterDeserialize()

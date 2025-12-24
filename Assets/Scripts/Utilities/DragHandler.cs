@@ -477,11 +477,15 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
         if (room != null)
         {
              Transform targetContainer = room.objectContainer != null ? room.objectContainer : room.transform;
+             // FIX: We DISABLED this check because it forces the object to DETACH from the Desk/Surface it just landed on (via CustomGravity).
+             // To support "Deep Hierarchy" (Stacking), we must allow it to stay as a child of the Desk.
+             /*
              if (transform.parent != targetContainer)
              {
                  transform.SetParent(targetContainer, true);
                  // Debug.Log($"[DragHandler] EndDrag: Reparented to {room.name}");
              }
+             */
         }
 
         // Restore Default Sorting Order (Recursive)

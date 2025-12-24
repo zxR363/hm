@@ -23,10 +23,23 @@ public class CustomGravity : MonoBehaviour
         // Debug.Log($"[CustomGravity] Initialized. Ground Layer: {groundLayer.value}");
     }
 
+    private bool _autoStart = true;
+
     private void Start()
     {
-        // USER REQUEST: Start falling immediately if not grounded
-        StartFalling(); 
+        // DEBUG
+        if (_autoStart && gameObject.name.Contains("Hummer")) 
+             Debug.Log($"[CustomGravity] Start() Running for {name}. _autoStart: {_autoStart}. Frame: {Time.frameCount}");
+
+        // USER REQUEST: Start falling immediately if not grounded, UNLESS manually stopped
+        if (_autoStart) StartFalling(); 
+    }
+
+    public void DisableAutoStart()
+    {
+        if (name.Contains("Hummer")) Debug.Log($"[CustomGravity] DisableAutoStart Called for {name}. Frame: {Time.frameCount}");
+        _autoStart = false;
+        _isFalling = false;
     }
 
     public void StartFalling()
@@ -132,8 +145,12 @@ public class CustomGravity : MonoBehaviour
                     // This ensures that if we land on Item B, and B moves, we move with it.
                     // If we land on Ground, we detach from B and attach to Ground.
                     transform.SetParent(hit.transform, true);
+                    
+                    // FORCE UPDATE TRANSFORM to ensure Unity registers the change immediately
+                    transform.hasChanged = true;
 
-                    Debug.Log($"[CustomGravity] Landed on {hit.collider.name}. Parented to it.");
+                    if (name.Contains("Hummer"))
+                         Debug.Log($"[CustomGravity] LANDED! Parented to {hit.collider.name}. New Parent: {transform.parent.name}. Frame: {Time.frameCount}");
                     return;
                 }
             }
