@@ -37,9 +37,27 @@ public class RoomObjectInteraction : MonoBehaviour, IInteractable
             
             if (lastSlashIndex >= 0)
             {
-                 // Replace the last folder segment with "Items"
-                 // Example: "Prefabs/.../FurnitureContent" -> "Prefabs/.../Items"
-                 basePath = basePath.Substring(0, lastSlashIndex + 1) + "Items";
+                 // We want to replace the folder name containing the item (e.g. WallAndFloorContent) with "Items"
+                 // Current Path: .../HouseScene/WallAndFloorContent/Wall1
+                 // Desired Path: .../HouseScene/Items/Wall1
+                 
+                 // 1. Get the directory path (excluding filename)
+                 string directoryPath = basePath.Substring(0, lastSlashIndex); 
+                 
+                 // 2. Find the parent of this directory
+                 int parentSlashIndex = directoryPath.LastIndexOf('/');
+                 
+                 if (parentSlashIndex >= 0)
+                 {
+                     // extract ".../HouseScene/"
+                     string parentPath = directoryPath.Substring(0, parentSlashIndex + 1);
+                     basePath = parentPath + "Items";
+                 }
+                 else
+                 {
+                     // Fallback if at root
+                     basePath = "Items";
+                 }
             }
             // If no slash, it's a top-level folder? Unlikely, but just use as is or append /Items?
             // Let's assume there's always a Scene folder before it.
@@ -199,6 +217,8 @@ public class RoomObjectInteraction : MonoBehaviour, IInteractable
         Debug.Log("BAKALIM)="+sourceItemName);
         if (prefab == null) prefab = Resources.Load<GameObject>($"{sourceItemName}");
         if (prefab == null) prefab = Resources.Load<GameObject>($"Prefabs/{sourceItemName}");
+        
+
         // Specific Paths (REQUIRED for Legacy "Name-Only" Saves like 'TestWall')
         // if (prefab == null) prefab = Resources.Load<GameObject>($"Prefabs/RoomItems/HouseScene/{sourceItemName}");
         // if (prefab == null) prefab = Resources.Load<GameObject>($"Prefabs/RoomItems/HouseScene/Items/{sourceItemName}");
