@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-[ExecuteAlways]
+[ExecuteAlways] // Disabled to prevent Graphic Rebuild Loop in Editor
 [RequireComponent(typeof(SpriteRenderer))]
 public class SpriteSettingsApplier : MonoBehaviour
 {
@@ -23,11 +23,18 @@ public class SpriteSettingsApplier : MonoBehaviour
     void OnValidate()
     {
         if (sr == null) sr = GetComponent<SpriteRenderer>();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.delayCall += () => {
+            if (this != null) ApplySettingsIfSpriteChanged();
+        };
+#else
         ApplySettingsIfSpriteChanged();
+#endif
     }
 
     void Update()
     {
+        // DISABLED for Layout Debugging
         if (sr == null) sr = GetComponent<SpriteRenderer>();
         ApplySettingsIfSpriteChanged();
     }
@@ -50,8 +57,12 @@ public class SpriteSettingsApplier : MonoBehaviour
         var setting = database.GetSetting(sr.sprite);
         if (setting != null)
         {
-            transform.localPosition = setting.position;
-            transform.localScale = setting.scale;
+            // Only apply if changed to prevent dirty loop in Editor
+            if (Vector3.SqrMagnitude(transform.localPosition - setting.position) > 0.0001f)
+                transform.localPosition = setting.position;
+
+            if (Vector3.SqrMagnitude(transform.localScale - setting.scale) > 0.0001f)
+                transform.localScale = setting.scale;
         }
     }
 

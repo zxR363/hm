@@ -18,7 +18,13 @@ public class ScrollOptimizer : MonoBehaviour
 
     private void OnValidate()
     {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.delayCall += () => {
+            if (this != null) ApplySettings();
+        };
+#else
         ApplySettings();
+#endif
     }
 
     public void ApplySettings()

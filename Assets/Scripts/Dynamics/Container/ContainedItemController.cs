@@ -39,7 +39,6 @@ public class ContainedItemController : MonoBehaviour
         {
             ReattachToContainer();
         }
-
     }
 
     private bool IsInsideContainerArea()

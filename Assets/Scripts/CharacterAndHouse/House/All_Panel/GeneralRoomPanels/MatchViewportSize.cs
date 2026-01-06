@@ -4,7 +4,7 @@ using UnityEngine.UI;
 // Odaların scale edilmesini sağlıyor.
 
 [RequireComponent(typeof(LayoutElement))]
-[ExecuteInEditMode] // Runs in editor to see changes immediately
+// [ExecuteInEditMode] // Runs in editor to see changes immediately -- DISABLED: Causes layout loops
 public class MatchViewportSize : MonoBehaviour
 {
     private RectTransform myRect;
@@ -19,14 +19,15 @@ public class MatchViewportSize : MonoBehaviour
 
     private void Start()
     {
-        UpdateSize();
+        // UpdateSize(); // Disabled: Conflicts with Responsive Anchors
     }
 
     private void OnRectTransformDimensionsChange()
     {
-        UpdateSize();
+        // UpdateSize(); // Disabled: Conflicts with Responsive Anchors
     }
 
+/*
 #if UNITY_EDITOR
     private void Update()
     {
@@ -37,6 +38,7 @@ public class MatchViewportSize : MonoBehaviour
         }
     }
 #endif
+*/
 
     public void UpdateSize()
     {
@@ -53,8 +55,11 @@ public class MatchViewportSize : MonoBehaviour
         if (parentViewport != null)
         {
             // Set preferred size to match the viewport's rect width/height
-            layoutElement.preferredWidth = parentViewport.rect.width;
-            layoutElement.preferredHeight = parentViewport.rect.height;
+            if (Mathf.Abs(layoutElement.preferredWidth - parentViewport.rect.width) > 0.1f)
+                layoutElement.preferredWidth = parentViewport.rect.width;
+                
+            if (Mathf.Abs(layoutElement.preferredHeight - parentViewport.rect.height) > 0.1f)
+                layoutElement.preferredHeight = parentViewport.rect.height;
         }
     }
 }

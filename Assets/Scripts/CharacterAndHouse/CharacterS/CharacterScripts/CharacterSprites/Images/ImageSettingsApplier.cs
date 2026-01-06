@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEditor;
 #endif
 
-[ExecuteAlways]
+[ExecuteAlways] // Disabled to prevent Graphic Rebuild Loop in Editor
 [RequireComponent(typeof(Image))]
 public class ImageSettingsApplier : MonoBehaviour
 {
@@ -24,13 +24,22 @@ public class ImageSettingsApplier : MonoBehaviour
     void OnValidate()
     {
         if (img == null) img = GetComponent<Image>();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.delayCall += () => {
+            if (this != null) ApplySettingsIfSpriteChanged();
+        };
+#else
         ApplySettingsIfSpriteChanged();
+#endif
     }
 
     void Update()
     {
+        // DISABLED for Layout Debugging
+        
         if (img == null) img = GetComponent<Image>();
         ApplySettingsIfSpriteChanged();
+        
     }
 
     void ApplySettingsIfSpriteChanged()
@@ -51,8 +60,12 @@ public class ImageSettingsApplier : MonoBehaviour
         var setting = database.GetSetting(img.sprite);
         if (setting != null)
         {
-            transform.localPosition = setting.position;
-            transform.localScale = setting.scale;
+            // Only apply if changed to prevent dirty loop in Editor
+            if (Vector3.SqrMagnitude(transform.localPosition - setting.position) > 0.0001f)
+                transform.localPosition = setting.position;
+
+            if (Vector3.SqrMagnitude(transform.localScale - setting.scale) > 0.0001f)
+                transform.localScale = setting.scale;
         }
     }
 

@@ -28,8 +28,8 @@ public class CustomGravity : MonoBehaviour
     private void Start()
     {
         // DEBUG
-        if (_autoStart && gameObject.name.Contains("Hummer")) 
-             Debug.Log($"[CustomGravity] Start() Running for {name}. _autoStart: {_autoStart}. Frame: {Time.frameCount}");
+        // if (_autoStart && gameObject.name.Contains("Hummer")) 
+        //      Debug.Log($"[CustomGravity] Start() Running for {name}. _autoStart: {_autoStart}. Frame: {Time.frameCount}");
 
         // USER REQUEST: Start falling immediately if not grounded, UNLESS manually stopped
         if (_autoStart) StartFalling(); 
@@ -37,7 +37,7 @@ public class CustomGravity : MonoBehaviour
 
     public void DisableAutoStart()
     {
-        if (name.Contains("Hummer")) Debug.Log($"[CustomGravity] DisableAutoStart Called for {name}. Frame: {Time.frameCount}");
+        // if (name.Contains("Hummer")) Debug.Log($"[CustomGravity] DisableAutoStart Called for {name}. Frame: {Time.frameCount}");
         _autoStart = false;
         _isFalling = false;
     }
@@ -60,7 +60,11 @@ public class CustomGravity : MonoBehaviour
     {
         if (_isFalling)
         {
-            HandleFall();
+             // DEBUG: Check if Gravity is active
+             if (Time.frameCount % 60 == 0) Debug.Log($"[CustomGravity] {name} is STILL FALLING. This might cause layout updates.");
+             // FIXME: Temporarily disable fall to test loop
+             // HandleFall(); 
+             HandleFall();
         }
     }
 

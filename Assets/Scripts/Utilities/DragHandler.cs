@@ -102,6 +102,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
          }
     }
 
+    /*
     private void OnValidate()
     {
         // AUTO-GENERATE ID (Zero Setup)
@@ -116,6 +117,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         }
         #endif
     }
+    */
 
     public void ForceValidation()
     {

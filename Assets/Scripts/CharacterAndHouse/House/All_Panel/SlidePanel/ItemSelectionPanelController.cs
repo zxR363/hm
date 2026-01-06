@@ -240,9 +240,9 @@ public class ItemSelectionPanelController : MonoBehaviour
     {
         if (panelRoot == null) return;
 
-        // Force rebuild
-        Canvas.ForceUpdateCanvases();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot.GetComponent<RectTransform>());
+        // Force rebuild -- DISABLED: Causes "Graphic Rebuild Loop" during ScrollRect updates
+        // Canvas.ForceUpdateCanvases();
+        // LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot.GetComponent<RectTransform>());
 
         // --- CACHE LISTS FOR PERFORMANCE ---
         _cachedItemCanvases.Clear();

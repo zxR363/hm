@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Image))]
-[ExecuteInEditMode]
+// [ExecuteInEditMode]
 public class UIStickerEffect : MonoBehaviour
 {
     [Header("Settings")]
@@ -32,8 +32,17 @@ public class UIStickerEffect : MonoBehaviour
         UpdateMaterial();
     }
 
+    private bool _isQuitting = false;
+
+    private void OnApplicationQuit()
+    {
+        _isQuitting = true;
+    }
+
     private void OnDisable()
     {
+        if (_isQuitting) return;
+
         if (_image != null)
         {
             _image.material = null;
@@ -46,21 +55,30 @@ public class UIStickerEffect : MonoBehaviour
         }
     }
 
+    /*
     private void Update()
     {
 #if UNITY_EDITOR
         UpdateMaterial();
 #endif
     }
+    */
     
     // Called when values change in Inspector
     private void OnValidate()
     {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.delayCall += () => {
+            if (this != null) UpdateMaterial();
+        };
+#else
         UpdateMaterial();
+#endif
     }
 
     public void SetOutlineColor(Color color)
     {
+        if (outlineColor == color) return;
         outlineColor = color;
         UpdateMaterial();
     }

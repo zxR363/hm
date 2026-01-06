@@ -28,7 +28,7 @@ public class StablePositionOnce : MonoBehaviour
     private IEnumerator ApplyCorrection()
     {
         yield return null; // Layout hesaplamaları için bekle
-        Canvas.ForceUpdateCanvases();
+        // Canvas.ForceUpdateCanvases();
 
         if (background != null && bakedBgSize.x > 0 && bakedBgSize.y > 0)
         {
@@ -75,5 +75,56 @@ public class StablePositionOnce : MonoBehaviour
         bakedBgSize = background.rect.size;
 
         Debug.Log($"Pozisyon ve Scale kaydedildi! Normalized Pos: {bakedNormalizedPos}, Bg Size: {bakedBgSize}");
+    }
+
+    [ContextMenu("SYSTEMATIC FIX: Convert To Native Anchors")]
+    public void ConvertToNativeAnchors()
+    {
+        if (background == null)
+        {
+            Debug.LogError("[StablePosition] Background atanmamış! Dönüştürme yapılamaz.");
+            return;
+        }
+
+        rt = GetComponent<RectTransform>();
+
+        // 1. Ensure Parenting (Optional but recommended for Anchors)
+        // If the object is not a child of background, Anchors won't work relative to background automatically.
+        if (transform.parent != background.transform)
+        {
+            Debug.LogWarning($"[StablePosition] '{name}' objesi '{background.name}' objesinin çocuğu değil! Anchor mantığı için parent olması gerekir. Lütfen hiyerarşiyi kontrol edin.");
+            // We don't auto-reparent to avoid breaking other logic, but we warn.
+            // If they are strictly visual, user should reparent.
+        }
+
+        // 2. Calculate Current World Corners of the Object
+        Vector3[] corners = new Vector3[4];
+        rt.GetWorldCorners(corners);
+        // corners[0] = bottom-left, corners[2] = top-right
+
+        // 3. Convert World Corners to Background's Local Space (Normalized)
+        Vector2 minLocal = background.InverseTransformPoint(corners[0]);
+        Vector2 maxLocal = background.InverseTransformPoint(corners[2]);
+
+        // 4. Normalize (0..1) relative to Background Size
+        Vector2 minAnchor = Rect.PointToNormalized(background.rect, minLocal);
+        Vector2 maxAnchor = Rect.PointToNormalized(background.rect, maxLocal);
+
+        // 5. Apply Anchors
+        // Undo manager allows Ctrl+Z
+#if UNITY_EDITOR
+        UnityEditor.Undo.RecordObject(rt, "Convert To Anchors");
+#endif
+        rt.anchorMin = minAnchor;
+        rt.anchorMax = maxAnchor;
+        
+        // 6. Zero out Offsets (Make it stick to anchors)
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        Debug.Log($"[StablePosition] '{name}' Native Anchor sistemine dönüştürüldü! Artık bu scripte ihtiyacınız yok.");
+        
+        // Optional: Disable script
+        this.enabled = false;
     }
 }

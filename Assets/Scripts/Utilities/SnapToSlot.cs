@@ -15,9 +15,19 @@ public class SnapToSlot : MonoBehaviour
 
     void Update()
     {
+        if (scrollRect == null || content == null) return;
+
         if (scrollRect.velocity.magnitude < snapThreshold && !isSnapping)
         {
-            StartCoroutine(SnapToNearestSlot());
+            // PRE-CHECK: Don't start snapping if we are already there
+            float contentX = content.anchoredPosition.x;
+            float targetIndex = Mathf.Round(-contentX / slotWidth);
+            float targetX = -targetIndex * slotWidth;
+
+            if (Mathf.Abs(contentX - targetX) > 0.01f) // Only snap if actually misaligned
+            {
+                StartCoroutine(SnapToNearestSlot());
+            }
         }
     }
 
@@ -38,7 +48,12 @@ public class SnapToSlot : MonoBehaviour
             yield return null;
         }
 
-        content.anchoredPosition = new Vector2(targetX, content.anchoredPosition.y);
+        // Final Snap: Only set if different
+        if (Mathf.Abs(content.anchoredPosition.x - targetX) > 0.001f)
+        {
+            content.anchoredPosition = new Vector2(targetX, content.anchoredPosition.y);
+        }
+        
         isSnapping = false;
     }
 }

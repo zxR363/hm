@@ -47,6 +47,7 @@ public class RoomPanel : MonoBehaviour
 
     private void OnDisable()
     {
+        if (_isQuitting) return;
         SaveRoomState();
     }
 
@@ -195,7 +196,6 @@ public class RoomPanel : MonoBehaviour
             // FIX FOR SCENE OBJECTS: Stop gravity here too!
             if (obj.TryGetComponent<CustomGravity>(out var gravity))
             {
-               if (obj.name.Contains("Hummer")) Debug.Log($"[RoomPanel] RegisterObject CACHE HIT calling DisableAutoStart for {obj.name}. Frame: {Time.frameCount}");
                gravity.DisableAutoStart();
             }
         }
@@ -309,8 +309,6 @@ public class RoomPanel : MonoBehaviour
              {
                  // We are attached to another item (Stacking!)
                  string pId = GetUniqueID(parentRO.gameObject);
-                 
-             if (data.objectID.Contains("Hummer")) Debug.Log($"[RoomPanel] FLOW: Found Parent RO '{parentRO.name}'. ID: '{pId}'");
              
              try 
              {
@@ -442,15 +440,13 @@ public class RoomPanel : MonoBehaviour
         
         // DEBUG: Audit Tracked Objects
         Debug.Log($"[RoomPanel] --- AUDIT START ({trackedObjects.Count} objects) ---");
-        int hummerCount = 0;
-        foreach(var kvp in trackedObjects) {
-             var d = kvp.Value;
-             var o = d.instance;
-             string pName = o != null && o.transform.parent != null ? o.transform.parent.name : "NULL";
-             Debug.Log($"[Audit] ID: {d.objectID} | Name: {o.name} | Parent: {pName} | InstanceID: {kvp.Key}");
-             if (o.name.Contains("Hummer")) hummerCount++;
-        }
-        Debug.Log($"[RoomPanel] --- AUDIT END (Hummer Count: {hummerCount}) ---");
+        // foreach(var kvp in trackedObjects) {
+        //      var d = kvp.Value;
+        //      var o = d.instance;
+        //      string pName = o != null && o.transform.parent != null ? o.transform.parent.name : "NULL";
+        //      Debug.Log($"[Audit] ID: {d.objectID} | Name: {o.name} | Parent: {pName} | InstanceID: {kvp.Key}");
+        // }
+        Debug.Log($"[RoomPanel] --- AUDIT END ---");
 
         // 4. Save DELETED Objects
         if (_runtimeDeletedIDs != null && _runtimeDeletedIDs.Count > 0)
@@ -554,7 +550,6 @@ public class RoomPanel : MonoBehaviour
                 // CRITICAL FIX: Stop gravity immediately so it doesn't fall while we are restoring data
                 if (instance.TryGetComponent<CustomGravity>(out var gravity))
                 {
-                    if (instance.name.Contains("Hummer")) Debug.Log($"[RoomPanel] Calling DisableAutoStart for {instance.name}. Frame: {Time.frameCount}");
                     gravity.DisableAutoStart();
                 }
                 
@@ -616,7 +611,7 @@ public class RoomPanel : MonoBehaviour
             }
 
             // Force update to ensure anchors take effect before position
-            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+            // UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
 
             // NEW: Apply SizeDelta (Width/Height) if saved
             if (data.customStates.TryGetValue("sizeDeltaX", out var szX) && data.customStates.TryGetValue("sizeDeltaY", out var szY))
@@ -720,8 +715,6 @@ public class RoomPanel : MonoBehaviour
                     // PERFORM REPARENTING
                     childObj.transform.SetParent(targetParent, true); 
                     
-                    if (childObj.name.Contains("Hummer")) Debug.Log($"[RoomPanel] REPARENTED Hummer to {targetParent.name}. Frame: {Time.frameCount}");
-
                     if (childObj.name.Contains("Hummer")) Debug.Log($"[RoomPanel] REPARENTED Hummer to {targetParent.name}. Frame: {Time.frameCount}");
 
                     // CANVAS SYNC: Main Gameobject (childObj) keeps its canvas. 

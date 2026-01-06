@@ -29,6 +29,17 @@ public class RoomObject : MonoBehaviour
 
     private void Start()
     {
+        // OPTIMIZATION: Disable Animator by default to prevent "Graphic Rebuild Loop" (500Hz)
+        // If an object needs animation (like Fridge opening), its controller must enable it explicitly.
+        Animator anim = GetComponent<Animator>();
+        if (anim != null)
+        {
+            anim.enabled = false;
+        }
+        // Also check children (e.g. Button_Fridge -> Image_Fridge)
+        // BE CAREFUL: Don't disable child animators if they are critical? 
+        // For now, let's stick to the root or known sub-parts.
+        
         // Apply default sorting order if Canvas exists
         Canvas canvas = GetComponent<Canvas>();
         if (canvas != null)

@@ -27,9 +27,11 @@ public class GridCellSizer : MonoBehaviour
         UpdateCellSize();
     }
 
+    private float lastWidth;
+
     private void OnRectTransformDimensionsChange()
     {
-        UpdateCellSize();
+        // UpdateCellSize(); // Disabled: Causes recursive layout rebuilds
     }
 
     private void UpdateCellSize()
@@ -39,31 +41,34 @@ public class GridCellSizer : MonoBehaviour
         float width = rectTransform.rect.width;
         if (width <= 0) return;
 
-        // Calculate available width for cells
+        // Apply size
+        // ... calculation logic ...
         float availableWidth = width - grid.padding.left - grid.padding.right - (grid.spacing.x * (columnCount - 1));
         float cellWidth = availableWidth / columnCount;
 
-        // Apply size
         if (maintainAspectRatio)
         {
-            grid.cellSize = new Vector2(cellWidth, cellWidth / aspectRatio);
+            Vector2 newSize = new Vector2(cellWidth, cellWidth / aspectRatio);
+            if ((grid.cellSize - newSize).sqrMagnitude > 0.01f)
+                grid.cellSize = newSize;
         }
         else
         {
-            grid.cellSize = new Vector2(cellWidth, grid.cellSize.y);
+            Vector2 newSize = new Vector2(cellWidth, grid.cellSize.y);
+            if ((grid.cellSize - newSize).sqrMagnitude > 0.01f)
+                grid.cellSize = newSize;
         }
     }
 
     private void Update()
     {
-        // Optional: Check if width changed every frame if OnRectTransformDimensionsChange isn't reliable enough
-        // or if parent changes size.
-        // For performance, better to rely on events, but UI layout can be tricky.
-        // Let's check if width changed.
-        if (rectTransform.hasChanged)
+        if (rectTransform == null) return;
+        
+        // Safer check: Only update if width actually changed
+        if (Mathf.Abs(rectTransform.rect.width - lastWidth) > 1f)
         {
+            lastWidth = rectTransform.rect.width;
             UpdateCellSize();
-            rectTransform.hasChanged = false;
         }
     }
 }
