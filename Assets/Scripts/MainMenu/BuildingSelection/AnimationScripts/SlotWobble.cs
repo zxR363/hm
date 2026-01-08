@@ -30,8 +30,7 @@ public class SlotWobble : MonoBehaviour
             bendEffect = imageChild.GetComponent<UIBendEffect>();
             if (bendEffect == null)
             {
-                bendEffect = imageChild.gameObject.AddComponent<UIBendEffect>();
-                bendEffect.exponent = 2.5f; 
+               // Debug.LogWarning("Missing UIBendEffect on Image Child");
             }
         }
         else
@@ -40,8 +39,7 @@ public class SlotWobble : MonoBehaviour
             bendEffect = GetComponent<UIBendEffect>();
             if (bendEffect == null)
             {
-                bendEffect = gameObject.AddComponent<UIBendEffect>();
-                bendEffect.exponent = 2.5f;
+                 // Debug.LogWarning("Missing UIBendEffect on Self");
             }
         }
     }

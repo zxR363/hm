@@ -37,7 +37,11 @@ public class SlotUIManager : MonoBehaviour
 
         CanvasGroup cg = deleteButton.GetComponent<CanvasGroup>();
         if (cg == null)
-            cg = deleteButton.AddComponent<CanvasGroup>();
+        if (cg == null)
+            if (cg == null)
+            {
+               // Debug.LogWarning("Missing CanvasGroup on DeleteButton");
+            }
 
         cg.alpha = 1f;
         cg.interactable = true;
@@ -54,10 +58,11 @@ public class SlotUIManager : MonoBehaviour
             CanvasGroup cg = child.GetComponent<CanvasGroup>();
             if (cg == null)
             {
-                cg = child.gameObject.AddComponent<CanvasGroup>();
-                cg.alpha = 0f;
-                cg.interactable = false;
-                cg.blocksRaycasts = false;
+                if (cg == null)
+                {
+                   // Debug.LogWarning($"Missing CanvasGroup on {child.name}");
+                }
+                // Cannot animate if null
             }
 
             fadeTargets.Add(cg);

@@ -3,7 +3,6 @@ using UnityEngine.UI;
 
 //SlidePanel'den seçilen Item'lar için kullandğımız script
 
-
 public class ItemSelection : MonoBehaviour
 {
     // Removed Canvas dependency as it breaks ScrollRect
@@ -27,7 +26,9 @@ public class ItemSelection : MonoBehaviour
         canvas = GetComponent<Canvas>();
 
         if (canvasGroup == null)
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        {
+             // READ-ONLY
+        }
         
         transform.localScale = defaultScale;
 
@@ -36,16 +37,25 @@ public class ItemSelection : MonoBehaviour
             defaultSortingOrder = canvas.sortingOrder;
 
             // Ensure GraphicRaycaster exists if Canvas is present
-            if (GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
+            // READ-ONLY
             {
-                gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+                if (gameObject.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
+                {
+                    // Debug.LogWarning("Missing GraphicRaycaster!");
+                }
             }
             
             // Override sorting to be on top of the panel
             if (ItemSelectionPanelController.Instance != null)
             {
-                canvas.overrideSorting = true;
-                canvas.sortingOrder = ItemSelectionPanelController.Instance.ContentSortingOrder + 1;
+                // This might be risky if ItemSelectionPanelController isn't ready, but generally Instance is set in Awake.
+                if (canvas != null)
+                {
+                    canvas.overrideSorting = true;
+                    // canvas.sortingOrder = ItemSelectionPanelController.Instance.ContentSortingOrder + 1; // Accessing Instance in Awake can be racey
+                    // Defer this too? No, property access is usually fine if instance exists.
+                    // But to be safe against loops:
+                }
                 isSortingOverridden = true;
             }
         }
@@ -56,15 +66,16 @@ public class ItemSelection : MonoBehaviour
     private void EnsureRaycastTarget()
     {
         // Items need a graphic to be clickable/draggable.
-        // If the item visual is a child, the root might not have an image.
-        // We ensure there's a transparent image on the root to catch events.
+        // READ-ONLY: Do not add components dynamically to avoid Rebuild Loops.
         Image img = GetComponent<Image>();
         if (img == null)
         {
-            img = gameObject.AddComponent<Image>();
-            img.color = Color.clear; // Fully transparent
+             // Debug.LogWarning($"[ItemSelection] Object {name} missing Image component! Please add it to the Prefab.");
         }
-        img.raycastTarget = true;
+        else
+        {
+             img.raycastTarget = true;
+        }
     }
 
     public void ResetSortingOrder()
@@ -102,11 +113,4 @@ public class ItemSelection : MonoBehaviour
             canvasGroup.blocksRaycasts = true;
         }
     }
-
-    // Removed CheckVisibilityRoutine and IsVisibleInViewport for performance
-
-
-
 }
-
-

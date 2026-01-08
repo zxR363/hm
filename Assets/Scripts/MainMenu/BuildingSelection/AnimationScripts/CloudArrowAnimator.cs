@@ -11,7 +11,12 @@ public class CloudArrowAnimator : MonoBehaviour
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null)
         {
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+             // READ-ONLY
+             // Debug.LogWarning($"[CloudArrowAnimator] Missing CanvasGroup on {name}. Add it to Prefab.");
+             return; // Stop execution if missing
+        }
         }
 
         // 🎯 Başlangıç alpha

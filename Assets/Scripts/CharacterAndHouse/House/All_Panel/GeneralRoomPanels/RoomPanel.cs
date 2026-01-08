@@ -553,10 +553,17 @@ public class RoomPanel : MonoBehaviour
                     gravity.DisableAutoStart();
                 }
                 
-                // ENSURE ROOM OBJECT EXISTS & HAS PATH
                 RoomObject roomObj = instance.GetComponent<RoomObject>();
-                if (roomObj == null) roomObj = instance.AddComponent<RoomObject>();
-                roomObj.loadedFromResourcePath = data.resourcePath;
+                if (roomObj == null) 
+                {
+                    // instance.AddComponent<RoomObject>();
+                    // Debug.LogWarning($"[RoomPanel] {instance.name} missing RoomObject.");
+                    // SKIP or Continue? If missing, we can't set path.
+                }
+                else
+                {
+                   roomObj.loadedFromResourcePath = data.resourcePath;
+                }
                 
                 string[] parts = data.objectID.Split('/');
                 if (parts.Length > 0) instance.name = parts[parts.Length - 1]; 

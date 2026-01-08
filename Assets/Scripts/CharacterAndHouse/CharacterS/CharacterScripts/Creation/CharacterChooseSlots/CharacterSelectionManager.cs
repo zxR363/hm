@@ -112,7 +112,11 @@ public class CharacterSelectionManager : MonoBehaviour
 
             RectTransform panelRT = characterCreationPanel.GetComponent<RectTransform>();
             CanvasGroup cg = characterCreationPanel.GetComponent<CanvasGroup>();
-            if (cg == null) cg = characterCreationPanel.gameObject.AddComponent<CanvasGroup>();
+            if (cg == null)
+            {
+                // READ-ONLY
+                // Debug.LogWarning($"[CharacterSelectionManager] Missing CanvasGroup on Panel. Fix Prefab.");
+            }
 
             StartCoroutine(SlideDiagonalAndFadeIn(panelRT, cg));
 
@@ -310,14 +314,19 @@ public class CharacterSelectionManager : MonoBehaviour
                 // 🔧 Canvas bileşeni ekle (yoksa)
                 Canvas canvas = characterCreationManager.previewInstance.GetComponent<Canvas>();
                 if (canvas == null)
-                    canvas = characterCreationManager.previewInstance.AddComponent<Canvas>();
+                    if (characterCreationManager.previewInstance.GetComponent<Canvas>() == null)
+                    {
+                         // READ-ONLY
+                         // Debug.LogWarning("Missing Canvas/CanvasGroup on PreviewInstance. Fix Prefab.");
+                    }
 
                 canvas.overrideSorting = true;
                 canvas.sortingOrder = characterCanvasSortOrder;
 
                 // 🔧 CanvasGroup ekle (yoksa)
-                if (characterCreationManager.previewInstance.GetComponent<CanvasGroup>() == null)
-                    characterCreationManager.previewInstance.AddComponent<CanvasGroup>();
+                // if (characterCreationManager.previewInstance.GetComponent<CanvasGroup>() == null)
+                    // Handled above with Canvas
+                    // characterCreationManager.previewInstance.AddComponent<CanvasGroup>();
 
 
                 // 🔥 Prefab olarak kaydet
@@ -395,14 +404,8 @@ public class CharacterSelectionManager : MonoBehaviour
             {
                 if (child.GetComponent<CanvasGroup>() == null)
                 {
-                    CanvasGroup cg = child.gameObject.AddComponent<CanvasGroup>();
-                    cg.alpha = 0;
-                    cg.interactable = false;
-                    cg.blocksRaycasts = false;
-                    //cg.alpha = 1;
-                    //cg.interactable = true;
-                    //cg.blocksRaycasts = false;
-                    fadeTargets.Add(cg);
+                    // CanvasGroup cg = child.gameObject.AddComponent<CanvasGroup>();
+                    // Debug.LogWarning($"[CharacterSelectionManager] Missing CanvasGroup on {child.name}");
                 }
             }            
         }

@@ -16,7 +16,8 @@ public class ContainedItemController : MonoBehaviour
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null)
         {
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+             // READ-ONLY
+             // Debug.LogWarning($"[ContainedItemController] {name} missing CanvasGroup. Please add to Prefab.");
         }           
 
         originalScale = transform.localScale;

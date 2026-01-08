@@ -19,7 +19,17 @@ public class MainMenuController : MonoBehaviour
             mainMenuCanvasGroup = groupMainMenu.GetComponent<CanvasGroup>();
             if (mainMenuCanvasGroup == null)
             {
-                mainMenuCanvasGroup = groupMainMenu.AddComponent<CanvasGroup>();
+#if UNITY_EDITOR
+                // READ-ONLY PATTERN
+                /*
+                UnityEditor.EditorApplication.delayCall += () => {
+                   // ...
+                };
+                */
+#else
+                // mainMenuCanvasGroup = groupMainMenu.AddComponent<CanvasGroup>();
+#endif
+                 // Debug.LogWarning("[MainMenuController] MainMenu CanvasGroup missing.");
             }
         }
 

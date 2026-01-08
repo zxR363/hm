@@ -18,6 +18,8 @@ public class ScrollOptimizer : MonoBehaviour
 
     private void OnValidate()
     {
+        // DISABLED to prevent Editor rebuild loops
+        /*
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.delayCall += () => {
             if (this != null) ApplySettings();
@@ -25,6 +27,7 @@ public class ScrollOptimizer : MonoBehaviour
 #else
         ApplySettings();
 #endif
+        */
     }
 
     public void ApplySettings()

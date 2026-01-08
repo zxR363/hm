@@ -34,6 +34,7 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     private void Awake()
     {
+        Debug.Log($"[DEBUG_TRACE] {Time.frameCount} - ItemDragPanel Awake on {gameObject.name}");
         rectTransform = GetComponent<RectTransform>();
     }
 
@@ -143,8 +144,21 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         // PERSISTENCE: Pass the Resource Path to the new object
         RoomObject ghostRoomObj = dragGhost.GetComponent<RoomObject>();
-        if (ghostRoomObj == null) ghostRoomObj = dragGhost.AddComponent<RoomObject>();
-        ghostRoomObj.loadedFromResourcePath = ResourcePath;
+        if (ghostRoomObj == null) 
+        {
+#if UNITY_EDITOR
+             // DEFERRAL REMOVED: READ-ONLY
+             // UnityEditor.EditorApplication.delayCall += () => { ... };
+#else
+             // ghostRoomObj = dragGhost.AddComponent<RoomObject>();
+             // ghostRoomObj.loadedFromResourcePath = ResourcePath;
+#endif
+             // Debug.LogWarning("[ItemDragPanel] Ghost missing RoomObject.");
+        }
+        else
+        {
+             ghostRoomObj.loadedFromResourcePath = ResourcePath;
+        }
 
         RectTransform ghostRT = dragGhost.GetComponent<RectTransform>();
         ghostRT.localScale = originalScale;
@@ -152,7 +166,11 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         ghostRT.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, originalSizeDelta.y * 1.1f);
 
         CanvasGroup ghostCG = dragGhost.GetComponent<CanvasGroup>();
-        if (ghostCG == null) ghostCG = dragGhost.AddComponent<CanvasGroup>();
+        if (ghostCG == null) 
+        {
+            // ghostCG = dragGhost.AddComponent<CanvasGroup>();
+            // Debug.LogWarning("[ItemDragPanel] Ghost missing CanvasGroup.");
+        }
         ghostCG.alpha = 0.8f;
         ghostCG.blocksRaycasts = false;
 
@@ -527,7 +545,10 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 Debug.Log($"[ItemDragPanel] Found IInteractable on {result.gameObject.name}");
                 RoomObject sourceRoomObject = dragGhost.GetComponent<RoomObject>();
                 // Ensure the ghost has a RoomObject component if needed for the interface signature
-                if (sourceRoomObject == null) sourceRoomObject = dragGhost.AddComponent<RoomObject>();
+                if (sourceRoomObject == null) 
+                {
+                    // sourceRoomObject = dragGhost.AddComponent<RoomObject>();
+                }
 
                 if (interactable.CanInteract(sourceRoomObject))
                 {
@@ -634,9 +655,10 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             // FIX: Ensure Layer matches
             dragGhost.layer = finalParent.gameObject.layer;
             
-            // Register logic
             if (dragGhost.GetComponent<RoomObject>() == null)
-                dragGhost.AddComponent<RoomObject>();
+            {
+               // dragGhost.AddComponent<RoomObject>();
+            }
 
             // Reset sorting order
             ItemSelection itemSelection = dragGhost.GetComponent<ItemSelection>();

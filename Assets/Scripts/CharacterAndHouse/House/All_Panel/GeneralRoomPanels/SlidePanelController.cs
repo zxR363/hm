@@ -4,10 +4,10 @@ using DG.Tweening;
 public class SlidePanelController : MonoBehaviour
 {
     [SerializeField] private RectTransform panel;
-    [SerializeField] private float slideDistance = 5f;
-    [SerializeField] private float duration = 0.5f; // Faster
+    [SerializeField] private float slideDistance = 5f; // User defined
+    [SerializeField] private float duration = 0.5f; // User defined (Faster)
     [SerializeField] private Ease openEase = Ease.OutBack; 
-    [SerializeField] private float overshoot = 30f; // Controls the "hardness" and amplitude of the swing
+    [SerializeField] private float overshoot = 30f; // User defined
     [SerializeField] private Ease closeEase = Ease.InBack; 
     [SerializeField] private GameObject itemSelectionPanel;
 
@@ -17,9 +17,42 @@ public class SlidePanelController : MonoBehaviour
 
     private void Awake()
     {
-        closedPos = panel.anchoredPosition;
-        openedPos = closedPos + new Vector2(-slideDistance, 0f);
-        panel.gameObject.SetActive(false); // Başlangıçta kapalı
+        InitializePanel();
+    }
+
+    private void OnEnable()
+    {
+        InitializePanel();
+        FixLayoutConflict();
+    }
+
+    private void InitializePanel()
+    {
+        if(panel == null) panel = GetComponent<RectTransform>(); 
+        
+        if (Application.isPlaying && panel != null)
+        {
+             closedPos = panel.anchoredPosition;
+             openedPos = closedPos + new Vector2(-slideDistance, 0f);
+        }
+    }
+
+    private void FixLayoutConflict()
+    {
+        // FIX GRAPHIC REBUILD LOOP (Only checks once on Enable now)
+        var group = GetComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+        
+        if (group != null)
+        {
+            if (group.childForceExpandWidth) 
+            {
+                group.childForceExpandWidth = false; 
+            }
+            if (group.childForceExpandHeight) 
+            {
+                group.childForceExpandHeight = false;
+            }
+        }
     }
 
     public void TogglePanel()
@@ -27,19 +60,15 @@ public class SlidePanelController : MonoBehaviour
         if (!IsOpen)
         {
             Debug.Log($"[SlidePanelController] TogglePanel: Opening. (IsOpen was false)");
-            panel.gameObject.SetActive(true); // Açmadan önce aktif hale getir
-            panel.anchoredPosition = closedPos; // Pozisyonu sıfırla
-            // Use overshoot to increase the swing amplitude
+            panel.gameObject.SetActive(true);
+            panel.anchoredPosition = closedPos;
             panel.DOAnchorPos(openedPos, duration).SetEase(openEase, overshoot);
         }
         else
         {
-            Debug.Log($"[SlidePanelController] TogglePanel: Closing. (IsOpen was true). Calling ResetAll.");
-            // Fixed: Single animation to close the panel
-            // Move ResetAll to start so validation happens immediately (and while active)
+            Debug.Log($"[SlidePanelController] TogglePanel: Closing. (IsOpen was true).");
             SlidePanelItemButton.ResetAll();
 
-            // Use overshoot for closing as well to match the style
             panel.DOAnchorPos(closedPos, duration).SetEase(closeEase, overshoot)
                 .OnComplete(() => 
                 {
@@ -55,12 +84,9 @@ public class SlidePanelController : MonoBehaviour
 
     public void ClosePanel()
     {
-        if (!IsOpen)
-        {
-             return;
-        }
+        if (!Application.isPlaying) return;
+        if (!IsOpen) return;
 
-        // Move ResetAll to start
         SlidePanelItemButton.ResetAll();
 
         panel.DOAnchorPos(closedPos, duration).SetEase(closeEase, overshoot)

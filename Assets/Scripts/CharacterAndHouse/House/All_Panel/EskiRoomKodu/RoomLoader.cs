@@ -151,7 +151,7 @@ public static class RoomLoader
             // Add RoomObject component if missing
             if (obj.GetComponent<RoomObject>() == null)
             {
-                obj.AddComponent<RoomObject>();
+                // obj.AddComponent<RoomObject>();
             }
 
             // UI objesi mi?

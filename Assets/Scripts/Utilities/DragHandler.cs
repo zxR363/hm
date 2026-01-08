@@ -58,6 +58,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     void Awake()
     {
+        Debug.Log($"[DEBUG_TRACE] {Time.frameCount} - DragHandler Awake on {gameObject.name}");
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
@@ -76,7 +77,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
         if (canvasGroup == null)
         {
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+             // READ-ONLY:
+             // Debug.LogWarning($"[DragHandler] {name} missing CanvasGroup. Please add to Prefab.");
         }
     }
 

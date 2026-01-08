@@ -14,23 +14,24 @@ public class TabButton : MonoBehaviour, UnityEngine.EventSystems.IPointerClickHa
 
     private void Awake()
     {
+        Debug.Log($"[DEBUG_TRACE] {Time.frameCount} - TabButton Awake on {gameObject.name}");
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null)
         {
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            // READ-ONLY
+            // Debug.LogWarning($"[TabButton] {name} missing CanvasGroup. Please add to Prefab.");
         }
     }
 
     private void Start()
     {
-        // Ensure we have a raycast target
+        // READ-ONLY: Do not add components dynamically.
         UnityEngine.UI.Image img = GetComponent<UnityEngine.UI.Image>();
         if (img == null)
         {
-            img = gameObject.AddComponent<UnityEngine.UI.Image>();
-            img.color = new Color(0, 0, 0, 0.004f); // Almost transparent
+            // Debug.LogWarning($"[TabButton] {name} missing Image. Please add to Prefab.");
         }
-        img.raycastTarget = true;
+        if (img != null) img.raycastTarget = true;
 
         if (canvasGroup != null)
         {

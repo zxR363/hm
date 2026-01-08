@@ -68,7 +68,11 @@ public class UIBendEffect : BaseMeshEffect
         
         if (_graphic != null)
         {
-            _graphic.SetVerticesDirty();
+            // Only set dirty if playing or if we are sure it's safe (e.g. not constantly)
+            if (Application.isPlaying)
+            {
+                 _graphic.SetVerticesDirty();
+            }
         }
     }
 }

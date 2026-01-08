@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(Image))]
+// [RequireComponent(typeof(Image))] // DISABLED: Causes "Adding component during rebuild loop" crash if Image is missing.
 // [ExecuteInEditMode]
 public class UIStickerEffect : MonoBehaviour
 {
@@ -17,6 +17,14 @@ public class UIStickerEffect : MonoBehaviour
     private void OnEnable()
     {
         _image = GetComponent<Image>();
+        if (_image == null)
+        {
+            // Fail gracefully instead of crashing Unity by trying to AddComponent
+            Debug.LogError($"[UIStickerEffect] '{name}' is missing an Image component! Please add one explicitly.");
+            enabled = false; 
+            return;
+        }
+
         _shader = Shader.Find("UI/UISticker");
 
         if (_shader == null)
@@ -67,6 +75,8 @@ public class UIStickerEffect : MonoBehaviour
     // Called when values change in Inspector
     private void OnValidate()
     {
+        // DISABLED to prevent Editor rebuild loops
+        /*
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.delayCall += () => {
             if (this != null) UpdateMaterial();
@@ -74,6 +84,7 @@ public class UIStickerEffect : MonoBehaviour
 #else
         UpdateMaterial();
 #endif
+        */
     }
 
     public void SetOutlineColor(Color color)

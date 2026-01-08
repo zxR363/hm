@@ -53,7 +53,9 @@ public class InteractiveObject : MonoBehaviour
 
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
-            audioSource = gameObject.AddComponent<AudioSource>();
+        {
+             // gameObject.AddComponent<AudioSource>();
+        }
 
         if (interactionButton != null)
             interactionButton.SetActive(false);
