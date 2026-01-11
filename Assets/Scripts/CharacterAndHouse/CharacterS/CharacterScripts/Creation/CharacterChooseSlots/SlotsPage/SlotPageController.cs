@@ -25,8 +25,7 @@ public class SlotPageController : MonoBehaviour
             CanvasGroup cg = slotPages[i].GetComponent<CanvasGroup>();
             if (cg == null) 
             {
-               // cg = slotPages[i].AddComponent<CanvasGroup>();
-               // Debug.LogWarning($"[SlotPageController] Missing CanvasGroup on {slotPages[i].name}");
+               cg = slotPages[i].AddComponent<CanvasGroup>();
             }
             cg.alpha = (i == currentPageIndex) ? 1f : 0f;
             slotPages[i].SetActive(i == currentPageIndex);

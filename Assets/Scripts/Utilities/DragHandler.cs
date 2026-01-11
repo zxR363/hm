@@ -77,8 +77,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
         if (canvasGroup == null)
         {
-             // READ-ONLY:
-             // Debug.LogWarning($"[DragHandler] {name} missing CanvasGroup. Please add to Prefab.");
+             Debug.LogWarning($"[DragHandler] {name} missing CanvasGroup. Auto-adding to prevent crash/errors.");
+             canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
     }
 
@@ -483,13 +483,11 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
              Transform targetContainer = room.objectContainer != null ? room.objectContainer : room.transform;
              // FIX: We DISABLED this check because it forces the object to DETACH from the Desk/Surface it just landed on (via CustomGravity).
              // To support "Deep Hierarchy" (Stacking), we must allow it to stay as a child of the Desk.
-             /*
              if (transform.parent != targetContainer)
              {
                  transform.SetParent(targetContainer, true);
                  // Debug.Log($"[DragHandler] EndDrag: Reparented to {room.name}");
              }
-             */
         }
 
         // Restore Default Sorting Order (Recursive)

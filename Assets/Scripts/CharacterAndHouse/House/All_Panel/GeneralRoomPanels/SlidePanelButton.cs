@@ -6,6 +6,18 @@ public class SlidePanelButton : MonoBehaviour
 
     public void OnClickToggle()
     {
-        slidePanelController.TogglePanel();
+        if (slidePanelController == null)
+        {
+            slidePanelController = FindObjectOfType<SlidePanelController>();
+        }
+
+        if (slidePanelController != null)
+        {
+            slidePanelController.TogglePanel();
+        }
+        else
+        {
+            Debug.LogError("[SlidePanelButton] SlidePanelController reference is missing and could not be found!");
+        }
     }
 }

@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Odaların scale edilmesini sağlıyor.
-
+// Force this element (RoomPanel) to match the size of the Scroll Viewport
+// This ensures that "1 Page" = "1 Screen" regardless of resolution.
 [RequireComponent(typeof(LayoutElement))]
-// [ExecuteInEditMode] // Runs in editor to see changes immediately -- DISABLED: Causes layout loops
+[ExecuteAlways] 
 public class MatchViewportSize : MonoBehaviour
 {
     private RectTransform myRect;
@@ -19,33 +19,32 @@ public class MatchViewportSize : MonoBehaviour
 
     private void Start()
     {
-        // UpdateSize(); // Disabled: Conflicts with Responsive Anchors
+        UpdateSize();
+    }
+
+    private void OnEnable()
+    {
+        UpdateSize();
     }
 
     private void OnRectTransformDimensionsChange()
     {
-        // UpdateSize(); // Disabled: Conflicts with Responsive Anchors
+        if (isActiveAndEnabled)
+            UpdateSize();
     }
 
-/*
 #if UNITY_EDITOR
     private void Update()
     {
-        // Update in editor mode for preview
-        if (!Application.isPlaying)
-        {
-            UpdateSize();
-        }
+        if (!Application.isPlaying) UpdateSize();
     }
 #endif
-*/
 
     public void UpdateSize()
     {
         if (layoutElement == null) layoutElement = GetComponent<LayoutElement>();
         
-        // Find the viewport (usually the grandparent or great-grandparent in a ScrollView)
-        // Hierarchy: ScrollView -> Viewport -> Content -> RoomPanel (This Object)
+        // Find Viewport: Standard is ScrollView -> Viewport -> Content -> Page(This)
         // So Viewport is parent.parent
         if (parentViewport == null && transform.parent != null && transform.parent.parent != null)
         {
@@ -54,12 +53,19 @@ public class MatchViewportSize : MonoBehaviour
 
         if (parentViewport != null)
         {
-            // Set preferred size to match the viewport's rect width/height
-            if (Mathf.Abs(layoutElement.preferredWidth - parentViewport.rect.width) > 0.1f)
-                layoutElement.preferredWidth = parentViewport.rect.width;
+            float targetW = parentViewport.rect.width;
+            float targetH = parentViewport.rect.height; // Height match is also good for full height rooms
+
+            // SAFETY CHECK: Only update if difference is > 1 pixel to avoid infinite layout loops
+            if (Mathf.Abs(layoutElement.preferredWidth - targetW) > 1f)
+            {
+                layoutElement.preferredWidth = targetW;
+            }
                 
-            if (Mathf.Abs(layoutElement.preferredHeight - parentViewport.rect.height) > 0.1f)
-                layoutElement.preferredHeight = parentViewport.rect.height;
+            if (Mathf.Abs(layoutElement.preferredHeight - targetH) > 1f)
+            {
+                layoutElement.preferredHeight = targetH;
+            }
         }
     }
 }

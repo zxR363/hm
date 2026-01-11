@@ -31,30 +31,41 @@ public class SlidePanelItemButton : MonoBehaviour
 
     public void OnClick()
     {
-        // Check if this button is already scaled up (active)
-        // Using a small epsilon for float comparison
-        bool isAlreadyActive = transform.localScale.x > initialScale.x * 1.05f;
-
-        // Reset all other buttons first
-        ResetAll();
-
-        if (ItemSelectionPanelController.Instance != null)
+        try 
         {
-            // If it wasn't active, scale it up and OPEN the panel
-            if (!isAlreadyActive)
-            {
-                transform.localScale = initialScale * 1.15f;
-                ToggleDragHandlers(true);
-                ItemSelectionPanelController.Instance.OpenPanel();
+            // Check if this button is already scaled up (active)
+            // Using a small epsilon for float comparison
+            bool isAlreadyActive = transform.localScale.x > initialScale.x * 1.05f;
 
+            // Reset all other buttons first
+            ResetAll();
+
+            if (ItemSelectionPanelController.Instance != null)
+            {
+                // If it wasn't active, scale it up and OPEN the panel
+                if (!isAlreadyActive)
+                {
+                    transform.localScale = initialScale * 1.15f;
+                    ToggleDragHandlers(true);
+                    ItemSelectionPanelController.Instance.OpenPanel();
+
+                }
+                // If it was active, it stays reset (toggled off) and CLOSE the panel
+                else
+                {
+                    // ValidateAndCleanUp() is already called by ResetAll() above
+                    ToggleDragHandlers(false);
+                    ItemSelectionPanelController.Instance.ClosePanel();
+                }
             }
-            // If it was active, it stays reset (toggled off) and CLOSE the panel
             else
             {
-                // ValidateAndCleanUp() is already called by ResetAll() above
-                ToggleDragHandlers(false);
-                ItemSelectionPanelController.Instance.ClosePanel();
+                Debug.LogWarning("[SlidePanelItemButton] ItemSelectionPanelController Instance is NULL. Cannot Toggle Panel.");
             }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[SlidePanelItemButton] Error in OnClick: {e.Message}\nStack: {e.StackTrace}");
         }
     }
 

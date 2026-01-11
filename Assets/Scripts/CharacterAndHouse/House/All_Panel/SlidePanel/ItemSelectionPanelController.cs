@@ -59,6 +59,11 @@ public class ItemSelectionPanelController : MonoBehaviour
             }
         }
     }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
     
     private void LoadTabContents()
     {
@@ -110,20 +115,22 @@ public class ItemSelectionPanelController : MonoBehaviour
         if (canvas == null)
         {
 #if UNITY_EDITOR
+             // Delay call in Editor to avoid warnings, but still add it.
              UnityEditor.EditorApplication.delayCall += () => {
                  try {
                      if (panelRoot != null && panelRoot.GetComponent<Canvas>() == null)
                      {
-                         Debug.Log("[NuclearLog] Adding Canvas to PanelRoot via DelayCall");
+                         Debug.Log("[ItemSelectionPanelController] Auto-Adding Canvas to PanelRoot (Safety)");
                          panelRoot.AddComponent<Canvas>();
                          panelRoot.AddComponent<GraphicRaycaster>();
                      }
-                 } catch (System.Exception e) { Debug.LogError($"[NuclearLog] CRASH in OpenPanel delayCall: {e} \nStack: {System.Environment.StackTrace}"); }
+                 } catch (System.Exception e) { Debug.LogError($"SafeAdd Crash: {e}"); }
              };
-             return; // Exit and wait for delayCall
+             return; 
 #else
-            // canvas = panelRoot.AddComponent<Canvas>();
-            // panelRoot.AddComponent<GraphicRaycaster>();
+            // In Runtime, add immediately
+            canvas = panelRoot.AddComponent<Canvas>();
+            panelRoot.AddComponent<GraphicRaycaster>();
 #endif
         }
 
@@ -248,11 +255,11 @@ public class ItemSelectionPanelController : MonoBehaviour
 
     private CanvasGroup EnsureCanvasGroup(GameObject obj)
     {
-        // READ-ONLY: Do not add components dynamically.
         CanvasGroup cg = obj.GetComponent<CanvasGroup>();
         if (cg == null)
         {
-             // Debug.LogWarning($"[ItemSelectionPanelController] Object {obj.name} missing CanvasGroup. Please add it to the Prefab.");
+             // Auto-add CanvasGroup if missing to enable alpha/interaction control
+             cg = obj.AddComponent<CanvasGroup>();
         }
         return cg;
     }
@@ -277,13 +284,12 @@ public class ItemSelectionPanelController : MonoBehaviour
             Canvas c = item.GetComponent<Canvas>();
             if (c == null)
             {
-                // FAIL-SAFE: Do not add components dynamically during rebuild.
-                // c = item.gameObject.AddComponent<Canvas>();
-                // if (item.GetComponent<GraphicRaycaster>() == null)
-                // {
-                //    item.gameObject.AddComponent<GraphicRaycaster>();
-                // }
-                 // Debug.LogWarning($"[ItemSelectionPanelController] Item {item.name} missing Canvas/Raycaster. Please fix Prefab.");
+                // RESTORED: Add Canvas dynamically for items that don't have it
+                c = item.gameObject.AddComponent<Canvas>();
+                if (item.GetComponent<GraphicRaycaster>() == null)
+                {
+                   item.gameObject.AddComponent<GraphicRaycaster>();
+                }
             }
 
             _cachedItemCanvases.Add(c);
@@ -467,14 +473,23 @@ public class ItemSelectionPanelController : MonoBehaviour
         if (panelRoot == null) return;
 
         // Ensure TabButtons have Canvas components so they can be sorted individually
-            // Dynamic component addition for TabButtons REMOVED to prevent Layout Rebuild Loop.
-            // Ensure prefabs are set up correctly instead.
-            /*
+        foreach (var btn in tabButtons)
+        {
             if (btn != null)
             {
-               // ... (Removed AddComponent logic)
+                Canvas c = btn.GetComponent<Canvas>();
+                if (c == null)
+                {
+                    c = btn.gameObject.AddComponent<Canvas>();
+                    c.overrideSorting = true;
+                    // c.sortingOrder = ... (Handled below)
+                }
+                if (btn.GetComponent<GraphicRaycaster>() == null)
+                {
+                    btn.gameObject.AddComponent<GraphicRaycaster>();
+                }
             }
-            */
+        }
 
         // Find all Canvas components including inactive ones under the panelRoot
         Canvas[] allCanvases = panelRoot.GetComponentsInChildren<Canvas>(true);
@@ -482,13 +497,10 @@ public class ItemSelectionPanelController : MonoBehaviour
         foreach (Canvas c in allCanvases)
         {
             // Ensure every Canvas has a GraphicRaycaster so it can receive events
-            // Dynamic GraphicRaycaster addition REMOVED to prevent Layout Rebuild Loop.
-            /*
             if (c.GetComponent<GraphicRaycaster>() == null)
             {
-               // ...
+                 c.gameObject.AddComponent<GraphicRaycaster>();
             }
-            */
 
             // Check if this Canvas belongs to an ItemSelection object
             if (c.GetComponent<ItemSelection>() != null)
@@ -566,12 +578,13 @@ public class ItemSelectionPanelController : MonoBehaviour
 
     private void EnsureTransparentImage(GameObject obj)
     {
-        // READ-ONLY: Do not add components dynamically to avoid Layout Loops.
         Image img = obj.GetComponent<Image>();
         if (img == null)
         {
-            // Debug.LogWarning($"[ItemSelectionPanelController] Object {obj.name} missing Image. Please add it to the prefab.");
+            // Auto-add Image if missing (required for RaycastTarget)
+            img = obj.AddComponent<Image>();
+            img.color = new Color(0, 0, 0, 0); // Transparent 
         }
-        if (img != null) img.raycastTarget = true;
+        img.raycastTarget = true;
     }
 }

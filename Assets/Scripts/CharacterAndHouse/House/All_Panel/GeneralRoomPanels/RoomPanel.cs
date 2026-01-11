@@ -271,6 +271,16 @@ public class RoomPanel : MonoBehaviour
             // NEW: Size (Width/Height)
             data.customStates["sizeDeltaX"] = rect.sizeDelta.x.ToString();
             data.customStates["sizeDeltaY"] = rect.sizeDelta.y.ToString();
+
+            // NEW: Save Relative Position (Normalized) for Resolution Independence
+            RectTransform parentRect = rect.parent as RectTransform;
+            if (parentRect != null && parentRect.rect.width > 0 && parentRect.rect.height > 0)
+            {
+                float relX = rect.anchoredPosition.x / parentRect.rect.width;
+                float relY = rect.anchoredPosition.y / parentRect.rect.height;
+                data.customStates["relX"] = relX.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                data.customStates["relY"] = relY.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
         }
         else
         {
@@ -596,46 +606,91 @@ public class RoomPanel : MonoBehaviour
             }
         }
 
+
+        // CRITICAL FIX: If the object is "locked" (static wall), DO NOT touch its position.
+        // It should stay where the Unity Scene placed it (Anchor-based layout).
+        RoomObject roomObj = obj.GetComponent<RoomObject>();
+        bool isLocked = (roomObj != null && roomObj.lockPosition);
+
         if (obj.TryGetComponent<RectTransform>(out var rect))
         {
-            // Restore Anchors/Pivot FIRST
-            if (data.customStates.TryGetValue("anchorMinX", out var amX) && data.customStates.TryGetValue("anchorMinY", out var amY))
+            if (!isLocked)
             {
-                if (float.TryParse(amX, out float minX) && float.TryParse(amY, out float minY))
-                    rect.anchorMin = new Vector2(minX, minY);
-            }
-            
-            if (data.customStates.TryGetValue("anchorMaxX", out var axX) && data.customStates.TryGetValue("anchorMaxY", out var axY))
-            {
-                if (float.TryParse(axX, out float maxX) && float.TryParse(axY, out float maxY))
-                    rect.anchorMax = new Vector2(maxX, maxY);
-            }
-            
-            if (data.customStates.TryGetValue("pivotX", out var pX) && data.customStates.TryGetValue("pivotY", out var pY))
-            {
-                if (float.TryParse(pX, out float pivX) && float.TryParse(pY, out float pivY))
-                    rect.pivot = new Vector2(pivX, pivY);
-            }
-
-            // Force update to ensure anchors take effect before position
-            // UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
-
-            // NEW: Apply SizeDelta (Width/Height) if saved
-            if (data.customStates.TryGetValue("sizeDeltaX", out var szX) && data.customStates.TryGetValue("sizeDeltaY", out var szY))
-            {
-                if (float.TryParse(szX, out float sdX) && float.TryParse(szY, out float sdY))
+                // Restore Anchors/Pivot FIRST
+                if (data.customStates.TryGetValue("anchorMinX", out var amX) && data.customStates.TryGetValue("anchorMinY", out var amY))
                 {
-                    rect.sizeDelta = new Vector2(sdX, sdY);
+                    if (float.TryParse(amX, out float minX) && float.TryParse(amY, out float minY))
+                        rect.anchorMin = new Vector2(minX, minY);
+                }
+                
+                if (data.customStates.TryGetValue("anchorMaxX", out var axX) && data.customStates.TryGetValue("anchorMaxY", out var axY))
+                {
+                    if (float.TryParse(axX, out float maxX) && float.TryParse(axY, out float maxY))
+                        rect.anchorMax = new Vector2(maxX, maxY);
+                }
+                
+                if (data.customStates.TryGetValue("pivotX", out var pX) && data.customStates.TryGetValue("pivotY", out var pY))
+                {
+                    if (float.TryParse(pX, out float pivX) && float.TryParse(pY, out float pivY))
+                        rect.pivot = new Vector2(pivX, pivY);
+                }
+
+                // Force update to ensure anchors take effect before position
+                // UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+
+                // NEW: Apply SizeDelta (Width/Height) if saved
+                if (data.customStates.TryGetValue("sizeDeltaX", out var szX) && data.customStates.TryGetValue("sizeDeltaY", out var szY))
+                {
+                    if (float.TryParse(szX, out float sdX) && float.TryParse(szY, out float sdY))
+                    {
+                        rect.sizeDelta = new Vector2(sdX, sdY);
+                    }
+                }
+                
+                // NEW: Resolution Independent Positioning
+                bool appliedRelative = false;
+                if (data.customStates.TryGetValue("relX", out var rxStr) && 
+                    data.customStates.TryGetValue("relY", out var ryStr))
+                {
+                     // USE INVARIANT CULTURE (Allow dots and commas to be safe, but prefer standard)
+                     // This handles the case where PC saves with ',' but Mobile expects '.' or vice versa.
+                     float rx, ry;
+                     bool xParsed = float.TryParse(rxStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out rx);
+                     if (!xParsed) xParsed = float.TryParse(rxStr, out rx); // Fallback to current culture
+
+                     bool yParsed = float.TryParse(ryStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out ry);
+                     if (!yParsed) yParsed = float.TryParse(ryStr, out ry); // Fallback to current culture
+
+                     if (xParsed && yParsed)
+                     {
+                         // Ensure parent rect is valid for calculation
+                         RectTransform parentRect = rect.parent as RectTransform;
+                         if (parentRect != null && parentRect.rect.width > 0 && parentRect.rect.height > 0)
+                         {
+                             float targetX = rx * parentRect.rect.width;
+                             float targetY = ry * parentRect.rect.height;
+                             // Keep Z from saved data
+                             rect.anchoredPosition3D = new Vector3(targetX, targetY, data.position.z);
+                             appliedRelative = true;
+                             // Debug.Log($"[RoomPanel] {obj.name} Loaded Relatively: {rx:F2},{ry:F2} -> {targetX},{targetY}");
+                         }
+                     }
+                }
+
+                if (!appliedRelative)
+                {
+                    rect.anchoredPosition3D = data.position;
                 }
             }
-            
-            // Direct apply from stored Position (AnchoredPosition3D)
-            rect.anchoredPosition3D = data.position;
+            // If locked, we do NOT touch position/anchors, maintaining Unity Editor settings.
         }
         else
         {
-            obj.transform.localPosition = data.position;
-            obj.transform.localRotation = data.rotation;
+            if (!isLocked)
+            {
+                obj.transform.localPosition = data.position;
+                obj.transform.localRotation = data.rotation;
+            }
         }
         
         // Restore Interaction State

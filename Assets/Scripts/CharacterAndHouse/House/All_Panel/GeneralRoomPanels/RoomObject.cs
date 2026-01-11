@@ -27,6 +27,9 @@ public class RoomObject : MonoBehaviour
     // Stores the Resources path this object was loaded from (for Persistence)
     public string loadedFromResourcePath;
 
+    [Tooltip("If true, the Save System will NOT load this object's position/rotation. Use for static walls.")]
+    public bool lockPosition = false;
+
     private void Start()
     {
         // OPTIMIZATION: Disable Animator by default to prevent "Graphic Rebuild Loop" (500Hz)
@@ -115,7 +118,15 @@ public class RoomObject : MonoBehaviour
         //Debug.Log($"[RoomObject] NotifyChange called on {name}. SaveNow: {saveNow}. Panel: {_currentRoomPanel}");
         if (_currentRoomPanel != null)
         {
-            _currentRoomPanel.NotifyObjectChanged(this.gameObject, saveNow);
+        if (_currentRoomPanel != null)
+        {
+            // Only notify if we are NOT locked (or assume saving is fine, loading is the restrictor)
+            // Ideally, if position is locked, we shouldn't even track position changes?
+            // But let's keep it simple: Save everything, but only LOAD if not locked.
+            // OR: If locked, don't spam saves.
+            if (!lockPosition) 
+                _currentRoomPanel.NotifyObjectChanged(this.gameObject, saveNow);
+        }
         }
         else
         {

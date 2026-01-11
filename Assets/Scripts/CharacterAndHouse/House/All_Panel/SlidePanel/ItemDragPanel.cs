@@ -146,14 +146,22 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         RoomObject ghostRoomObj = dragGhost.GetComponent<RoomObject>();
         if (ghostRoomObj == null) 
         {
+        if (ghostRoomObj == null) 
+        {
 #if UNITY_EDITOR
-             // DEFERRAL REMOVED: READ-ONLY
-             // UnityEditor.EditorApplication.delayCall += () => { ... };
+             // DEFERRAL RESTORED: Safe Add
+             UnityEditor.EditorApplication.delayCall += () => {
+                 if (dragGhost != null && dragGhost.GetComponent<RoomObject>() == null)
+                 {
+                     var obj = dragGhost.AddComponent<RoomObject>();
+                     obj.loadedFromResourcePath = ResourcePath;
+                 }
+             };
 #else
-             // ghostRoomObj = dragGhost.AddComponent<RoomObject>();
-             // ghostRoomObj.loadedFromResourcePath = ResourcePath;
+             ghostRoomObj = dragGhost.AddComponent<RoomObject>();
+             ghostRoomObj.loadedFromResourcePath = ResourcePath;
 #endif
-             // Debug.LogWarning("[ItemDragPanel] Ghost missing RoomObject.");
+        }
         }
         else
         {
@@ -168,8 +176,7 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         CanvasGroup ghostCG = dragGhost.GetComponent<CanvasGroup>();
         if (ghostCG == null) 
         {
-            // ghostCG = dragGhost.AddComponent<CanvasGroup>();
-            // Debug.LogWarning("[ItemDragPanel] Ghost missing CanvasGroup.");
+            ghostCG = dragGhost.AddComponent<CanvasGroup>();
         }
         ghostCG.alpha = 0.8f;
         ghostCG.blocksRaycasts = false;
@@ -657,7 +664,7 @@ public class ItemDragPanel : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             
             if (dragGhost.GetComponent<RoomObject>() == null)
             {
-               // dragGhost.AddComponent<RoomObject>();
+               dragGhost.AddComponent<RoomObject>();
             }
 
             // Reset sorting order
