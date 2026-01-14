@@ -12,4 +12,5 @@ public enum EnumCharacterCustomizationCategory
     Clothes,
     Hats,
     Accessory,
+    Mouth,
 }

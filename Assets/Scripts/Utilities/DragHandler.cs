@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerDownHandler
 {
     private RectTransform rectTransform;
     private Canvas canvas;
@@ -80,6 +80,13 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
              Debug.LogWarning($"[DragHandler] {name} missing CanvasGroup. Auto-adding to prevent crash/errors.");
              canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
+
+        // AUTO-FIX: If we have a Canvas, we MUST have a GraphicRaycaster to receive events!
+        if (GetComponent<Canvas>() != null && GetComponent<GraphicRaycaster>() == null)
+        {
+             Debug.LogWarning($"[DragHandler] {name} has Canvas but NO GraphicRaycaster. Auto-adding to fix Input.");
+             gameObject.AddComponent<GraphicRaycaster>();
+        }
     }
 
 
@@ -128,6 +135,67 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        Debug.Log($"[DragHandler] OnBeginDrag STARTED on {name}.");
+
+        // -------------------------------------------------------------
+        // NEW: Check if held by character (Phase 2 Detachment)
+        // -------------------------------------------------------------
+        var holdable = GetComponent<AvatarWorld.Interaction.HoldableItem>();
+        if (holdable != null && holdable.isHeld)
+        {
+             Debug.Log($"[DragHandler] {name} is HELD. Attempting to detach...");
+             
+             // Find who is holding us (HandSlot -> Character)
+             var handCtrl = GetComponentInParent<AvatarWorld.Interaction.CharacterHandController>();
+             if (handCtrl != null)
+             {
+                 // 1. Notify Controller to release logical grip
+                 handCtrl.DropItem(holdable);
+                 
+                 // 2. Re-parent to World/Room (Visual Detach)
+                 // Try to find the RoomPanel we are in
+                 RoomPanel roomPanel = GetComponentInParent<RoomPanel>();
+                 
+                 if (roomPanel != null)
+                 {
+                     Transform targetParent = roomPanel.objectContainer != null ? roomPanel.objectContainer : roomPanel.transform;
+                     transform.SetParent(targetParent, true); 
+                     Debug.Log($"[DragHandler] Reparented to Room ({targetParent.name}).");
+                 }
+                 else
+                 {
+                     // Fallback: Attach to current Canvas root
+                     Canvas currentCanvas = GetComponentInParent<Canvas>();
+                     if (currentCanvas != null)
+                     {
+                         transform.SetParent(currentCanvas.transform, true);
+                         Debug.Log($"[DragHandler] Reparented to Canvas ({currentCanvas.name}).");
+                     }
+                 }
+                 Debug.Log($"[DragHandler] Detached {name} from Character.");
+             }
+             else
+             {
+                 Debug.LogWarning("[DragHandler] Held item has no CharacterHandController parent?!");
+             }
+        }
+        else if (holdable != null)
+        {
+             // Debug.Log($"[DragHandler] Detach check skipped. isHeld: {holdable.isHeld}");
+        }
+        // -------------------------------------------------------------
+
+        // -------------------------------------------------------------
+        // NEW: Check if Sitting (Phase 4)
+        // -------------------------------------------------------------
+        var sitter = GetComponent<AvatarWorld.Interaction.CharacterSittingController>();
+        if (sitter != null && sitter.IsSitting)
+        {
+             Debug.Log($"[DragHandler] {name} was sitting. Standing up...");
+             sitter.StandUp();
+        }
+        // -------------------------------------------------------------
+
         // Refresh References to ensure we use the correct Canvas (ScaleFactor) after reparenting
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
@@ -237,6 +305,11 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         {
             DragAutoScroller.Instance.ProcessDrag(rectTransform);
         }
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        Debug.Log($"[DragHandler] OnPointerDown on {name} (Raycast Hit!). Interactions are WORKING.");
     }
 
     private void LateUpdate()
@@ -451,6 +524,88 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
         canvasGroup.blocksRaycasts = true;
         
         if (_customGravity != null) _customGravity.StartFalling();
+
+        // -------------------------------------------------------------
+        // NEW: Check for Holdable Item Drop (Phase 2)
+        // -------------------------------------------------------------
+        Debug.Log("[DragHandler] OnEndDrag STARTED."); // ENTRY LOG
+        
+        var holdable = GetComponent<AvatarWorld.Interaction.HoldableItem>();
+        if (holdable != null)
+        {
+            Debug.Log($"[DragHandler] [UI Math Check] Checking drop for {name}...");
+
+            // FIX: Using RectTransformUtility. Detects if mouse is inside ANY Character's Rect.
+            // Works for Overlay, Camera, World Space - ANY Canvas mode.
+            // Does NOT require Colliders. Does NOT require RaycastTargets.
+            
+            var allCharacters = FindObjectsOfType<AvatarWorld.Interaction.CharacterHandController>();
+            
+            foreach (var charCtrl in allCharacters)
+            {
+                RectTransform charRect = charCtrl.transform as RectTransform;
+                if (charRect == null) continue;
+
+                // Handle Canvas Render Mode for correct Math
+                Canvas charCanvas = charCtrl.GetComponentInParent<Canvas>();
+                Camera camToUse = Camera.main;
+
+                if (charCanvas != null && charCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                {
+                     camToUse = null; // Overlay requires null!
+                }
+
+                // Check if Mouse Position is inside the Character's Rectangle
+                if (RectTransformUtility.RectangleContainsScreenPoint(charRect, eventData.position, camToUse))
+                {
+                     if (charCtrl.TryHoldItem(holdable))
+                     {
+                         // Successfully grabbed!
+                         return;
+                     }
+                }
+            }
+        }
+        // -------------------------------------------------------------
+        // -------------------------------------------------------------
+        
+        // -------------------------------------------------------------
+        // NEW: Check for Sitting Spot Drop (Phase 4)
+        // -------------------------------------------------------------
+        var characterSitter = GetComponent<AvatarWorld.Interaction.CharacterSittingController>();
+        if (characterSitter != null)
+        {
+             // Find all Seats
+             var allSeats = FindObjectsOfType<AvatarWorld.House.Furniture.Seat>();
+             foreach (var seat in allSeats)
+             {
+                 RectTransform seatRect = seat.transform as RectTransform;
+                 if (seatRect == null) continue;
+
+                 // Handle Canvas Render Mode
+                 Canvas seatCanvas = seat.GetComponentInParent<Canvas>();
+                 Camera camToUse = Camera.main;
+                 if (seatCanvas != null && seatCanvas.renderMode == RenderMode.ScreenSpaceOverlay) camToUse = null;
+
+                 if (RectTransformUtility.RectangleContainsScreenPoint(seatRect, eventData.position, camToUse))
+                 {
+                      Debug.Log($"[DragHandler] Dropped Character on Seat: {seat.name}");
+                      characterSitter.TrySit(seat);
+                      
+                      // Also ensure we are parented to the Room/Area of the seat for correct depth?
+                      // Usually Seats are in Rooms.
+                      RoomPanel room = seat.GetComponentInParent<RoomPanel>();
+                      if (room != null)
+                      {
+                           Transform targetParent = room.objectContainer != null ? room.objectContainer : room.transform;
+                           transform.SetParent(targetParent, true);
+                      }
+                      
+                      return; // Handle sitting and exit
+                 }
+             }
+        }
+        // ------------------------------------------------------------- 
         
         // Check for Garbage Bin Drop
         if (GarbageBinController.Instance != null)

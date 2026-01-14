@@ -35,6 +35,7 @@ public class CharacterCreationManager : MonoBehaviour
     public List<Sprite> clothesSprites;
     public List<Sprite> hatsSprites;
     public List<Sprite> accessorySprites;
+    public List<Sprite> mouthSprites;
 
     public EnumCharacterCustomizationCategory currentCategory;
 
@@ -80,7 +81,9 @@ public class CharacterCreationManager : MonoBehaviour
         freckleSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
         clothesSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
         hatsSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
+        hatsSprites = LoadSpritesFromResources("Images/Character/Style/Outfit");
         accessorySprites = LoadSpritesFromResources("Images/Character/Style/Accessories");
+        mouthSprites = LoadSpritesFromResources("Images/Character/Style/Mouth_Image");
 
         SpawnPreviewCharacter();
         SetCategory(0); // Varsayılan olarak "Skin" kategorisini seç
@@ -131,7 +134,8 @@ public class CharacterCreationManager : MonoBehaviour
     {
         if (previewInstance == null) return;
 
-        Transform skinRoot = previewInstance.transform.Find("Skin");
+        // Recursive arama yapacak helper fonksiyon
+        Transform skinRoot = FindPart(previewInstance.transform, "Skin");
         
         if (skinRoot == null) return;
 
@@ -159,7 +163,9 @@ public class CharacterCreationManager : MonoBehaviour
     {
         if (previewInstance == null) return;
 
-        var hairImage = previewInstance.transform.Find("Hair").GetComponent<Image>();
+        var hairT = FindPart(previewInstance.transform, "Hair");
+        if(hairT == null) return;
+        var hairImage = hairT.GetComponent<Image>();
         var sprites = LoadSpritesFromResources($"Images/Character/Style/Hair_Image/{style}");
 
         if (index >= 0 && index < sprites.Count)
@@ -171,7 +177,8 @@ public class CharacterCreationManager : MonoBehaviour
     {
         if (previewInstance == null) return;
         
-        var gameObj = previewInstance.transform.Find("Clothes");
+        var gameObj = FindPart(previewInstance.transform, "Clothes");
+        if(gameObj == null) return;
         var clothesImage = gameObj.GetComponent<Image>();
         var sprites = LoadSpritesFromResources($"Images/Character/Style/Clothes_Image/{style}");
 
@@ -189,7 +196,8 @@ public class CharacterCreationManager : MonoBehaviour
     {
         if (previewInstance == null) return;
 
-        var gameObj = previewInstance.transform.Find("Hat");
+        var gameObj = FindPart(previewInstance.transform, "Hat");
+        if(gameObj == null) return;
         var hatImage = gameObj.GetComponent<Image>();
         var sprites = LoadSpritesFromResources($"Images/Character/Style/Hats_Image/{style}");
 
@@ -208,7 +216,8 @@ public class CharacterCreationManager : MonoBehaviour
     {
         if (previewInstance == null) return;
 
-        var gameObj = previewInstance.transform.Find("Accessory");
+        var gameObj = FindPart(previewInstance.transform, "Accessory");
+        if(gameObj == null) return;
         var accessoryImage = gameObj.GetComponent<Image>();
         var sprites = LoadSpritesFromResources($"Images/Character/Style/Accessory_Image/{style}");
 
@@ -219,6 +228,19 @@ public class CharacterCreationManager : MonoBehaviour
         ImageSettingsApplier applier = gameObj.GetComponent<ImageSettingsApplier>();
         if (applier != null)
             applier.ApplySettings();
+    }
+
+    public void SelectMouth(int index, string style)
+    {
+        if (previewInstance == null) return;
+
+        var gameObj = FindPart(previewInstance.transform, "Mouth");
+        if(gameObj == null) return;
+        var mouthImage = gameObj.GetComponent<Image>();
+        var sprites = LoadSpritesFromResources($"Images/Character/Style/Mouth_Image/{style}");
+
+        if (index >= 0 && index < sprites.Count)
+            mouthImage.sprite = sprites[index];
     }
 
     //--------------PREVIEW AREA-------------------
@@ -244,7 +266,7 @@ public class CharacterCreationManager : MonoBehaviour
             
             //Direkt Buton ile açılanlar
             case EnumCharacterCustomizationCategory.Hair_Boy:
-                colorRoot = previewInstance.transform.Find("Hair");
+                colorRoot = FindPart(previewInstance.transform, "Hair");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
@@ -253,7 +275,7 @@ public class CharacterCreationManager : MonoBehaviour
                 break;
 
             case EnumCharacterCustomizationCategory.Hair_Girl:
-                colorRoot = previewInstance.transform.Find("Hair");
+                colorRoot = FindPart(previewInstance.transform, "Hair");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
@@ -262,7 +284,7 @@ public class CharacterCreationManager : MonoBehaviour
                 break;
 
             case EnumCharacterCustomizationCategory.Hair_Mixed:
-                colorRoot = previewInstance.transform.Find("Hair");
+                colorRoot = FindPart(previewInstance.transform, "Hair");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
@@ -271,7 +293,7 @@ public class CharacterCreationManager : MonoBehaviour
                 break;
             
             case EnumCharacterCustomizationCategory.Beard:
-                colorRoot = previewInstance.transform.Find("Beard");
+                colorRoot = FindPart(previewInstance.transform, "Beard");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
@@ -279,7 +301,7 @@ public class CharacterCreationManager : MonoBehaviour
                 dynamicCategoryManager.PopulateOptionGrid("Beard_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Eyes:
-                colorRoot = previewInstance.transform.Find("Eyes");
+                colorRoot = FindPart(previewInstance.transform, "Eyes");
                  //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
@@ -287,7 +309,7 @@ public class CharacterCreationManager : MonoBehaviour
                 dynamicCategoryManager.PopulateOptionGrid("Eyes_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Noise:
-                colorRoot = previewInstance.transform.Find("Noise");
+                colorRoot = FindPart(previewInstance.transform, "Noise");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
@@ -295,7 +317,7 @@ public class CharacterCreationManager : MonoBehaviour
                 dynamicCategoryManager.PopulateOptionGrid("Noise_Image", "");
                 break;    
             case EnumCharacterCustomizationCategory.EyeBrown:
-                colorRoot = previewInstance.transform.Find("EyeBrown");
+                colorRoot = FindPart(previewInstance.transform, "EyeBrown");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
@@ -303,7 +325,7 @@ public class CharacterCreationManager : MonoBehaviour
                 dynamicCategoryManager.PopulateOptionGrid("EyeBrown_Image", "");
                 break;
             case EnumCharacterCustomizationCategory.Freckle:
-                colorRoot = previewInstance.transform.Find("Freckle");
+                colorRoot = FindPart(previewInstance.transform, "Freckle");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
                 dynamicCategoryManager.PopulateOptionColorPalette();
@@ -313,7 +335,7 @@ public class CharacterCreationManager : MonoBehaviour
             
             //Alt seçim yapılarak açılanlar
             case EnumCharacterCustomizationCategory.Clothes:
-                colorRoot = previewInstance.transform.Find("Clothes");
+                colorRoot = FindPart(previewInstance.transform, "Clothes");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false); 
 
@@ -321,7 +343,8 @@ public class CharacterCreationManager : MonoBehaviour
                 break;
 
             case EnumCharacterCustomizationCategory.Hats:
-                colorRoot = previewInstance.transform.Find("Hats");
+                colorRoot = FindPart(previewInstance.transform, "Hat"); // Duzeltildi: "Hats" degil "Hat" olabilir, ama rig aracinda "Hat" kullandik. Kontrol gerekirse isme gore.
+                if(colorRoot == null) colorRoot = FindPart(previewInstance.transform, "Hats");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false); 
 
@@ -329,11 +352,20 @@ public class CharacterCreationManager : MonoBehaviour
                 break;
 
             case EnumCharacterCustomizationCategory.Accessory:
-                colorRoot = previewInstance.transform.Find("Accessory");
+                colorRoot = FindPart(previewInstance.transform, "Accessory");
                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
                 dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false);
 
                 dynamicCategoryManager.PopulateCategoryButtons("Accessory_Image");
+                break;
+
+            case EnumCharacterCustomizationCategory.Mouth:
+                colorRoot = FindPart(previewInstance.transform, "Mouth");
+                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
+                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false); 
+                dynamicCategoryManager.PopulateOptionColorPalette();
+
+                dynamicCategoryManager.PopulateOptionGrid("Mouth_Image", "");
                 break;
 
             // Diğer kategoriler eklenebilir
@@ -352,7 +384,7 @@ public class CharacterCreationManager : MonoBehaviour
             case EnumCharacterCustomizationCategory.Hair_Mixed:
                 colorValue = hairColors;
                 colorIcons = hairColorIcons;
-                colorRoot = previewInstance.transform.Find("Hair");
+                colorRoot = FindPart(previewInstance.transform, "Hair");
                 break;
             
             case EnumCharacterCustomizationCategory.Beard:
@@ -362,17 +394,17 @@ public class CharacterCreationManager : MonoBehaviour
             case EnumCharacterCustomizationCategory.Noise:
                 colorValue = noiseColors;
                 colorIcons = noiseColorIcons;
-                colorRoot = previewInstance.transform.Find("Noise");
+                colorRoot = FindPart(previewInstance.transform, "Noise");
                 break;    
             case EnumCharacterCustomizationCategory.EyeBrown:
                 colorValue = eyeBrownColors;
                 colorIcons = eyeBrownColorIcons;
-                colorRoot = previewInstance.transform.Find("EyeBrown");
+                colorRoot = FindPart(previewInstance.transform, "EyeBrown");
                 break;
             case EnumCharacterCustomizationCategory.Freckle:
                 colorValue = freckleColors;
                 colorIcons = freckleColorIcons;
-                colorRoot = previewInstance.transform.Find("Freckle");
+                colorRoot = FindPart(previewInstance.transform, "Freckle");
                 break;                                                            
         }
 
@@ -411,7 +443,7 @@ public class CharacterCreationManager : MonoBehaviour
         }
   
         //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-        Transform skinRoot = previewInstance.transform.Find("Skin");
+        Transform skinRoot = FindPart(previewInstance.transform, "Skin");
         dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,skinRoot,true); 
 
     }
@@ -533,4 +565,23 @@ public class CharacterCreationManager : MonoBehaviour
     }
 
 
+
+
+    // --- YENI HELPER ---
+    // Hiyerarsi degistigi icin Root altinda derinlemesine arama yapar
+    private Transform FindPart(Transform root, string partName)
+    {
+        // 1. Dogrudan cocuk mu?
+        Transform t = root.Find(partName);
+        if (t != null) return t;
+
+        // 2. Recursive (Derin) arama
+        foreach (Transform child in root)
+        {
+            Transform result = FindPart(child, partName);
+            if (result != null) return result;
+        }
+
+        return null;
+    }
 }
