@@ -11,7 +11,8 @@ namespace Assets.Scripts.CharacterAndHouse.CharacterScripts.Expression
         Happy,
         Sad,
         Angry,
-        Surprised
+        Surprised,
+        Sleep
     }
 
     [System.Serializable]
@@ -106,7 +107,10 @@ namespace Assets.Scripts.CharacterAndHouse.CharacterScripts.Expression
                 yield return new WaitForSeconds(waitTime);
 
                 // Perform Blink
-                if (eyesImage != null && blinkSprite != null && currentEmotion != EmotionType.Surprised) // Don't blink if surprised?
+                // Don't blink if surprised or Sleeping
+                if (eyesImage != null && blinkSprite != null && 
+                    currentEmotion != EmotionType.Surprised && 
+                    currentEmotion != EmotionType.Sleep) 
                 {
                     Sprite preBlinkSprite = eyesImage.sprite;
                     eyesImage.sprite = blinkSprite;

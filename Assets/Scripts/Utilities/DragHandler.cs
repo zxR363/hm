@@ -194,6 +194,16 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
              Debug.Log($"[DragHandler] {name} was sitting. Standing up...");
              sitter.StandUp();
         }
+        
+        // -------------------------------------------------------------
+        // NEW: Check if Sleeping (Phase 5)
+        // -------------------------------------------------------------
+        var sleeper = GetComponent<AvatarWorld.Interaction.CharacterSleepingController>();
+        if (sleeper != null && sleeper.IsSleeping)
+        {
+             Debug.Log($"[DragHandler] {name} was sleeping. Waking up...");
+             sleeper.WakeUp();
+        }
         // -------------------------------------------------------------
 
         // Refresh References to ensure we use the correct Canvas (ScaleFactor) after reparenting
@@ -600,11 +610,44 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
                            Transform targetParent = room.objectContainer != null ? room.objectContainer : room.transform;
                            transform.SetParent(targetParent, true);
                       }
-                      
-                      return; // Handle sitting and exit
+                                            return; // Handle sitting and exit
+                     }
                  }
-             }
-        }
+            }
+            
+            // -------------------------------------------------------------
+            // NEW: Check for Bed Drop (Phase 5)
+            // -------------------------------------------------------------
+            var characterSleeper = GetComponent<AvatarWorld.Interaction.CharacterSleepingController>();
+            if (characterSleeper != null)
+            {
+                 var allBeds = FindObjectsOfType<AvatarWorld.House.Furniture.Bed>();
+                 foreach (var bed in allBeds)
+                 {
+                     RectTransform bedRect = bed.transform as RectTransform;
+                     if (bedRect == null) continue;
+
+                     // Handle Canvas Render Mode
+                     Canvas bedCanvas = bed.GetComponentInParent<Canvas>();
+                     Camera camToUse = Camera.main;
+                     if (bedCanvas != null && bedCanvas.renderMode == RenderMode.ScreenSpaceOverlay) camToUse = null;
+
+                     if (RectTransformUtility.RectangleContainsScreenPoint(bedRect, eventData.position, camToUse))
+                     {
+                          Debug.Log($"[DragHandler] Dropped Character on Bed: {bed.name}");
+                          characterSleeper.TrySleep(bed);
+                          
+                          // Reparent to Room
+                          RoomPanel room = bed.GetComponentInParent<RoomPanel>();
+                          if (room != null)
+                          {
+                               Transform targetParent = room.objectContainer != null ? room.objectContainer : room.transform;
+                               transform.SetParent(targetParent, true);
+                          }
+                          return;
+                     }
+                 }
+            }
         // ------------------------------------------------------------- 
         
         // Check for Garbage Bin Drop

@@ -912,7 +912,7 @@ GameObject:
   - component: {fileID: 8210323540101244228}
   - component: {fileID: 6467809827415814147}
   - component: {fileID: 8596076713260305604}
-  - component: {fileID: 1087804260216166343}
+  - component: {fileID: 1831177116617979197}
   m_Layer: 5
   m_Name: BaseCharacterPrefab
   m_TagString: Untagged
@@ -1135,7 +1135,7 @@ MonoBehaviour:
   sitSideSkewAngle: -20
   leftLeg: {fileID: 0}
   rightLeg: {fileID: 0}
---- !u!114 &1087804260216166343
+--- !u!114 &1831177116617979197
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1144,19 +1144,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 7109436248583609548}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f481e932d57cd644b7877aabeb6571c, type: 3}
+  m_Script: {fileID: 11500000, guid: b94ee91cdfe4f944c87c3007902e6e90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dragSpeed: 1
-  clampToParent: 1
-  enableDepthSorting: 0
-  explicitDepthCanvas: {fileID: 0}
-  sortingOrderBack: 20
-  sortingOrderFront: 21
-  restingSortingOrder: 20
-  _uniqueId: 
-  validColor: {r: 1, g: 1, b: 1, a: 1}
-  invalidColor: {r: 1, g: 0, b: 0, a: 1}
+  moveSpeed: 10
 --- !u!1 &7620386567088638632
 GameObject:
   m_ObjectHideFlags: 0
