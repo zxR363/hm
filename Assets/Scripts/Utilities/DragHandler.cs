@@ -285,6 +285,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     }
 
     private bool _wasHoveringBin = false;
+    private AvatarWorld.Interaction.CharacterEatingController _lastEatingController; // Track last eater for feedback
 
     private bool _isDragging = false;
     private PointerEventData _lastPointerData;
@@ -294,6 +295,55 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         // Just cache data and trigger side effects (AutoScroll, Bin, etc.)
         _lastPointerData = eventData;
         
+        // -------------------------------------------------------------
+        // NEW: Eating Feedback (Mouth Open)
+        // -------------------------------------------------------------
+        var consumable = GetComponent<AvatarWorld.Interaction.ConsumableItem>();
+        if (consumable != null)
+        {
+             AvatarWorld.Interaction.CharacterEatingController currentEater = null;
+             
+             // Check if over any character
+             var allEaters = FindObjectsOfType<AvatarWorld.Interaction.CharacterEatingController>();
+             foreach (var eater in allEaters)
+             {
+                 // USE SPECIFIC RECT IF AVAILABLE, OTHERWISE FALLBACK TO TRANSFORM
+                 RectTransform targetRect = eater.mouthDetectionRect != null ? eater.mouthDetectionRect : (eater.transform as RectTransform);
+                 
+                 if (targetRect == null) continue;
+
+                 Canvas eaterCanvas = eater.GetComponentInParent<Canvas>();
+                 Camera camToUse = Camera.main;
+                 if (eaterCanvas != null && eaterCanvas.renderMode == RenderMode.ScreenSpaceOverlay) camToUse = null;
+
+                 if (RectTransformUtility.RectangleContainsScreenPoint(targetRect, eventData.position, camToUse))
+                 {
+                      currentEater = eater;
+                      break; // Found one
+                 }
+             }
+
+             // Logic for Enter/Exit
+             if (currentEater != _lastEatingController)
+             {
+                 // We switched targets
+                 // 1. Close old mouth
+                 if (_lastEatingController != null) _lastEatingController.OnFoodNearby(false);
+
+                 // 2. Open new mouth
+                 if (currentEater != null) currentEater.OnFoodNearby(true);
+
+                 _lastEatingController = currentEater;
+             }
+        }
+        else if (_lastEatingController != null)
+        {
+            // If we somehow lost the consumable component mid-drag? or (more likely) copied logic to non-consumable
+            _lastEatingController.OnFoodNearby(false);
+            _lastEatingController = null;
+        }
+        // -------------------------------------------------------------
+
         // Garbage Bin Hover Logic
         if (GarbageBinController.Instance != null)
         {
@@ -536,6 +586,37 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
         if (_customGravity != null) _customGravity.StartFalling();
 
         // -------------------------------------------------------------
+        // NEW: Check for Eating (Phase 6) - PRIORITIZED!
+        // -------------------------------------------------------------
+        var consumable = GetComponent<AvatarWorld.Interaction.ConsumableItem>();
+        if (consumable != null)
+        {
+             // Check if dropped on Character's Mouth Area
+             var allEaters = FindObjectsOfType<AvatarWorld.Interaction.CharacterEatingController>();
+             foreach (var eater in allEaters)
+             {
+                 // USE SPECIFIC RECT IF AVAILABLE, OTHERWISE FALLBACK TO TRANSFORM
+                 RectTransform targetRect = eater.mouthDetectionRect != null ? eater.mouthDetectionRect : (eater.transform as RectTransform);
+                 
+                 if (targetRect == null) continue;
+
+                 // Handle Canvas Render Mode
+                 Canvas eaterCanvas = eater.GetComponentInParent<Canvas>();
+                 Camera camToUse = Camera.main;
+                 if (eaterCanvas != null && eaterCanvas.renderMode == RenderMode.ScreenSpaceOverlay) camToUse = null;
+
+                 if (RectTransformUtility.RectangleContainsScreenPoint(targetRect, eventData.position, camToUse))
+                 {
+                      Debug.Log($"[DragHandler] Fed {name} to {eater.name}.");
+                      eater.OnFoodNearby(false); // Close mouth before eating
+                      eater.Eat(consumable);
+                      return; // Consumed (or at least logic handled)
+                 }
+             }
+        }
+        // -------------------------------------------------------------
+
+        // -------------------------------------------------------------
         // NEW: Check for Holdable Item Drop (Phase 2)
         // -------------------------------------------------------------
         Debug.Log("[DragHandler] OnEndDrag STARTED."); // ENTRY LOG
@@ -553,26 +634,45 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
             
             foreach (var charCtrl in allCharacters)
             {
-                RectTransform charRect = charCtrl.transform as RectTransform;
-                if (charRect == null) continue;
-
-                // Handle Canvas Render Mode for correct Math
-                Canvas charCanvas = charCtrl.GetComponentInParent<Canvas>();
-                Camera camToUse = Camera.main;
-
-                if (charCanvas != null && charCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                // Logic: Check 'HandDetectionRects' first. If empty, fallback to 'transform'?? 
+                // USER REQUEST: Only specific areas. So if array is empty, maybe we should NOT hold?
+                // Let's assume fallback to 'transform' for backward compatibility if user hasn't assigned rects yet.
+                
+                // Collect Rects to check
+                System.Collections.Generic.List<RectTransform> rectsToCheck = new System.Collections.Generic.List<RectTransform>();
+                
+                if (charCtrl.handDetectionRects != null && charCtrl.handDetectionRects.Length > 0)
                 {
-                     camToUse = null; // Overlay requires null!
+                    rectsToCheck.AddRange(charCtrl.handDetectionRects);
+                }
+                else
+                {
+                    // Fallback
+                    rectsToCheck.Add(charCtrl.transform as RectTransform);
                 }
 
-                // Check if Mouse Position is inside the Character's Rectangle
-                if (RectTransformUtility.RectangleContainsScreenPoint(charRect, eventData.position, camToUse))
+                foreach(var targetRect in rectsToCheck)
                 {
-                     if (charCtrl.TryHoldItem(holdable))
-                     {
-                         // Successfully grabbed!
-                         return;
-                     }
+                    if (targetRect == null) continue;
+
+                    // Handle Canvas Render Mode for correct Math
+                    Canvas charCanvas = charCtrl.GetComponentInParent<Canvas>();
+                    Camera camToUse = Camera.main;
+    
+                    if (charCanvas != null && charCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                    {
+                         camToUse = null; // Overlay requires null!
+                    }
+    
+                    // Check if Mouse Position is inside the specific target rect
+                    if (RectTransformUtility.RectangleContainsScreenPoint(targetRect, eventData.position, camToUse))
+                    {
+                         if (charCtrl.TryHoldItem(holdable))
+                         {
+                             // Successfully grabbed!
+                             return;
+                         }
+                    }
                 }
             }
         }
@@ -610,46 +710,49 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
                            Transform targetParent = room.objectContainer != null ? room.objectContainer : room.transform;
                            transform.SetParent(targetParent, true);
                       }
-                                            return; // Handle sitting and exit
-                     }
+                      return; // Handle sitting and exit
                  }
-            }
+             }
+        }
             
-            // -------------------------------------------------------------
-            // NEW: Check for Bed Drop (Phase 5)
-            // -------------------------------------------------------------
-            var characterSleeper = GetComponent<AvatarWorld.Interaction.CharacterSleepingController>();
-            if (characterSleeper != null)
-            {
-                 var allBeds = FindObjectsOfType<AvatarWorld.House.Furniture.Bed>();
-                 foreach (var bed in allBeds)
+        // -------------------------------------------------------------
+        // NEW: Check for Bed Drop (Phase 5)
+        // -------------------------------------------------------------
+        var characterSleeper = GetComponent<AvatarWorld.Interaction.CharacterSleepingController>();
+        if (characterSleeper != null)
+        {
+             var allBeds = FindObjectsOfType<AvatarWorld.House.Furniture.Bed>();
+             foreach (var bed in allBeds)
+             {
+                 RectTransform bedRect = bed.transform as RectTransform;
+                 if (bedRect == null) continue;
+
+                 // Handle Canvas Render Mode
+                 Canvas bedCanvas = bed.GetComponentInParent<Canvas>();
+                 Camera camToUse = Camera.main;
+                 if (bedCanvas != null && bedCanvas.renderMode == RenderMode.ScreenSpaceOverlay) camToUse = null;
+
+                 if (RectTransformUtility.RectangleContainsScreenPoint(bedRect, eventData.position, camToUse))
                  {
-                     RectTransform bedRect = bed.transform as RectTransform;
-                     if (bedRect == null) continue;
-
-                     // Handle Canvas Render Mode
-                     Canvas bedCanvas = bed.GetComponentInParent<Canvas>();
-                     Camera camToUse = Camera.main;
-                     if (bedCanvas != null && bedCanvas.renderMode == RenderMode.ScreenSpaceOverlay) camToUse = null;
-
-                     if (RectTransformUtility.RectangleContainsScreenPoint(bedRect, eventData.position, camToUse))
-                     {
-                          Debug.Log($"[DragHandler] Dropped Character on Bed: {bed.name}");
-                          characterSleeper.TrySleep(bed);
-                          
-                          // Reparent to Room
-                          RoomPanel room = bed.GetComponentInParent<RoomPanel>();
-                          if (room != null)
-                          {
-                               Transform targetParent = room.objectContainer != null ? room.objectContainer : room.transform;
-                               transform.SetParent(targetParent, true);
-                          }
-                          return;
-                     }
+                      Debug.Log($"[DragHandler] Dropped Character on Bed: {bed.name}");
+                      characterSleeper.TrySleep(bed);
+                      
+                      // Reparent to Room
+                      RoomPanel room = bed.GetComponentInParent<RoomPanel>();
+                      if (room != null)
+                      {
+                           Transform targetParent = room.objectContainer != null ? room.objectContainer : room.transform;
+                           transform.SetParent(targetParent, true);
+                      }
+                      return;
                  }
-            }
+             }
+        }
+
         // ------------------------------------------------------------- 
         
+
+
         // Check for Garbage Bin Drop
         if (GarbageBinController.Instance != null)
         {

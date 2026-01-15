@@ -194,7 +194,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6307366244307724736}
   m_Father: {fileID: 5462563635558851076}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -913,6 +914,8 @@ GameObject:
   - component: {fileID: 6467809827415814147}
   - component: {fileID: 8596076713260305604}
   - component: {fileID: 1831177116617979197}
+  - component: {fileID: 8385382477248689279}
+  - component: {fileID: 7959287755302456556}
   m_Layer: 5
   m_Name: BaseCharacterPrefab
   m_TagString: Untagged
@@ -1041,6 +1044,9 @@ MonoBehaviour:
   rightHandSlot: {fileID: 0}
   heldItemLeft: {fileID: 0}
   heldItemRight: {fileID: 0}
+  handDetectionRects:
+  - {fileID: 1943259856365553246}
+  - {fileID: 5225600029286851380}
   armLiftAngle: 10
   smoothSpeed: 13
 --- !u!61 &8210323540101244228
@@ -1148,6 +1154,89 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
+--- !u!114 &8385382477248689279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7109436248583609548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b24cc3486f757754c842a472b4890578, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  openMouthSprite: {fileID: 21300000, guid: 5c804ff004ef7964095e0c1fd8756a3d, type: 3}
+  chewingMouthSprite: {fileID: 21300000, guid: c50905559d30bfd40ab42808538dfc62, type: 3}
+  chewDuration: 1
+  chewSound: {fileID: 8300000, guid: 94864c7c6d8bd7747a909577e344ff74, type: 3}
+  mouthDetectionRect: {fileID: 6307366244307724736}
+--- !u!114 &7959287755302456556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7109436248583609548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f481e932d57cd644b7877aabeb6571c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dragSpeed: 1
+  clampToParent: 1
+  enableDepthSorting: 0
+  explicitDepthCanvas: {fileID: 0}
+  sortingOrderBack: 20
+  sortingOrderFront: 21
+  restingSortingOrder: 20
+  _uniqueId: 
+  validColor: {r: 1, g: 1, b: 1, a: 1}
+  invalidColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!1 &7310611899780920299
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6307366244307724736}
+  - component: {fileID: 8984397072451438691}
+  m_Layer: 5
+  m_Name: mouthArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6307366244307724736
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7310611899780920299}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2457717666194076691}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &8984397072451438691
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7310611899780920299}
+  m_CullTransparentMesh: 1
 --- !u!1 &7620386567088638632
 GameObject:
   m_ObjectHideFlags: 0

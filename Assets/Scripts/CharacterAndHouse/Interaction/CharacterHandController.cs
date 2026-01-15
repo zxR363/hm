@@ -11,6 +11,9 @@ namespace AvatarWorld.Interaction
         [Header("State")]
         public HoldableItem heldItemLeft;
         public HoldableItem heldItemRight;
+        
+        [Header("Detection Areas")]
+        public RectTransform[] handDetectionRects; // Specific areas for drag & drop detection (e.g. Arms)
 
         [Header("Animation Settings")]
         [Tooltip("How many degrees to lift the arm when holding an item.")]
