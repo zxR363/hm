@@ -126,11 +126,11 @@ namespace Assets.Scripts.CharacterAndHouse.CharacterScripts.Expression
         private void Update()
         {
             // Debug / Testing Inputs
-            // if (Input.GetKeyDown(KeyCode.Alpha1)) SetEmotion(EmotionType.Happy);
-            // if (Input.GetKeyDown(KeyCode.Alpha2)) SetEmotion(EmotionType.Sad);
-            // if (Input.GetKeyDown(KeyCode.Alpha3)) SetEmotion(EmotionType.Angry);
-            // if (Input.GetKeyDown(KeyCode.Alpha4)) SetEmotion(EmotionType.Surprised);
-            // if (Input.GetKeyDown(KeyCode.Alpha0)) SetEmotion(EmotionType.Neutral);
+            if (Input.GetKeyDown(KeyCode.Alpha1)) SetEmotion(EmotionType.Happy);
+            if (Input.GetKeyDown(KeyCode.Alpha2)) SetEmotion(EmotionType.Sad);
+            if (Input.GetKeyDown(KeyCode.Alpha3)) SetEmotion(EmotionType.Angry);
+            if (Input.GetKeyDown(KeyCode.Alpha4)) SetEmotion(EmotionType.Surprised);
+            if (Input.GetKeyDown(KeyCode.Alpha0)) SetEmotion(EmotionType.Neutral);
         }
 
         // Helper to test from Inspector context menu

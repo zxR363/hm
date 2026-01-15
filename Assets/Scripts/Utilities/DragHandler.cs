@@ -96,6 +96,10 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     private Vector3? _lastValidLocalPosition;
     private Vector2 dragOffset;
     private RectTransform parentRect;
+    
+    // START STATE TRACKING (Added for Character detach logic)
+    private Transform _startParent;
+    private Vector3 _startLocalPosition;
 
     void Start()
     {
@@ -149,30 +153,31 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
              var handCtrl = GetComponentInParent<AvatarWorld.Interaction.CharacterHandController>();
              if (handCtrl != null)
              {
-                 // 1. Notify Controller to release logical grip
-                 handCtrl.DropItem(holdable);
-                 
-                 // 2. Re-parent to World/Room (Visual Detach)
-                 // Try to find the RoomPanel we are in
-                 RoomPanel roomPanel = GetComponentInParent<RoomPanel>();
-                 
-                 if (roomPanel != null)
-                 {
-                     Transform targetParent = roomPanel.objectContainer != null ? roomPanel.objectContainer : roomPanel.transform;
-                     transform.SetParent(targetParent, true); 
-                     Debug.Log($"[DragHandler] Reparented to Room ({targetParent.name}).");
-                 }
-                 else
-                 {
-                     // Fallback: Attach to current Canvas root
-                     Canvas currentCanvas = GetComponentInParent<Canvas>();
-                     if (currentCanvas != null)
-                     {
-                         transform.SetParent(currentCanvas.transform, true);
-                         Debug.Log($"[DragHandler] Reparented to Canvas ({currentCanvas.name}).");
-                     }
-                 }
-                 Debug.Log($"[DragHandler] Detached {name} from Character.");
+                  // 1. Notify Controller to release logical grip
+                  handCtrl.DropItem(holdable);
+                  
+                  // NEW ROBUST FIX: Directly become Sibling of the Character (Attach to Character's Parent aka Room)
+                  if (handCtrl.transform.parent != null)
+                  {
+                      _startParent = handCtrl.transform.parent; // Remember where we belong (Room)
+                      _startLocalPosition = _startParent.InverseTransformPoint(transform.position);
+                      
+                      transform.SetParent(_startParent, true); 
+                      transform.SetAsLastSibling(); // Ensure we render in front of our sibling (Character)
+                      Debug.Log($"[DragHandler] Detach Success: Reparented to {_startParent.name} (Character's Parent).");
+                  }
+                  else
+                  {
+                      // Fallback if Character has no parent (Unlikely?)
+                      Canvas currentCanvas = GetComponentInParent<Canvas>();
+                      if (currentCanvas != null)
+                      {
+                          transform.SetParent(currentCanvas.transform, true);
+                          transform.SetAsLastSibling();
+                          Debug.Log($"[DragHandler] Reparented to Canvas ({currentCanvas.name}).");
+                      }
+                  }
+                  Debug.Log($"[DragHandler] Detached {name} from Character.");
              }
              else
              {
@@ -184,6 +189,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
              // Debug.Log($"[DragHandler] Detach check skipped. isHeld: {holdable.isHeld}");
         }
         // -------------------------------------------------------------
+
+
 
         // -------------------------------------------------------------
         // NEW: Check if Sitting (Phase 4)
@@ -567,6 +574,10 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
         {
             if (c == root) continue; // Already handled root
             if (c == ignoreCanvas) continue; // Don't touch the canvas we're trying to ignore
+
+            // BUGFIX: Do NOT override sorting of items held by this character (or attached to it)
+            // They manage their own sorting (e.g. attached to hand = Order 30).
+            if (c.GetComponent<AvatarWorld.Interaction.HoldableItem>() != null) continue;
 
             // USER REQUEST: Strict Rule: Parent=X -> Child=X+1
             // We force overrideSorting = true for ALL children found.
