@@ -103,6 +103,20 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     void Start()
     {
+         // AUTO-FIX: Ensure we have a Canvas for sorting, otherwise Drag sorting fails.
+         if (GetComponent<Canvas>() == null)
+         {
+             Debug.Log($"[DragHandler] {name} missing Canvas. Auto-adding to support Sorting Order Logic.");
+             Canvas c = gameObject.AddComponent<Canvas>();
+             c.overrideSorting = true;
+             c.sortingOrder = restingSortingOrder;
+             
+             // Must have Raycaster too
+             gameObject.AddComponent<GraphicRaycaster>();
+             
+             // Update references
+             canvas = c;
+         }
 
 
          // Validate initial placement
@@ -286,6 +300,21 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         }
 
         _isDragging = true;
+        
+        // BUGFIX: Force high sorting order immediately on Drag Start.
+        // This prevents the item from disappearing behind other objects (like Character Face) during drag.
+        int dragSortOrder = Mathf.Max(sortingOrderFront, 100); 
+        
+        if (rootCanvas != null)
+        {
+             Debug.Log($"[DragHandler] Force Sorting ON. Canvas: {rootCanvas.name}, OldOrder: {rootCanvas.sortingOrder}, NewOrder: {dragSortOrder}, Layer: {rootCanvas.sortingLayerName}");
+             SetRecursiveSortingOrder(rootCanvas, dragSortOrder);
+        }
+        else
+        {
+             Debug.LogError($"[DragHandler] CRITICAL: No Canvas found on {name}! Cannot Apply Sorting Order 100. Hierarchy depth might fail.");
+        }
+
         _lastPointerData = eventData;
         
         if (_customGravity != null) _customGravity.StopFalling();
@@ -442,6 +471,8 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         if (!enableDepthSorting || _myCollider == null) return;
 
         // 1. Check if Feature is Enabled
+        if (_isDragging) return; // FIX: Don't override sorting while dragging!
+        
         if (!enableDepthSorting || _myCollider == null) return;
 
         // USER FIX: Relaxed check. If explicitDepthCanvas is missing, fall back to 'canvas'.
@@ -793,21 +824,10 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
         if (room != null)
         {
              Transform targetContainer = room.objectContainer != null ? room.objectContainer : room.transform;
-             // FIX: We DISABLED this check because it forces the object to DETACH from the Desk/Surface it just landed on (via CustomGravity).
-             // To support "Deep Hierarchy" (Stacking), we must allow it to stay as a child of the Desk.
              if (transform.parent != targetContainer)
              {
                  transform.SetParent(targetContainer, true);
-                 // Debug.Log($"[DragHandler] EndDrag: Reparented to {room.name}");
              }
-        }
-
-        // Restore Default Sorting Order (Recursive)
-        // This brings the object back to the "Interaction Layer" (e.g. 50)
-        Canvas c = GetDepthCanvas();
-        if (c != null)
-        {
-             SetRecursiveSortingOrder(c, restingSortingOrder);
         }
 
         // USER REQUEST: Update "startPoint" so if we revert later (e.g. Everyone Back Home),
@@ -815,10 +835,18 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
         UpdateCurrentPositionAsValid();
         startPosition = rectTransform.anchoredPosition; 
     }    
-        else
-        {
-            TryResetPosition();
-        }
+    else
+    {
+        TryResetPosition();
+    }
+    
+    // BUGFIX: ALWAYS restore default sorting order when drag ends, regardless of placement validity.
+    // If invalid, we reverted position. If valid, we stayed. In both cases, we are no longer "Highest Priority".
+    Canvas c = GetDepthCanvas();
+    if (c != null)
+    {
+         SetRecursiveSortingOrder(c, restingSortingOrder);
+    }
     }
 
     /// <summary>
