@@ -161,10 +161,13 @@ public class CharacterSelectionManager : MonoBehaviour
         //     }
         // }
 
-                GameObject preview = Instantiate(prefab, characterArea.transform);
-                preview.transform.localPosition = slotVisualParent;
-                Vector3 updateScale = new Vector3(0.5f, 0.5f, 0.5f);
-                preview.transform.localScale = updateScale;
+                if (prefab != null)
+                {
+                    GameObject preview = Instantiate(prefab, characterArea.transform);
+                    preview.transform.localPosition = slotVisualParent;
+                    Vector3 updateScale = new Vector3(0.5f, 0.5f, 0.5f);
+                    preview.transform.localScale = updateScale;
+                }
     }
 
     public void ClearCharacterArea()

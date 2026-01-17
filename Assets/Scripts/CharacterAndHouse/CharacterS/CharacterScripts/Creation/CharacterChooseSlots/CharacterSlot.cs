@@ -77,49 +77,65 @@ public class CharacterSlot : MonoBehaviour
 
     public void OnClick()
     {
-        if (characterInstance == null)
-        {
-            //🔥 Kullanıcı boş slot'a tıkladı → BaseCharacterPrefab ile oluştur
-            GameObject basePrefab = Resources.Load<GameObject>("GeneratedCharacters/BaseCharacterPrefab/BaseCharacterPrefab");
-            if (basePrefab != null)
-            {
-                characterInstance = Instantiate(basePrefab, transform);
-            }
-        }
-        else
-        {
-            // 🎯 Slot ismine göre prefab yükle
-            string slotName = gameObject.name; // örn: "CharacterSlot_3"
-            string prefabPath = $"GeneratedCharacters/{slotName}";
+        // 🎯 Slot ismine göre kayıtlı prefab var mı kontrol et
+        string slotName = gameObject.name; // örn: "CharacterSlot_3"
+        string prefabPath = $"GeneratedCharacters/{slotName}";
+        GameObject savedPrefab = Resources.Load<GameObject>(prefabPath);
 
-            // Eğer zaten bu prefab varsa yeniden oluşturma
-            if (characterInstance.name.Contains(slotName))
+        if (savedPrefab != null)
+        {
+            // --- DURUM A: Kayıtlı Karakter Var ---
+            if (characterInstance == null)
             {
-                Debug.Log($"✅ Zaten gösteriliyor: {slotName}");
+                 characterInstance = Instantiate(savedPrefab, transform);
+                 characterInstance.transform.localPosition = slotVisualParent;
+                 characterInstance.name = savedPrefab.name;
+                 
+                 if(characterImage != null) characterImage.SetActive(false);
             }
             else
             {
-                // Önce eskiyi sil
-                if (characterInstance != null && characterInstance.scene.IsValid())
+                // Zaten var, ama yanlışlıkla başka bir şey varsa yenile
+                if (!characterInstance.name.Contains(slotName))
                 {
                     Destroy(characterInstance);
-                }
-
-                GameObject slotPrefab = Resources.Load<GameObject>(prefabPath);
-                if (slotPrefab != null)
-                {
-                    characterInstance = Instantiate(slotPrefab, transform);
+                    characterInstance = Instantiate(savedPrefab, transform);
                     characterInstance.transform.localPosition = slotVisualParent;
-                    characterInstance.name = slotPrefab.name; // clone ekini temizlemek için
-                }
-                else
-                {
-                    Debug.Log($"❌ Prefab bulunamadı: {prefabPath}");
+                    characterInstance.name = savedPrefab.name;
+                    if(characterImage != null) characterImage.SetActive(false);
                 }
             }
-
+            CharacterSelectionManager.Instance.SelectSlot(this);
         }
-        CharacterSelectionManager.Instance.SelectSlot(this);
+        else
+        {
+            // --- DURUM B: Boş Slot (Toggle Mantığı) ---
+            if (characterInstance == null)
+            {
+                // 1. Tık: Base Karakteri Göster
+                GameObject basePrefab = Resources.Load<GameObject>("GeneratedCharacters/BaseCharacterPrefab/BaseCharacterPrefab");
+                if (basePrefab != null)
+                {
+                    characterInstance = Instantiate(basePrefab, transform);
+                    characterInstance.transform.localPosition = slotVisualParent; // (0, 150, 0)
+                    characterInstance.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+                    
+                    if(characterImage != null) characterImage.SetActive(false);
+                    
+                    CharacterSelectionManager.Instance.SelectSlot(this);
+                }
+            }
+            else
+            {
+                // 2. Tık: İptal Et (Base Karakteri Sil, Image Göster)
+                Destroy(characterInstance);
+                characterInstance = null;
+                
+                if(characterImage != null) characterImage.SetActive(true);
+
+                CharacterSelectionManager.Instance.SelectSlot(this); // null gidecek ve preview temizlenecek
+            }
+        }
     }
 
     //Karakter previewArea'da belirlenip Confirm yapıldıktan sonra burada 
