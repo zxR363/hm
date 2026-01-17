@@ -73,6 +73,13 @@ namespace AvatarWorld.Interaction
             // 4. Disable Gravity
             var gravity = GetComponent<CustomGravity>();
             if (gravity != null) gravity.StopFalling();
+
+            // 5. State
+            IsSitting = true;
+            currentSeat = seat;
+            
+            // NOTE: We do NOT parent to avoid Scale/RectTransform distortion.
+            // We follow in LateUpdate instead.
         }
 
         public void StandUp()
@@ -81,10 +88,26 @@ namespace AvatarWorld.Interaction
 
             // 1. Reset Legs
             RotateLegsForSitting(false);
-
+            
             // 2. State
             IsSitting = false;
             currentSeat = null;
+        }
+
+        private void LateUpdate()
+        {
+            if (IsSitting && currentSeat != null)
+            {
+                // Follow the seat closely
+                if (currentSeat.sitPoint != null)
+                {
+                    transform.position = currentSeat.sitPoint.position;
+                }
+                else
+                {
+                    transform.position = currentSeat.transform.position;
+                }
+            }
         }
 
         private void RotateLegsForSitting(bool sitting)

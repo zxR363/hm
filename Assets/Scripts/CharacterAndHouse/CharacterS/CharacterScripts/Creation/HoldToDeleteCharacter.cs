@@ -40,22 +40,32 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
         characterImage = slotRoot.Find("ShowArea/characterImage")?.gameObject;
     }
 
+    private float _checkTimer = 0f;
+    private const float CHECK_INTERVAL = 0.2f; // Check 5 times per second instead of 60+
+
     private void Update()
     {
-        // 🎯 Aktif prefab'ı bul
-        targetPrefab = FindCharacterPrefabUnder(slotRoot);
-
-        // 🎯 Buton görünürlüğünü ayarla
-        if (targetPrefab != null && targetPrefab.activeSelf)
+        // 🎯 OTIMIZASYON: Her frame aramak yerine belirli aralıklarla ara
+        _checkTimer += Time.deltaTime;
+        
+        if (_checkTimer >= CHECK_INTERVAL)
         {
-            if (!gameObject.activeSelf) gameObject.SetActive(true);
-        }
-        else if (characterImage != null && characterImage.activeSelf)
-        {
-            if (gameObject.activeSelf) gameObject.SetActive(false);
+            _checkTimer = 0f;
+            // 🎯 Aktif prefab'ı bul
+            targetPrefab = FindCharacterPrefabUnder(slotRoot);
+
+            // 🎯 Buton görünürlüğünü ayarla
+            if (targetPrefab != null && targetPrefab.activeSelf)
+            {
+                if (!gameObject.activeSelf) gameObject.SetActive(true);
+            }
+            else if (characterImage != null && characterImage.activeSelf)
+            {
+                if (gameObject.activeSelf) gameObject.SetActive(false);
+            }
         }
 
-        // 🎯 Basılı tutma animasyonu
+        // 🎯 Basılı tutma animasyonu (Burası her frame çalışmalı ki akıcı olsun)
         if (isHolding)
         {
             holdTime += Time.deltaTime;

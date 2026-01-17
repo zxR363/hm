@@ -48,24 +48,43 @@ namespace AvatarWorld.Interaction
             // 5. State
             IsSleeping = true;
             currentBed = bed;
+
+            // NOTE: No parenting. Follow in LateUpdate.
         }
 
         public void WakeUp()
         {
-            if (!IsSleeping) return;
+             if (!IsSleeping) return;
 
-            // 1. Reset Rotation
-            transform.rotation = defaultRotation;
+             // 1. Reset Rotation
+             transform.rotation = defaultRotation;
+             // transform.localScale = Vector3.one; // Not needed if we don't parent
 
-            // 2. Open Eyes (Neutral or Previous?)
-            if (expressionManager != null)
+             // 2. Open Eyes (Neutral or Previous?)
+             if (expressionManager != null)
+             {
+                 expressionManager.SetEmotion(EmotionType.Neutral);
+             }
+
+             // 3. State
+             IsSleeping = false;
+             currentBed = null;
+        }
+
+        private void LateUpdate()
+        {
+            if (IsSleeping && currentBed != null)
             {
-                expressionManager.SetEmotion(EmotionType.Neutral);
+                 // Follow Bed
+                 if (currentBed.headPoint != null)
+                 {
+                     transform.position = currentBed.headPoint.position;
+                 }
+                 else
+                 {
+                     transform.position = currentBed.transform.position;
+                 }
             }
-
-            // 3. State
-            IsSleeping = false;
-            currentBed = null;
         }
     }
 }

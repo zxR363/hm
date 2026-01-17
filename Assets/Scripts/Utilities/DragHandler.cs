@@ -156,6 +156,24 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         Debug.Log($"[DragHandler] OnBeginDrag STARTED on {name}.");
 
         // -------------------------------------------------------------
+        // PHASE 7: Character Detach from Furniture (Sitting/Sleeping)
+        // -------------------------------------------------------------
+        var sitCtrl = GetComponent<AvatarWorld.Interaction.CharacterSittingController>();
+        var sleepCtrl = GetComponent<AvatarWorld.Interaction.CharacterSleepingController>();
+        
+        if (sitCtrl != null && sitCtrl.IsSitting)
+        {
+             sitCtrl.StandUp();
+             // Note: We used to reparent here. Now handled by Virtual Follow (LateUpdate stops).
+        }
+        else if (sleepCtrl != null && sleepCtrl.IsSleeping)
+        {
+             sleepCtrl.WakeUp();
+        }
+
+        // Logic for Held Items follows...
+
+        // -------------------------------------------------------------
         // NEW: Check if held by character (Phase 2 Detachment)
         // -------------------------------------------------------------
         var holdable = GetComponent<AvatarWorld.Interaction.HoldableItem>();
@@ -626,6 +644,40 @@ private void SetRecursiveSortingOrder(Canvas root, int targetOrder, Canvas ignor
         canvasGroup.blocksRaycasts = true;
         
         if (_customGravity != null) _customGravity.StartFalling();
+
+        // ---------------------------------------------------------------------
+        // PHASE 8: Clothing System (Equip)
+        // ---------------------------------------------------------------------
+        var clothingItem = GetComponent<AvatarWorld.Interaction.ClothingItem>();
+        if (clothingItem != null)
+        {
+             // 1. Raycast Approach Failed (Character parts usually have RaycastTarget=false).
+             // 2. Switch to Rect Overlap Approach (Math-based, ignores RaycastTarget setting).
+             
+             var allClothingControllers = FindObjectsOfType<AvatarWorld.Interaction.CharacterClothingController>();
+             
+             foreach (var clothingCtrl in allClothingControllers)
+             {
+                 RectTransform targetRect = clothingCtrl.transform as RectTransform;
+                 if (targetRect == null) continue;
+                 
+                 // Handle Render Mode
+                 Canvas charCanvas = clothingCtrl.GetComponentInParent<Canvas>();
+                 Camera camToUse = Camera.main;
+                 if (charCanvas != null && charCanvas.renderMode == RenderMode.ScreenSpaceOverlay) camToUse = null;
+
+                 // Check Drag Position (Mouse)
+                 if (RectTransformUtility.RectangleContainsScreenPoint(targetRect, Input.mousePosition, camToUse))
+                 {
+                     if (clothingCtrl.TryEquip(clothingItem))
+                     {
+                         Debug.Log($"[DragHandler] Equipped {name} on {clothingCtrl.name}");
+                         Destroy(gameObject); // Consumed/Equipped
+                         return; // Stop drag logic
+                     }
+                 }
+             }
+        }
 
         // -------------------------------------------------------------
         // NEW: Check for Eating (Phase 6) - PRIORITIZED!
