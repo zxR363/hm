@@ -91,6 +91,17 @@ public class ImageSettingsApplier : MonoBehaviour
 
                 if (Vector3.SqrMagnitude(transform.localScale - setting.scale) > 0.0001f)
                     transform.localScale = setting.scale;
+
+                // 🔥 Size Delta (Width/Height) Support
+                if(setting.size != Vector2.zero) // Eski verileri bozma
+                {
+                    var rt = GetComponent<RectTransform>();
+                    if(rt != null)
+                    {
+                         if (Vector2.SqrMagnitude(rt.sizeDelta - setting.size) > 0.0001f)
+                            rt.sizeDelta = setting.size;
+                    }
+                }
             }
         }
     }
@@ -99,10 +110,14 @@ public class ImageSettingsApplier : MonoBehaviour
     {
         if (img == null || img.sprite == null || database == null) return;
 
-        database.SaveSetting(img.sprite, transform.localPosition, transform.localScale);
+        var rt = GetComponent<RectTransform>();
+        Vector2 size = (rt != null) ? rt.sizeDelta : Vector2.zero;
+
+        database.SaveSetting(img.sprite, transform.localPosition, transform.localScale, size);
 
         #if UNITY_EDITOR
         EditorUtility.SetDirty(database);
+        AssetDatabase.SaveAssets(); // 🔥 Garantiye al: Hemen diske yaz.
         #endif
     }
 }

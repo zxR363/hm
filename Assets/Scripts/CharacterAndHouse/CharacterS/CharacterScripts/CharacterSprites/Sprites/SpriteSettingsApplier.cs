@@ -78,6 +78,13 @@ public class SpriteSettingsApplier : MonoBehaviour
 
                 if (Vector3.SqrMagnitude(transform.localScale - setting.scale) > 0.0001f)
                     transform.localScale = setting.scale;
+
+                // 🔥 Size Support (Sliced/Tiled SpriteRenderer)
+                if(setting.size != Vector2.zero)
+                {
+                    if(Vector2.SqrMagnitude(sr.size - setting.size) > 0.0001f)
+                        sr.size = setting.size;
+                }
             }
         }
     }
@@ -87,10 +94,11 @@ public class SpriteSettingsApplier : MonoBehaviour
     {
         if (sr == null || sr.sprite == null || database == null) return;
 
-        database.SaveSetting(sr.sprite, transform.localPosition, transform.localScale);
+        database.SaveSetting(sr.sprite, transform.localPosition, transform.localScale, sr.size);
 
         #if UNITY_EDITOR
         EditorUtility.SetDirty(database); // DB asset değişikliğini kaydet
+        AssetDatabase.SaveAssets(); // 🔥 Garantiye al: Hemen diske yaz.
         #endif
     }
 }

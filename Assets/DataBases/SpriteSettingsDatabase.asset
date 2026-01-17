@@ -16,9 +16,12 @@ MonoBehaviour:
   - sprite: {fileID: -7844956883000455557, guid: 6fc946838aae88748aafe75461662363, type: 3}
     position: {x: 0.52, y: 0.337, z: -0}
     scale: {x: 1, y: 0.9615385, z: 1}
+    size: {x: 0, y: 0}
   - sprite: {fileID: -2218136010918068860, guid: 230a8983728518e4a94ee8e1a13a445a, type: 3}
     position: {x: -0.056, y: 0.248, z: -0}
     scale: {x: 0.9615385, y: 0.9615385, z: 1}
+    size: {x: 0, y: 0}
   - sprite: {fileID: -6260108502035436031, guid: b471307d212bf9b41b9f54d6659b36ea, type: 3}
     position: {x: 1, y: -92, z: 0}
     scale: {x: 1, y: 1, z: 1}
+    size: {x: 245, y: 275}

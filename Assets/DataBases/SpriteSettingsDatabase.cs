@@ -10,6 +10,7 @@ public class SpriteSettingsDatabase : ScriptableObject
         public Sprite sprite;
         public Vector3 position;
         public Vector3 scale = Vector3.one;
+        public Vector2 size; // 🔥 Width/Height support
     }
 
     public List<SpriteSetting> settings = new List<SpriteSetting>();
@@ -19,13 +20,14 @@ public class SpriteSettingsDatabase : ScriptableObject
         return settings.Find(s => s.sprite == sprite);
     }
 
-    public void SaveSetting(Sprite sprite, Vector3 position, Vector3 scale)
+    public void SaveSetting(Sprite sprite, Vector3 position, Vector3 scale, Vector2 size)
     {
         var existing = GetSetting(sprite);
         if (existing != null)
         {
             existing.position = position;
             existing.scale = scale;
+            existing.size = size;
         }
         else
         {
@@ -33,7 +35,8 @@ public class SpriteSettingsDatabase : ScriptableObject
             {
                 sprite = sprite,
                 position = position,
-                scale = scale
+                scale = scale,
+                size = size
             });
         }
     }

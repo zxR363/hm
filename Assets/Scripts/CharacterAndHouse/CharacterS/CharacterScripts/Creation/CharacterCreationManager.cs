@@ -420,14 +420,8 @@ public class CharacterCreationManager : MonoBehaviour
 
     }
 
-    public void Populate_HairBoy_Options() => PopulateOptionsGeneric("Hair_Image/BoyHair", "BoyHair");
-    public void Populate_HairGirl_Options() => PopulateOptionsGeneric("Hair_Image/GirlHair", "GirlHair");
-    public void Populate_HairMixed_Options() => PopulateOptionsGeneric("Hair_Image/MixedHair", "MixedHair");
-    public void Populate_Accessory_Options() => PopulateOptionsGeneric("Accessory_Image/Accessories", "Accessories"); // Or "Accessory" check folder name
-    // Original was: accessorySprites = ...(".../Accessories");
-    // SelectAccessory generic redirect does: SelectPartGeneric("Accessory", "Accessory_Image", index, style);
-    // Path constructed: "Accessory_Image/{style}"
-    // So if style is "Accessories", path is "Accessory_Image/Accessories". Correct.
+    // Generic redirects handled above.
+    // Legacy functions removed.
 
     // Remove legacy unused lists if possible, but for now just redirect logic.
     // The Populate_Skin_Options uses specific logic (Skin Colors), keep it or genericize it?
@@ -450,8 +444,7 @@ public class CharacterCreationManager : MonoBehaviour
     //-------
     public List<Sprite> LoadSpritesFromResources(string path)
     {
-        Sprite[] loaded = Resources.LoadAll<Sprite>(path);
-        return new List<Sprite>(loaded);
+        return GetOrLoadSprites(path);
     }
 
     private List<Color> LoadSkinColors()

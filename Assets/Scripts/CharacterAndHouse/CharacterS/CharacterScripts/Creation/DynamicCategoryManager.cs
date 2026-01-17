@@ -176,7 +176,7 @@ public class DynamicCategoryManager : MonoBehaviour
         ClearGrid(optionGridParent);
 
         string resourcePath = $"Images/Character/Style/{categoryKey}/{styleKey}";
-        List<Sprite> sprites = creationManager.LoadSpritesFromResources(resourcePath);
+        List<Sprite> sprites = creationManager.GetOrLoadSprites(resourcePath);
 
         Debug.Log($"Loading {sprites.Count} sprites from {resourcePath}");
 
