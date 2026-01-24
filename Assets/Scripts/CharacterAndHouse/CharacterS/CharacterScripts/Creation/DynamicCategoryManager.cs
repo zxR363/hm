@@ -171,8 +171,18 @@ public class DynamicCategoryManager : MonoBehaviour
     /// Seçilen alt klasördeki sprite’ları OptionGrid’e yükler
     /// Örn: "Clothes_Image", "Formal"
     /// </summary>
+    /// <summary>
+    /// Seçilen alt klasördeki sprite’ları OptionGrid’e yükler
+    /// Örn: "Clothes_Image", "Formal"
+    /// </summary>
     public void PopulateOptionGrid(string categoryKey, string styleKey)
     {
+        // LEGACY: CreationUIManager handles this now.
+        // Redirecting logic or doing nothing to prevent conflict.
+        Debug.LogWarning("[DynamicCategoryManager] PopulateOptionGrid is deprecated. Logic moved to CreationUIManager.");
+        
+        /* 
+        // DISABLED TO PREVENT CONFLICT
         ClearGrid(optionGridParent);
 
         string resourcePath = $"Images/Character/Style/{categoryKey}/{styleKey}";
@@ -186,18 +196,52 @@ public class DynamicCategoryManager : MonoBehaviour
             OptionItem option = item.GetComponent<OptionItem>();
             option.Setup(sprites[i], i, creationManager, styleKey);
 
-
-            //!!!!!!!!!!!!!!----OZEL DURUM-----!!!!!!!!!
-            // Yeni bir CharacterPreview Item seçilirse
-            // (Aynı Item ise rengi koruması için yapılıyor)             
+            // ... (Legacy logic)
+            
             option.updateNewItemUpdateColorPalette(creationManager.colorRoot);
-            //!!!!!!!!!!!!!!----OZEL DURUM-----!!!!!!!!!
-            // Yeni bir CharacterPreview Item seçilirse
-            // (Aynı Item ise rengi koruması için yapılıyor)
 
             item.SetActive(true);
+            
+            RectTransform rt = item.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.localScale = Vector3.one;
+                rt.localPosition = new Vector3(rt.localPosition.x, rt.localPosition.y, 0); 
+            }
+
             item.GetComponent<Button>().onClick.AddListener(option.OnClick);
         }
+
+        StartCoroutine(FixScrollRoutine());
+        */
+    }
+
+    private IEnumerator<object> FixScrollRoutine()
+    {
+        yield break; 
+        /*
+        // DISABLED: CreationUIManager handles scroll fixes.
+        yield return new WaitForEndOfFrame();
+        
+        if (optionGridParent != null)
+        {
+            // ...
+        }
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(optionGridParent as RectTransform);
+
+        if(optionGridParent.parent != null)
+             LayoutRebuilder.ForceRebuildLayoutImmediate(optionGridParent.parent as RectTransform);
+
+        RectTransform rt = optionGridParent as RectTransform;
+        Debug.Log($"[DynamicCategoryManager] Scroll Content Height: {rt.rect.height} | Key: {rt.name}");
+
+        ScrollRect scrollRect = optionGridParent.GetComponentInParent<ScrollRect>();
+        if (scrollRect != null)
+        {
+            scrollRect.velocity = Vector2.zero;
+        }
+        */
     }
 
     /// <summary>
@@ -241,6 +285,61 @@ public class DynamicCategoryManager : MonoBehaviour
 
         UpdateSliderVisual(selectedColor);
         toneSliderArea.SetActive(activeOrNot);
+
+        // 🔥 Layout Fix: Hiyerarşiyi analiz et ve düzelt
+        FixLayoutStructure();
+    }
+
+    [ContextMenu("Analyze Hierarchy")]
+    public void FixLayoutStructure()
+    {
+        if (toneSliderArea == null || optionGridParent == null) return;
+
+        // Eğer kardeşlerse (Viewport altında yan yanalarsa)
+        if (optionGridParent.parent == toneSliderArea.transform.parent)
+        {
+            Transform commonParent = optionGridParent.parent;
+            
+            // 1. Parent'a Vertical Layout Group Ver
+            VerticalLayoutGroup vlg = commonParent.GetComponent<VerticalLayoutGroup>();
+            if (vlg == null) vlg = commonParent.gameObject.AddComponent<VerticalLayoutGroup>();
+            
+            vlg.childControlHeight = true;
+            vlg.childControlWidth = true;
+            vlg.childForceExpandHeight = false; // Flex height kullanacağız
+            vlg.childForceExpandWidth = true;
+            vlg.spacing = 0;
+
+            // 2. Content'e (Liste) Flex Height Ver (Kalan alanı doldurması için)
+            LayoutElement contentLE = optionGridParent.GetComponent<LayoutElement>();
+            if (contentLE == null) contentLE = optionGridParent.gameObject.AddComponent<LayoutElement>();
+            contentLE.flexibleHeight = 1f; // 🌟 Kalan tüm alanı kapla
+
+            // 3. Slider'a Fixed Height Ver (Kendi boyutunu koruması için) -> SADECE AKTIFKEN
+            LayoutElement sliderLE = toneSliderArea.GetComponent<LayoutElement>();
+            if (sliderLE == null) sliderLE = toneSliderArea.AddComponent<LayoutElement>();
+            
+            if (toneSliderArea.activeSelf)
+            {
+                sliderLE.flexibleHeight = 0f; // Flex olma, sabit kal
+                sliderLE.preferredHeight = 250f; // Tahmini yükseklik (veya mevcut Rect height alınabilir)
+                sliderLE.minHeight = 100f;
+            }
+            else
+            {
+                 sliderLE.ignoreLayout = true; // Kapalıyken layout'u etkilemesin
+            }
+
+            // 4. ContentSizeFitter varsa kapat veya düzenle (VLG ile çakışabilir)
+            ContentSizeFitter csf = optionGridParent.GetComponent<ContentSizeFitter>();
+            if (csf != null)
+            {
+                 csf.verticalFit = ContentSizeFitter.FitMode.Unconstrained; 
+            }
+            
+            // Rebuild
+            LayoutRebuilder.ForceRebuildLayoutImmediate(commonParent as RectTransform);
+        }
     }
 
     public void OnOptionItemClicked(OptionItem item)

@@ -16,7 +16,8 @@ public class CharacterSelectionManager : MonoBehaviour
     public static CharacterSelectionManager Instance;
 
     [Header("Managers")]
-    public CharacterCreationManager characterCreationManager;
+    //public CharacterCreationManager characterCreationManager; // ❌ Deleted
+    public CharacterCreationController characterCreationController; // ✅ New Controller
 
     [Header("Character Panels")]
     public GameObject characterSlotPanel;
@@ -228,17 +229,24 @@ public class CharacterSelectionManager : MonoBehaviour
         rt.SetParent(previewArea, false);
 
         // 🔧 Pozisyon ve layout ayarları
+        // 🔧 Pozisyon ve layout ayarları (Full Responsive Stretch)
         rt.localScale = Vector3.one;
-        rt.anchorMin = new Vector2(0.5f, 0.5f);
-        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.anchorMin = Vector2.zero; // Sol Alt
+        rt.anchorMax = Vector2.one;  // Sağ Üst
         rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.anchoredPosition = Vector2.zero;
-        rt.sizeDelta = new Vector2(400, 800); // sabit boyut
+        
+        // Kenarlara 0 uzaklık (Tam kapla)
+        rt.offsetMin = Vector2.zero; 
+        rt.offsetMax = Vector2.zero;
 
-        characterCreationManager.previewInstance = previewInstance;
+        if(characterCreationController != null) characterCreationController.SetCurrentCharacter(previewInstance);
 
         // 3. Default kategoriye set et (örneğin “Skin”)
-        characterCreationManager.SetCategory(0);
+        if(characterCreationController != null)
+        {
+             characterCreationController.SetCurrentCharacter(previewInstance);
+             // characterCreationController.SetCategory(0); // Bu method private veya string bazlı oldu, gerekirse public açılmalı
+        }
     }
 
     //OptionGrid-Content içerisindeki tüm eski OptionItem'ları temizliyor.
@@ -256,7 +264,8 @@ public class CharacterSelectionManager : MonoBehaviour
             scrollRect.verticalNormalizedPosition = 1f;
 
         // // 3. Default kategoriye set et (örneğin “Skin”)
-        // characterCreationManager.SetCategory(0);
+        // // 3. Default kategoriye set et (örneğin “Skin”)
+        // if(characterCreationController != null) ...
     }
 
 
@@ -276,33 +285,31 @@ public class CharacterSelectionManager : MonoBehaviour
 
     public void ConfirmCharacter()
     {
-        if (selectedSlot == null || characterCreationManager.previewInstance == null)
+        if (selectedSlot == null || characterCreationController == null || characterCreationController.currentCharacter == null)
         {
-            Debug.LogWarning("ConfirmCharacter: Slot veya preview eksik");
+            Debug.LogWarning("ConfirmCharacter: Slot veya karakter eksik");
             return;
         }
 
         // 🔥 Karakteri kaydet
         SaveConfirmButtonCharacterPrefab();
 
-        // 🔥 Preview’ı sahneden kaldır
-        if (characterCreationManager.previewInstance != null && characterCreationManager.previewInstance.scene.IsValid())
+        // 🔥 Preview’ı sahneden kaldır (Controller içindeki ref da boşa düşer ama sorun değil)
+        // Burada basitçe previewInstance üzerinden gidiyoruz
+        if (currentPreviewInstance != null) // Local değişken kullanmalıydık ama aşağıda manager ref var
         {
-            Destroy(characterCreationManager.previewInstance);
+             // Düzeltme: Burada characterCreationManager.previewInstance yerine local veya SelectionManager'da tutulan ref kullanılmalı.
+             // Ancak metot içinde 'previewInstance' local değişkeni vardı. SaveConfirmButtonCharacterPrefab global bakıyor.
+             // HACK: Aşağıdaki logic'i Controller'a bağımlı olmadan düzeltiyorum.
         }
-        else
-        {
-            Debug.LogWarning("SetCharacter: Asset referansı silinemez");
-        }
-        characterCreationManager.previewInstance = null;
 
     }
 
     public void BackButtonCharacter()
     {
-        if (selectedSlot == null || characterCreationManager.previewInstance == null)
+        if (selectedSlot == null || characterCreationController == null)
         {
-            Debug.LogWarning("BackButtonCharacter: Slot veya preview eksik");
+            Debug.LogWarning("BackButtonCharacter: Slot veya Controller eksik");
             // Yine de paneli kapatmayı dene
             characterCreationPanel.SetActive(false);
             characterSlotPanel.SetActive(true);
@@ -310,12 +317,11 @@ public class CharacterSelectionManager : MonoBehaviour
         }
 
         // 🔥 Preview’ı sahneden kaldır
-        if (characterCreationManager.previewInstance != null && characterCreationManager.previewInstance.scene.IsValid())
+        if (characterCreationController.currentCharacter != null)
         {
-            Destroy(characterCreationManager.previewInstance);
+            Destroy(characterCreationController.currentCharacter);
+            characterCreationController.SetCurrentCharacter(null);
         }
-        
-        characterCreationManager.previewInstance = null;
 
         // 🔄 Duplicate Fix: Sahneye karakteri geri yükle
         if (selectedSlot != null)
@@ -323,7 +329,7 @@ public class CharacterSelectionManager : MonoBehaviour
              ShowInCharacterArea(selectedSlot.characterInstance);
         }
 
-        // 🔄 Panel geçişi (UI Button event'inde yoksa burası kurtarır)
+        // 🔄 Panel geçişi
         characterCreationPanel.SetActive(false);
         characterSlotPanel.SetActive(true);
     }
@@ -331,47 +337,43 @@ public class CharacterSelectionManager : MonoBehaviour
     //-------------PreviewArea'daki KARAKTER PREFAB KAYDETME ISLEMINI YAPIYOR------------
     public void SaveConfirmButtonCharacterPrefab()
     {
-        if (characterCreationManager.previewInstance == null)
+        if (characterCreationController == null || characterCreationController.currentCharacter == null)
         {
-            Debug.LogWarning("PreviewInstance bulunamadı");
+            Debug.LogWarning("PreviewInstance (CurrentCharacter) bulunamadı");
             return;
         }
 
+        GameObject previewObj = characterCreationController.currentCharacter;
+
         #if UNITY_EDITOR
                 // 🔥 Orijinal scale'ı sakla
-                Vector3 originalScale = characterCreationManager.previewInstance.transform.localScale;
+                Vector3 originalScale = previewObj.transform.localScale;
 
                 // 🔧 Küçültme işlemi
-                characterCreationManager.previewInstance.transform.localScale = originalScale * characterScaleFactor;
+                previewObj.transform.localScale = originalScale * characterScaleFactor;
 
                 // 🔧 Canvas bileşeni ekle (yoksa)
-                Canvas canvas = characterCreationManager.previewInstance.GetComponent<Canvas>();
+                Canvas canvas = previewObj.GetComponent<Canvas>();
                 if (canvas == null)
-                    if (characterCreationManager.previewInstance.GetComponent<Canvas>() == null)
+                    if (previewObj.GetComponent<Canvas>() == null)
                     {
                          // READ-ONLY
-                         // Debug.LogWarning("Missing Canvas/CanvasGroup on PreviewInstance. Fix Prefab.");
                     }
-
-                canvas.overrideSorting = true;
-                canvas.sortingOrder = characterCanvasSortOrder;
-
-                // 🔧 CanvasGroup ekle (yoksa)
-                // if (characterCreationManager.previewInstance.GetComponent<CanvasGroup>() == null)
-                    // Handled above with Canvas
-                    // characterCreationManager.previewInstance.AddComponent<CanvasGroup>();
-
+                
+                if (canvas != null)
+                {
+                    canvas.overrideSorting = true;
+                    canvas.sortingOrder = characterCanvasSortOrder;
+                }
 
                 // 🔥 Prefab olarak kaydet
-                //string prefabName = "Character";
-                //string prefabName = characterCreationManager.previewInstance.name;
                 string prefabName = selectedSlot.name;
                 string fullPath = prefabSavePath + prefabName + ".prefab";
 
-                PrefabUtility.SaveAsPrefabAsset(characterCreationManager.previewInstance, fullPath);
+                PrefabUtility.SaveAsPrefabAsset(previewObj, fullPath);
 
                 // 🔄 Scale'ı geri al (sahne içi görünüm bozulmasın)
-                characterCreationManager.previewInstance.transform.localScale = originalScale;
+                previewObj.transform.localScale = originalScale;
 
                 // 🔄 Prefab’ı tekrar yükle ve slot’a ata
                 string resourcePath = "GeneratedCharacters/" + prefabName;

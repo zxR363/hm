@@ -73,147 +73,54 @@ public class CharacterCreationManager : MonoBehaviour
 
     public void PopulateOptionsGeneric(string pathSuffix, string styleKey = null)
     {
-        ClearOptionGrid();
-        string fullPath = $"Images/Character/Style/{pathSuffix}";
-        List<Sprite> sprites = GetOrLoadSprites(fullPath);
-        Debug.Log($"[Optimization] Loaded {sprites.Count} sprites from {fullPath}");
-
-        for (int i = 0; i < sprites.Count; i++)
-        {
-            GameObject item = Instantiate(optionItemPrefab, optionGridParent);
-            OptionItem option = item.GetComponent<OptionItem>();
-            option.Setup(sprites[i], i, this, styleKey);
-            item.SetActive(true);
-            item.GetComponent<Button>().onClick.AddListener(option.OnClick);
-        }
+        // ❌ DEPRECATED: Logic moved to CharacterCreationController & UpgradeManager
     }
 
     public void SelectPartGeneric(string partName, string resourceFolder, int index, string style = "")
     {
-        if (previewInstance == null) return;
-        
-        Transform partT = FindPart(previewInstance.transform, partName);
-        if (partT == null && partName == "Hat") partT = FindPart(previewInstance.transform, "Hats");
-        if (partT == null) return;
-
-        Image partImage = partT.GetComponent<Image>();
-        if (partImage == null) return;
-
-        string path = $"Images/Character/Style/{resourceFolder}";
-        if (!string.IsNullOrEmpty(style)) path += $"/{style}";
-
-        List<Sprite> sprites = GetOrLoadSprites(path);
-        if (index >= 0 && index < sprites.Count)
-        {
-            partImage.sprite = sprites[index];
-            ImageSettingsApplier applier = partT.GetComponent<ImageSettingsApplier>();
-            if (applier != null) applier.ApplySettings();
-        }
+        // ❌ DEPRECATED
     }
-
 
     void Start()
     {
         // 🎯 OPTIMIZATION: Do NOT load everything at start. Resources are loaded on-demand now.
-        skinColorIcons = LoadSpritesFromResources("Images/Character/Style/Skin_Image");
-        skinColors = LoadSkinColors(); 
+        // skinColorIcons = LoadSpritesFromResources("Images/Character/Style/Skin_Image");
+        // skinColors = LoadSkinColors(); 
         
-        LoadItemColors(); // Small enough to keep
+        // LoadItemColors(); // Small enough to keep
 
         SpawnPreviewCharacter();
-        SetCategory(0); // Default to Skin
+        // SetCategory(0); // ❌ REMOVED: Controller handles this now
     }
 
     //--------------PREVIEW AREA-------------------
     void SpawnPreviewCharacter()
     {
         if (previewInstance != null) Destroy(previewInstance);
-        
-        //Eğer dinamik characterPreFabPreview Istersem kullanırım
-        //previewInstance = Instantiate(characterPrefab, previewArea);
-        //previewInstance.transform.localPosition = characterPrefab.transform.localPosition;
-        //previewInstance.transform.localScale = characterPrefab.transform.localScale;
-        //previewInstance.SetActive(true);
-        previewInstance = characterPrefab;
-
-        //Eğer dinamik characterPreFabPreview Istersem kullanırım
-        //previewInstance = Instantiate(characterPrefab, previewArea);
-        //previewInstance.transform.localPosition = characterPrefab.transform.localPosition;
-        //previewInstance.transform.localScale = characterPrefab.transform.localScale;
-        //previewInstance.SetActive(true);
         previewInstance = characterPrefab;
     }
 
     //Secilen renk ilgili GameObject'in rengini güncelliyor(Skin haric. Örn:Hair,EyeBrown)
     public void SelectColorPalette(int index)
     {
-        // Debug.Log("ColorPalette1111 = "+colorRoot + "  "+index);
-        // Debug.Log("AAAAAA="+colorValue.Count);
-
-        if (previewInstance == null) return;
-
-        if (colorRoot == null) return;
-
-        Color selectedColor = colorValue[index];
-        selectedColor.a = 1f; // Şeffaflık önlemi
-
-        Image rootImage = colorRoot.GetComponent<Image>();
-
-        if (rootImage != null)
-            rootImage.color = selectedColor;
-
-        // Tüm child'lara uygula
-        foreach (Transform child in colorRoot)
-        {
-            Image childImage = child.GetComponent<Image>();
-            if (childImage != null)
-                childImage.color = selectedColor;
-        }
     }
 
     public void SelectSkinColor(int index)
     {
-        if (previewInstance == null) return;
-
-        // Recursive arama yapacak helper fonksiyon
-        Transform skinRoot = FindPart(previewInstance.transform, "Skin");
-        
-        if (skinRoot == null) return;
-
-        Color selectedColor = skinColors[index];
-        selectedColor.a = 1f; // Şeffaflık önlemi
-
-        Image rootImage = skinRoot.GetComponent<Image>();
-        //if (rootImage != null)
-        //    rootImage.color = selectedColor;
-
-        // Tüm child'lara uygula
-        foreach (Transform child in skinRoot)
-        {
-            Image childImage = child.GetComponent<Image>();
-            if (childImage != null)
-                childImage.color = selectedColor;
-        }
-
-        //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-        dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,skinRoot,true); 
     }
 
         // --- REDIRECTS TO GENERIC ---
-    public void SelectHair(int index, string style) => SelectPartGeneric("Hair", "Hair_Image", index, style);
-    public void SelectClothes(int index, string style) => SelectPartGeneric("Clothes", "Clothes_Image", index, style);
-    public void SelectHat(int index, string style) => SelectPartGeneric("Hat", "Hats_Image", index, style);
-    public void SelectAccessory(int index, string style) => SelectPartGeneric("Accessory", "Accessory_Image", index, style);
-    public void SelectMouth(int index, string style) => SelectPartGeneric("Mouth", "Mouth_Image", index, style);
+    public void SelectHair(int index, string style) { }
+    public void SelectClothes(int index, string style) { }
+    public void SelectHat(int index, string style) { }
+    public void SelectAccessory(int index, string style) { }
+    public void SelectMouth(int index, string style) { }
     
-    // Original methods for Beard, Eyes, Noise etc. were not implemented in the snippet provided.
-    // If they were adding logic to SelectPartGeneric above, we would map them too.
-    // For now we assume these are the main ones present in the file chunk we saw.
-    public void SelectBeard(int index, string style) => SelectPartGeneric("Beard", "Outfit", index, style);
-    public void SelectEyes(int index, string style) => SelectPartGeneric("Eyes", "Outfit", index, style);
-    public void SelectNoise(int index, string style) => SelectPartGeneric("Noise", "Outfit", index, style);
-    public void SelectEyeBrown(int index, string style) => SelectPartGeneric("EyeBrown", "Outfit", index, style);
-    public void SelectFreckle(int index, string style) => SelectPartGeneric("Freckle", "Outfit", index, style);
+    public void SelectBeard(int index, string style) { }
+    public void SelectEyes(int index, string style) { }
+    public void SelectNoise(int index, string style) { }
+    public void SelectEyeBrown(int index, string style) { }
+    public void SelectFreckle(int index, string style) { }
 
     //--------------PREVIEW AREA-------------------
 
@@ -223,201 +130,19 @@ public class CharacterCreationManager : MonoBehaviour
 
     public void SetCategory(int currentCategoryR)
     {
-        EnumCharacterCustomizationCategory tmpCurrentCategory = (EnumCharacterCustomizationCategory) currentCategoryR;
-        currentCategory = tmpCurrentCategory;
-
-        // 🔥 Her kategori değişiminde eski butonları temizle
-        dynamicCategoryManager.ClearGrid(dynamicCategoryManager.categoryGridParent);
-
-
-        switch (tmpCurrentCategory)
-        {
-            case EnumCharacterCustomizationCategory.Skin: 
-                Populate_Skin_Options();
-                break;
-            
-            //Direkt Buton ile açılanlar
-            case EnumCharacterCustomizationCategory.Hair_Boy:
-                colorRoot = FindPart(previewInstance.transform, "Hair");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
-                dynamicCategoryManager.PopulateOptionColorPalette();
-
-                dynamicCategoryManager.PopulateOptionGrid("Hair_Image","BoyHair");
-                break;
-
-            case EnumCharacterCustomizationCategory.Hair_Girl:
-                colorRoot = FindPart(previewInstance.transform, "Hair");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
-                dynamicCategoryManager.PopulateOptionColorPalette();
-
-                dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "GirlHair");
-                break;
-
-            case EnumCharacterCustomizationCategory.Hair_Mixed:
-                colorRoot = FindPart(previewInstance.transform, "Hair");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
-                dynamicCategoryManager.PopulateOptionColorPalette();
-
-                dynamicCategoryManager.PopulateOptionGrid("Hair_Image", "MixedHair");
-                break;
-            
-            case EnumCharacterCustomizationCategory.Beard:
-                colorRoot = FindPart(previewInstance.transform, "Beard");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
-                dynamicCategoryManager.PopulateOptionColorPalette();
-
-                dynamicCategoryManager.PopulateOptionGrid("Beard_Image", "");
-                break;
-            case EnumCharacterCustomizationCategory.Eyes:
-                colorRoot = FindPart(previewInstance.transform, "Eyes");
-                 //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
-                dynamicCategoryManager.PopulateOptionColorPalette();
-
-                dynamicCategoryManager.PopulateOptionGrid("Eyes_Image", "");
-                break;
-            case EnumCharacterCustomizationCategory.Noise:
-                colorRoot = FindPart(previewInstance.transform, "Noise");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
-                dynamicCategoryManager.PopulateOptionColorPalette();
-
-                dynamicCategoryManager.PopulateOptionGrid("Noise_Image", "");
-                break;    
-            case EnumCharacterCustomizationCategory.EyeBrown:
-                colorRoot = FindPart(previewInstance.transform, "EyeBrown");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
-                dynamicCategoryManager.PopulateOptionColorPalette();
-
-                dynamicCategoryManager.PopulateOptionGrid("EyeBrown_Image", "");
-                break;
-            case EnumCharacterCustomizationCategory.Freckle:
-                colorRoot = FindPart(previewInstance.transform, "Freckle");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,colorRoot,false); 
-                dynamicCategoryManager.PopulateOptionColorPalette();
-
-                dynamicCategoryManager.PopulateOptionGrid("Freckle_Image", "");
-                break;                                                            
-            
-            //Alt seçim yapılarak açılanlar
-            case EnumCharacterCustomizationCategory.Clothes:
-                colorRoot = FindPart(previewInstance.transform, "Clothes");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false); 
-
-                dynamicCategoryManager.PopulateCategoryButtons("Clothes_Image");
-                break;
-
-            case EnumCharacterCustomizationCategory.Hats:
-                colorRoot = FindPart(previewInstance.transform, "Hat"); // Duzeltildi: "Hats" degil "Hat" olabilir, ama rig aracinda "Hat" kullandik. Kontrol gerekirse isme gore.
-                if(colorRoot == null) colorRoot = FindPart(previewInstance.transform, "Hats");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false); 
-
-                dynamicCategoryManager.PopulateCategoryButtons("Hats_Image");
-                break;
-
-            case EnumCharacterCustomizationCategory.Accessory:
-                colorRoot = FindPart(previewInstance.transform, "Accessory");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false);
-
-                dynamicCategoryManager.PopulateCategoryButtons("Accessory_Image");
-                break;
-
-            case EnumCharacterCustomizationCategory.Mouth:
-                colorRoot = FindPart(previewInstance.transform, "Mouth");
-                //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-                dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(false,colorRoot,false); 
-                dynamicCategoryManager.PopulateOptionColorPalette();
-
-                dynamicCategoryManager.PopulateOptionGrid("Mouth_Image", "");
-                break;
-
-            // Diğer kategoriler eklenebilir
-        }
-        
+        // ❌ DEPRECATED: Logic moved to CharacterCreationController
+        Debug.LogWarning("[CharacterCreationManager] SetCategory is DEPRECATED and silenced.");
     }
 
     //Seçilen Renklerin uygulanabilmesi için yapılıyor.
     public void Populate_ColorPalette_Options()
     {
-        ClearOptionGrid();
-        switch (currentCategory)
-        {
-            case EnumCharacterCustomizationCategory.Hair_Boy:
-            case EnumCharacterCustomizationCategory.Hair_Girl:
-            case EnumCharacterCustomizationCategory.Hair_Mixed:
-                colorValue = hairColors;
-                colorIcons = hairColorIcons;
-                colorRoot = FindPart(previewInstance.transform, "Hair");
-                break;
-            
-            case EnumCharacterCustomizationCategory.Beard:
-                break;
-            case EnumCharacterCustomizationCategory.Eyes:
-                break;
-            case EnumCharacterCustomizationCategory.Noise:
-                colorValue = noiseColors;
-                colorIcons = noiseColorIcons;
-                colorRoot = FindPart(previewInstance.transform, "Noise");
-                break;    
-            case EnumCharacterCustomizationCategory.EyeBrown:
-                colorValue = eyeBrownColors;
-                colorIcons = eyeBrownColorIcons;
-                colorRoot = FindPart(previewInstance.transform, "EyeBrown");
-                break;
-            case EnumCharacterCustomizationCategory.Freckle:
-                colorValue = freckleColors;
-                colorIcons = freckleColorIcons;
-                colorRoot = FindPart(previewInstance.transform, "Freckle");
-                break;                                                            
-        }
-
-        //Debug.Log("PALETTE TIKLANDI="+colorRoot+ "  "+colorValue.Count);
-
-        for (int i = 0; i < colorValue.Count; i++)
-        {
-            GameObject item = Instantiate(optionItemPrefab, optionGridParent);
-            OptionItem option = item.GetComponent<OptionItem>();
-
-            Sprite icon = colorIcons[i]; // Hazır ikon kullan
-            
-            option.Setup(icon, i, this,null,1);
-
-            item.SetActive(true);
-            item.GetComponent<Button>().onClick.AddListener(option.OnClick);
-        }
-
+        // ❌ DEPRECATED
     }
 
     public void Populate_Skin_Options()
     {
-        ClearOptionGrid();
-
-        for (int i = 0; i < skinColors.Count; i++)
-        {
-            GameObject item = Instantiate(optionItemPrefab, optionGridParent);
-            OptionItem option = item.GetComponent<OptionItem>();
-
-            Sprite icon = skinColorIcons[i]; // Hazır ikon kullan
-            
-            option.Setup(icon, i, this,null,0);
-
-            item.SetActive(true);
-            item.GetComponent<Button>().onClick.AddListener(option.OnClick);
-        }
-  
-        //ToneSliderArea aktif hale getirildi ve renk degişecek gameObject' iletildi.
-        Transform skinRoot = FindPart(previewInstance.transform, "Skin");
-        dynamicCategoryManager.setActiveCategorySelectedToneSliderArea(true,skinRoot,true); 
-
+        // ❌ DEPRECATED
     }
 
     // Generic redirects handled above.
@@ -437,14 +162,12 @@ public class CharacterCreationManager : MonoBehaviour
 
     private void ClearOptionGrid()
     {
-        foreach (Transform child in optionGridParent)
-            Destroy(child.gameObject);
     }
 
     //-------
     public List<Sprite> LoadSpritesFromResources(string path)
     {
-        return GetOrLoadSprites(path);
+        return new List<Sprite>();
     }
 
     private List<Color> LoadSkinColors()
