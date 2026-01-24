@@ -121,6 +121,9 @@ public class CharacterSelectionManager : MonoBehaviour
             StartCoroutine(SlideDiagonalAndFadeIn(panelRT, cg));
 
             selectedSlot = allSlots[activeSlotIndex];
+            
+            // 🔥 Duplicate Fix: Edit moduna geçerken sahnedeki karakteri temizle
+            ClearCharacterArea();
 
             ResetOptionGridToDefault();
 
@@ -164,9 +167,25 @@ public class CharacterSelectionManager : MonoBehaviour
                 if (prefab != null)
                 {
                     GameObject preview = Instantiate(prefab, characterArea.transform);
+                    
+                    // 🔥 Layout Fix: Reset RectTransform
+                    RectTransform rt = preview.GetComponent<RectTransform>();
+                    if (rt != null)
+                    {
+                        rt.anchorMin = new Vector2(0.5f, 0.5f);
+                        rt.anchorMax = new Vector2(0.5f, 0.5f);
+                        rt.pivot = new Vector2(0.5f, 0.5f);
+                        rt.anchoredPosition = Vector2.zero; 
+                    }
+
+                    // 🔥 Alpha Fix: Ensure CanvasGroup is visible
+                    CanvasGroup cg = preview.GetComponent<CanvasGroup>();
+                    if (cg != null) cg.alpha = 1f;
+
                     preview.transform.localPosition = slotVisualParent;
                     Vector3 updateScale = new Vector3(0.5f, 0.5f, 0.5f);
                     preview.transform.localScale = updateScale;
+                    preview.SetActive(true); 
                 }
     }
 
@@ -283,19 +302,30 @@ public class CharacterSelectionManager : MonoBehaviour
     {
         if (selectedSlot == null || characterCreationManager.previewInstance == null)
         {
-            Debug.LogWarning("ConfirmCharacter: Slot veya preview eksik");
+            Debug.LogWarning("BackButtonCharacter: Slot veya preview eksik");
+            // Yine de paneli kapatmayı dene
+            characterCreationPanel.SetActive(false);
+            characterSlotPanel.SetActive(true);
             return;
         }
+
         // 🔥 Preview’ı sahneden kaldır
         if (characterCreationManager.previewInstance != null && characterCreationManager.previewInstance.scene.IsValid())
         {
             Destroy(characterCreationManager.previewInstance);
         }
-        else
-        {
-            Debug.LogWarning("SetCharacter: Asset referansı silinemez");
-        }
+        
         characterCreationManager.previewInstance = null;
+
+        // 🔄 Duplicate Fix: Sahneye karakteri geri yükle
+        if (selectedSlot != null)
+        {
+             ShowInCharacterArea(selectedSlot.characterInstance);
+        }
+
+        // 🔄 Panel geçişi (UI Button event'inde yoksa burası kurtarır)
+        characterCreationPanel.SetActive(false);
+        characterSlotPanel.SetActive(true);
     }
 
     //-------------PreviewArea'daki KARAKTER PREFAB KAYDETME ISLEMINI YAPIYOR------------
