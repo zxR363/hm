@@ -191,8 +191,8 @@ public class CreationUIManager : MonoBehaviour
 
     public void PopulateSubCategories(List<Sprite> icons, System.Action<int> onSubClick)
     {
-        // 1. Clear Main Grid (User expectation: Sub Menu clears/replaces content until selected)
-        ClearGrid(itemGridParent);
+        // Grid clearing is now managed by the Controller to allow pre-loading items from basePath
+        // ClearGrid(itemGridParent);
         
         // 2. Clear & Populate Sub Category Parent (CategoryGrid)
         // Ensure subCategoryParent is assigned in Inspector!
@@ -383,10 +383,20 @@ public class CreationUIManager : MonoBehaviour
         float cellWidth = availableWidth / columns;
         
         // Ensure reasonable min size
-        if (cellWidth < 50) cellWidth = 50;
+        if (cellWidth < 50) cellWidth = 20;
 
-        glg.cellSize = new Vector2(cellWidth, cellWidth);
-        glg.spacing = new Vector2(spacing, spacing);
+        // 🔥 Special Logic for CategoryGrid (SubCategory)
+        float finalCellHeight = cellWidth;
+        float finalSpacingY = spacing;
+
+        if (gridParent == subCategoryParent)
+        {
+            finalCellHeight = 120f;
+            finalSpacingY = 5f;
+        }
+
+        glg.cellSize = new Vector2(cellWidth, finalCellHeight);
+        glg.spacing = new Vector2(spacing, finalSpacingY);
         glg.padding = new RectOffset(padding, padding, padding, padding);
         glg.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         glg.constraintCount = columns;
@@ -485,10 +495,10 @@ public class CreationUIManager : MonoBehaviour
             {
                 // Only log if something is fishy (Content smaller than Viewport, or Input blocked)
                 // or if manually dragging (velocity != 0)
-                if (contentScrollRect.velocity.sqrMagnitude > 0.1f)
-                {
-                    Debug.Log($"[ScrollDebug] Moving.. Vel: {contentScrollRect.velocity} | Y-Pos: {content.anchoredPosition.y} | ContentH: {content.rect.height} | ViewH: {viewport.rect.height}");
-                }
+                // if (contentScrollRect.velocity.sqrMagnitude > 0.1f)
+                // {
+                //     Debug.Log($"[ScrollDebug] Moving.. Vel: {contentScrollRect.velocity} | Y-Pos: {content.anchoredPosition.y} | ContentH: {content.rect.height} | ViewH: {viewport.rect.height}");
+                // }
                 
                 // Detection: Content Height vs Viewport Height
                 if (content.rect.height < viewport.rect.height && content.childCount > 0)

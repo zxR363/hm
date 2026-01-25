@@ -175,6 +175,14 @@ public class CharacterCreationController : MonoBehaviour
 
         // 2. Try Component-Based Logic First
         CategoryTab catTab = FindCategoryTab(category);
+        
+        // 🔥 NEW: If a manual basePath is provided, load it IMMEDIATELY as the default view.
+        if (catTab != null && !string.IsNullOrEmpty(catTab.basePath))
+        {
+            Debug.Log($"[Controller] Category {category} has basePath: {catTab.basePath}. Pre-loading items.");
+            LoadItemsForCategory(category, "", catTab);
+        }
+
         if(catTab != null && catTab.subCategories.Count > 0)
         {
              // Show Sub Categories (Drill Down)
@@ -189,8 +197,8 @@ public class CharacterCreationController : MonoBehaviour
                  {
                      List<Color> dynamicColors = null;
 
-                     // 1. Try Dragged ScriptableObject (SubCategory FIRST, then Main Tab)
-                     Object targetPalette = sub.paletteObject != null ? sub.paletteObject : catTab.paletteObject;
+                     // 1. Try Dragged ScriptableObject (SubCategory only now)
+                     Object targetPalette = sub.paletteObject;
                      
                      if(targetPalette != null)
                      {
@@ -255,20 +263,32 @@ public class CharacterCreationController : MonoBehaviour
                  }
                  else if(sub.type == SubCategoryType.Folder)
                  {
-                     actions.Add(() => LoadItemsForCategory(category, sub.path)); // Path e.g. "BoyHair"
+                     actions.Add(() => LoadItemsForCategory(category, sub.path, catTab)); // Path e.g. "BoyHair"
                  }
                  else if(sub.type == SubCategoryType.DirectItems)
                  {
-                     actions.Add(() => LoadItemsForCategory(category, sub.path ?? ""));
+                     actions.Add(() => LoadItemsForCategory(category, sub.path ?? "", catTab));
                  }
              }
              
              uiManager.PopulateSubCategories(icons, (idx) => actions[idx].Invoke());
              
-             // Auto Select First Option if requested (e.g. Skin -> Color Palette)
+             // Auto Select First Option if requested
              if(catTab.autoSelectFirst && actions.Count > 0)
              {
-                 actions[0].Invoke();
+                 int bestIndex = 0;
+                 for (int i = 0; i < catTab.subCategories.Count; i++)
+                 {
+                     if (catTab.subCategories[i].type == SubCategoryType.Folder || 
+                         catTab.subCategories[i].type == SubCategoryType.DirectItems)
+                     {
+                         bestIndex = i;
+                         break;
+                     }
+                 }
+                 
+                 Debug.Log($"[Controller] Auto-selecting {category} sub-category index: {bestIndex} (Type: {catTab.subCategories[bestIndex].type})");
+                 actions[bestIndex].Invoke();
              }
              return;
         }
@@ -282,22 +302,21 @@ public class CharacterCreationController : MonoBehaviour
         
         if (category == "Skin")
         {
-            // Skin uses Special logic for now (Direct Color Grid)
-            // Ideally Skin should also be a CategoryTab with type ColorPalette
-             LoadColorGrid(skinColors, (colorIndex) => 
-            {
-                currentBaseColor = skinColors[colorIndex];
-                OnToneSliderChanged(0.5f); 
-                if(uiManager.colorPalettePanel != null) uiManager.colorPalettePanel.GetComponentInChildren<Slider>().value = 0.5f;
-                
-                uiManager.UpdateSliderVisual(uiManager.colorPalettePanel.GetComponentInChildren<Slider>(), currentBaseColor, modifier);
-            });
-            uiManager.SetColorPaletteActive(true);
+             // Skin uses Special logic for now (Direct Color Grid)
+             // Ideally Skin should also be a CategoryTab with type ColorPalette
+              LoadColorGrid(skinColors, (colorIndex) => 
+             {
+                 currentBaseColor = skinColors[colorIndex];
+                 OnToneSliderChanged(0.5f); 
+                 if(uiManager.colorPalettePanel != null) uiManager.colorPalettePanel.GetComponentInChildren<Slider>().value = 0.5f;
+                 
+                 uiManager.UpdateSliderVisual(uiManager.colorPalettePanel.GetComponentInChildren<Slider>(), currentBaseColor, modifier);
+             });
         }
         else
         {
              // Direct Load Default
-             LoadItemsForCategory(category, "");
+             LoadItemsForCategory(category, "", catTab);
         }
     }
     
@@ -318,27 +337,19 @@ public class CharacterCreationController : MonoBehaviour
 
     private void LoadColorGrid(List<Color> colors, System.Action<int> onColorClick)
     {
+        uiManager.SetColorPaletteActive(true); // 🔥 Show Slider when loading colors
         uiManager.PopulateColorGrid(colors, onColorClick);
     }
 
-    private void LoadItemsForCategory(string category, string style)
+    private void LoadItemsForCategory(string category, string style, CategoryTab tab = null)
     {
         uiManager.SetColorPaletteActive(false);
         
-        string path;
-        // If style (sub-path) is provided via Component, use it directly or combine
-        if(!string.IsNullOrEmpty(style))
-        {
-             // If style is a full path (e.g. contains "Images/"), use it. Else append.
-             if(style.Contains("/")) path = style;
-             else path = $"Images/Character/Style/{category}/{style}";
-        }
-        else
-        {
-             path = GetCategoryPath(category, "");
-        }
-
+        string path = GetCategoryPath(category, style, tab);
+        Debug.Log($"[Controller] LoadItemsForCategory: category={category}, style={style} -> FINAL PATH: {path}");
+        
         Sprite[] sprites = Resources.LoadAll<Sprite>(path);
+        Debug.Log($"[Controller] Resources.LoadAll found {sprites.Length} sprites at {path}");
         
         if (sprites == null || sprites.Length == 0) 
         {
@@ -357,16 +368,15 @@ public class CharacterCreationController : MonoBehaviour
 
     private void LoadColorsForCategory(string category)
     {
-         uiManager.SetColorPaletteActive(true);
-         
          List<Color> targetColors = null;
-         if(category.Contains("Hair") || category == "Beard" || category == "EyeBrown") targetColors = hairColors;
+         if(category.Contains("Hair") || category == "Beard") targetColors = hairColors;
          else if(category == "Eyes") targetColors = eyesColors;
          else if(category == "Skin") targetColors = skinColors;
+         else if(category == "Eyebrows") targetColors = hairColors; // Use hair colors for eyebrows
          
          if(targetColors != null)
          {
-             uiManager.PopulateColorGrid(targetColors, (cIdx) => 
+             LoadColorGrid(targetColors, (cIdx) => 
              {
                  currentBaseColor = targetColors[cIdx];
                  OnToneSliderChanged(0.5f);
@@ -377,28 +387,56 @@ public class CharacterCreationController : MonoBehaviour
     }
     
     // Helper to centralize path logic
-    private string GetCategoryPath(string category, string style)
+    private string GetCategoryPath(string category, string style, CategoryTab tab = null)
     {
-        if(!string.IsNullOrEmpty(style))
+        string basePath = "";
+        
+        // 0. Priority: Manual basePath from Component
+        if (tab != null && !string.IsNullOrEmpty(tab.basePath))
         {
-             return $"Images/Character/Style/{category}/{style}";
+            basePath = tab.basePath;
         }
+        else
+        {
+            // 1. Get Hardcoded Base Mapping
+            if(category == "BoyHair") basePath = "Images/Character/Style/Hair_Image/BoyHair";
+            else if(category == "GirlHair") basePath = "Images/Character/Style/Hair_Image/GirlHair";
+            else if(category == "MixedHair") basePath = "Images/Character/Style/Hair_Image/MixedHair";
+            else if(category == "Beard") basePath = "Images/Character/Style/Beard_Image";
+            else if(category == "Eyes") basePath = "Images/Character/Style/Eyes_Image";
+            else if(category == "Nose") basePath = "Images/Character/Style/Noise_Image"; 
+            else if(category == "Eyebrows") basePath = "Images/Character/Style/EyeBrown_Image";
+            else if(category == "Freckles") basePath = "Images/Character/Style/Freckle_Image";
+            else if(category == "Mouth") basePath = "Images/Character/Style/Mouth_Image";
+            else if(category == "Clothes") basePath = "Images/Character/Style/Clothes_Image";
+            else if(category == "Hats") basePath = "Images/Character/Style/Hats_Image";
+            else if(category == "Accessory") basePath = "Images/Character/Style/Accessory_Image";
+            else basePath = $"Images/Character/Style/{category}";
+        }
+        // 2. Handle Style/SubPath
+        if (string.IsNullOrEmpty(style)) return basePath;
         
-        // Mapped Paths
-        if(category == "BoyHair") return "Images/Character/Style/Hair_Image/BoyHair";
-        if(category == "GirlHair") return "Images/Character/Style/Hair_Image/GirlHair";
-        if(category == "MixedHair") return "Images/Character/Style/Hair_Image/MixedHair";
-        if(category == "Beard") return "Images/Character/Style/Beard_Image";
-        if(category == "Eyes") return "Images/Character/Style/Eyes_Image";
-        if(category == "Nose") return "Images/Character/Style/Noise_Image"; 
-        if(category == "Eyebrows") return "Images/Character/Style/EyeBrown_Image";
-        if(category == "Freckles") return "Images/Character/Style/Freckle_Image";
-        if(category == "Mouth") return "Images/Character/Style/Mouth_Image";
-        if(category == "Clothes") return "Images/Character/Style/Clothes_Image";
-        if(category == "Hats") return "Images/Character/Style/Hats_Image";
-        if(category == "Accessory") return "Images/Character/Style/Accessory_Image";
+        // If style is an absolute Resources path
+        if (style.StartsWith("Images/")) return style;
         
-        return $"Images/Character/Style/{category}"; 
+        // Else append to base
+        string finalPath = basePath;
+        if (!string.IsNullOrEmpty(style))
+        {
+             // If style name is the same as the end of the base path, don't double it
+             // e.g. basePath=".../BoyHair" and style="BoyHair" -> don't do ".../BoyHair/BoyHair"
+             if (basePath.EndsWith("/" + style) || basePath.EndsWith("\\" + style))
+             {
+                 Debug.Log($"[Controller] Style '{style}' matches end of basePath. Using basePath as is.");
+             }
+             else
+             {
+                 finalPath = $"{basePath.TrimEnd('/', '\\')}/{style}";
+             }
+        }
+
+        Debug.Log($"[Controller] GetCategoryPath Result: {finalPath}");
+        return finalPath;
     }
 
     private string GetPartNameFromCategory(string cat)

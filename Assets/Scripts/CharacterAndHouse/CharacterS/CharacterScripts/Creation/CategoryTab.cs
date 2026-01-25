@@ -22,13 +22,10 @@ public class CategoryTab : MonoBehaviour
 {
     [Header("Configuration")]
     public string categoryId; // e.g. "Hair", "Clothes"
+    public string basePath; // 🔥 Explicit Resources path (e.g. "Images/Character/Style/Hair_Image/BoyHair")
     public bool autoSelectFirst = false; // If true, the first sub-category is selected automatically
     
     [Header("Sub Options")]
-    [Header("Sub Options")]
     public List<SubCategoryDef> subCategories = new List<SubCategoryDef>();
     
-    [Header("Custom Colors")]
-    [Tooltip("Drag a ScriptableObject (SkinColorList or ItemsColorList) here to load colors automatically.")]
-    public Object paletteObject; // Drag-drop slot
 }
