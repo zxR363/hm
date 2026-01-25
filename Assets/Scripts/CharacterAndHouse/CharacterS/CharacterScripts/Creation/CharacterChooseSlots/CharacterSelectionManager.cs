@@ -32,7 +32,7 @@ public class CharacterSelectionManager : MonoBehaviour
     public CharacterSlot selectedSlot;
     public CharacterSlot[] allSlots; // 0–5 CharacterArea Yok
     public Transform previewArea; //
-    private int activeSlotIndex = -1; //Seçilmiş olunan slot indexi
+    public int activeSlotIndex = -1; //Seçilmiş olunan slot indexi
     private int characterAreaIndex;
 
     private GameObject currentPreviewInstance;
@@ -165,6 +165,10 @@ public class CharacterSelectionManager : MonoBehaviour
                 {
                     GameObject preview = Instantiate(prefab, characterArea.transform);
                     
+                    // 🔥 v21: Add marker for deletion sync
+                    if (preview.GetComponent<ICharacterPrefab>() == null)
+                        preview.AddComponent<ICharacterPrefab>();
+
                     // 🔥 Layout Fix: Reset RectTransform
                     RectTransform rt = preview.GetComponent<RectTransform>();
                     if (rt != null)

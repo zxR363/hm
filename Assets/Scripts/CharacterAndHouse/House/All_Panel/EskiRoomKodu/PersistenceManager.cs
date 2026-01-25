@@ -30,4 +30,14 @@ public static class PersistenceManager
     {
         return File.Exists(Path.Combine(Application.persistentDataPath, filename));
     }
+
+    public static void Delete(string filename)
+    {
+        string path = Path.Combine(Application.persistentDataPath, filename);
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+            Debug.Log($"Deleted data at {path}");
+        }
+    }
 }

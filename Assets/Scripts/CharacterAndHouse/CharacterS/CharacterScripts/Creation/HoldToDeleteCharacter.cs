@@ -105,15 +105,26 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
     {
         if (targetPrefab != null && targetPrefab.activeSelf)
         {
-            string rawName = targetPrefab.name;
-            string prefabName = NormalizePrefabName(rawName);
+            // 🎯 v20: Get slot name from hierarchy
+            string slotName = slotRoot.name; // e.g., "CharacterSlot_3"
+            string jsonFile = slotName + ".json";
 
+            Debug.Log($"[Delete] Attempting to delete character data: {jsonFile}");
+
+            // 1. Delete the JSON file
+            PersistenceManager.Delete(jsonFile);
+
+            // 2. Destroy the character instance
             Destroy(targetPrefab);
 
-#if UNITY_EDITOR
-            DeletePrefabAsset(prefabName);
-#endif
+            // 3. Reset Slot Visual via the Component
+            CharacterSlot slot = slotRoot.GetComponent<CharacterSlot>();
+            if (slot != null)
+            {
+                slot.characterInstance = null; // Clear reference
+            }
 
+            // 4. Show the fallback image
             if (characterImage != null)
             {
                 characterImage.SetActive(true);
@@ -127,6 +138,23 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
                 }
             }
 
+            // 5. Sync with CharacterArea (v22 - Enhanced for Scene Start)
+            CharacterSelectionManager mgr = CharacterSelectionManager.Instance;
+            CharacterSlot slotComponent = slotRoot.GetComponent<CharacterSlot>();
+
+            if (mgr != null && slotComponent != null)
+            {
+                bool isActivePreview = (mgr.activeSlotIndex == slotComponent.slotIndex);
+                bool isCurrentlySelected = (mgr.selectedSlot != null && mgr.selectedSlot == slotComponent);
+
+                if (isActivePreview || isCurrentlySelected)
+                {
+                    mgr.ClearCharacterArea();
+                    Debug.Log($"[Delete] Sync: Cleared CharacterArea because {slotName} (Index: {slotComponent.slotIndex}) was active/selected.");
+                }
+            }
+
+            // 6. If there's an active character in the CreationArea (fallback cleanup)
             if (characterAreaRoot != null)
             {
                 foreach (Transform child in characterAreaRoot)
@@ -134,29 +162,33 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
                     var areaComponent = child.GetComponent<ICharacterPrefab>();
                     if (areaComponent != null)
                     {
-                        string areaName = NormalizePrefabName(areaComponent.name);
-                        if (areaName == prefabName)
-                        {
-                            Destroy(child.gameObject);
-                            break;
-                        }
+                        // Simply clear the area if was showing this slot (optional security)
+                        Destroy(child.gameObject);
+                        break;
                     }
                 }
             }
+            
+            Debug.Log($"[Delete] Character successfully deleted from {slotName}");
         }
     }
 
     private GameObject FindCharacterPrefabUnder(Transform parent)
     {
+        if (parent == null) return null;
+        
         foreach (Transform child in parent)
         {
             var prefabComponent = child.GetComponent<ICharacterPrefab>();
             if (prefabComponent != null && child.gameObject.activeSelf)
                 return child.gameObject;
 
-            GameObject found = FindCharacterPrefabUnder(child);
-            if (found != null)
-                return found;
+            // Optional: check children if nested deeper
+            if (child.childCount > 0)
+            {
+                GameObject found = FindCharacterPrefabUnder(child);
+                if (found != null) return found;
+            }
         }
 
         return null;
@@ -174,22 +206,6 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
 
         return null;
     }
-
-#if UNITY_EDITOR
-    private void DeletePrefabAsset(string prefabName)
-    {
-        Debug.Log("SİLİNEN PREFAB NAME=" + prefabName);
-        string path = $"Assets/Resources/GeneratedCharacters/{prefabName}.prefab";
-        if (AssetDatabase.LoadAssetAtPath<GameObject>(path) != null)
-        {
-            bool success = AssetDatabase.DeleteAsset(path);
-            if (success)
-                Debug.Log($"🧹 Prefab asset silindi: {path}");
-            else
-                Debug.LogWarning($"❌ Prefab asset silinemedi: {path}");
-        }
-    }
-#endif
 
     private string NormalizePrefabName(string rawName)
     {

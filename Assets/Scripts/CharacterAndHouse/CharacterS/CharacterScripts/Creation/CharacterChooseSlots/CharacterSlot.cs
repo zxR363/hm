@@ -95,6 +95,10 @@ public class CharacterSlot : MonoBehaviour
                       characterInstance = Instantiate(basePrefab, transform);
                       characterInstance.name = slotName + "_Instance";
                       
+                      // 🔥 v20: Add marker for deletion logic
+                      if (characterInstance.GetComponent<ICharacterPrefab>() == null)
+                          characterInstance.AddComponent<ICharacterPrefab>();
+
                       CharacterSaveData data = PersistenceManager.Load<CharacterSaveData>(jsonFile);
                       CharacterModifier modifier = (CharacterSelectionManager.Instance.characterCreationController != null) 
                           ? CharacterSelectionManager.Instance.characterCreationController.modifier 
@@ -128,6 +132,11 @@ public class CharacterSlot : MonoBehaviour
                     characterInstance = Instantiate(basePrefab, transform);
                     characterInstance.transform.localPosition = slotVisualParent;
                     characterInstance.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+                    
+                    // 🔥 v20: Add marker for deletion logic
+                    if (characterInstance.GetComponent<ICharacterPrefab>() == null)
+                        characterInstance.AddComponent<ICharacterPrefab>();
+
                     if(characterImage != null) characterImage.SetActive(false);
                 }
             }
@@ -163,6 +172,11 @@ public class CharacterSlot : MonoBehaviour
                 ClearCharacterArea();
                 Debug.Log("CCCCCC");
                 characterInstance = Instantiate(prefab, transform);
+                
+                // 🔥 v20: Add marker for deletion logic
+                if (characterInstance.GetComponent<ICharacterPrefab>() == null)
+                    characterInstance.AddComponent<ICharacterPrefab>();
+
                 characterInstance.transform.localPosition = slotVisualParent;
                 //characterInstance.transform.position += new Vector3(0f, -28f, 0f);
             }
@@ -170,6 +184,11 @@ public class CharacterSlot : MonoBehaviour
             {
                 //Debug.Log("TTTTTT");
                 characterInstance = Instantiate(prefab, transform);
+
+                // 🔥 v20: Add marker for deletion logic
+                if (characterInstance.GetComponent<ICharacterPrefab>() == null)
+                    characterInstance.AddComponent<ICharacterPrefab>();
+
                 characterInstance.transform.localPosition = slotVisualParent;
                 //characterInstance.transform.position += new Vector3(0f, -28f, 0f);
             }
