@@ -77,64 +77,67 @@ public class CharacterSlot : MonoBehaviour
 
     public void OnClick()
     {
-        // 🎯 Slot ismine göre kayıtlı prefab var mı kontrol et
-        string slotName = gameObject.name; // örn: "CharacterSlot_3"
-        string prefabPath = $"GeneratedCharacters/{slotName}";
-        GameObject savedPrefab = Resources.Load<GameObject>(prefabPath);
-
-        if (savedPrefab != null)
+        string slotName = gameObject.name; 
+        string jsonFile = slotName + ".json";
+        
+        // 🎯 1. JSON Verisi Var mı?
+        bool hasJson = PersistenceManager.Exists(jsonFile);
+        
+        if (hasJson)
         {
-            // --- DURUM A: Kayıtlı Karakter Var ---
             if (characterInstance == null)
             {
-                 characterInstance = Instantiate(savedPrefab, transform);
-                 characterInstance.transform.localPosition = slotVisualParent;
-                 characterInstance.name = savedPrefab.name;
-                 
-                 if(characterImage != null) characterImage.SetActive(false);
-            }
-            else
-            {
-                // Zaten var, ama yanlışlıkla başka bir şey varsa yenile
-                if (!characterInstance.name.Contains(slotName))
-                {
-                    Destroy(characterInstance);
-                    characterInstance = Instantiate(savedPrefab, transform);
-                    characterInstance.transform.localPosition = slotVisualParent;
-                    characterInstance.name = savedPrefab.name;
-                    if(characterImage != null) characterImage.SetActive(false);
-                }
+                 ClearCharacterArea(); 
+
+                 GameObject basePrefab = Resources.Load<GameObject>("GeneratedCharacters/BaseCharacterPrefab/BaseCharacterPrefab");
+                 if (basePrefab != null)
+                 {
+                      characterInstance = Instantiate(basePrefab, transform);
+                      characterInstance.name = slotName + "_Instance";
+                      
+                      CharacterSaveData data = PersistenceManager.Load<CharacterSaveData>(jsonFile);
+                      CharacterModifier modifier = (CharacterSelectionManager.Instance.characterCreationController != null) 
+                          ? CharacterSelectionManager.Instance.characterCreationController.modifier 
+                          : FindObjectOfType<CharacterModifier>();
+
+                      if (data != null && modifier != null)
+                      {
+                          modifier.ApplyVisualState(characterInstance, data);
+                          Debug.Log($"[Slot] Reconstruction Successful: {slotName}");
+                      }
+                 }
+
+                 if (characterInstance != null)
+                 {
+                     characterInstance.transform.localPosition = slotVisualParent;
+                     // 🔥 Size Fix (v14): Always use 0.5f scaling to keep visual consistency
+                     characterInstance.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+                     if(characterImage != null) characterImage.SetActive(false);
+                 }
             }
             CharacterSelectionManager.Instance.SelectSlot(this);
         }
         else
         {
-            // --- DURUM B: Boş Slot (Toggle Mantığı) ---
+             // --- Boş Slot ---
             if (characterInstance == null)
             {
-                // 1. Tık: Base Karakteri Göster
                 GameObject basePrefab = Resources.Load<GameObject>("GeneratedCharacters/BaseCharacterPrefab/BaseCharacterPrefab");
                 if (basePrefab != null)
                 {
                     characterInstance = Instantiate(basePrefab, transform);
-                    characterInstance.transform.localPosition = slotVisualParent; // (0, 150, 0)
+                    characterInstance.transform.localPosition = slotVisualParent;
                     characterInstance.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-                    
                     if(characterImage != null) characterImage.SetActive(false);
-                    
-                    CharacterSelectionManager.Instance.SelectSlot(this);
                 }
             }
             else
             {
-                // 2. Tık: İptal Et (Base Karakteri Sil, Image Göster)
                 Destroy(characterInstance);
                 characterInstance = null;
-                
                 if(characterImage != null) characterImage.SetActive(true);
-
-                CharacterSelectionManager.Instance.SelectSlot(this); // null gidecek ve preview temizlenecek
             }
+            CharacterSelectionManager.Instance.SelectSlot(this);
         }
     }
 

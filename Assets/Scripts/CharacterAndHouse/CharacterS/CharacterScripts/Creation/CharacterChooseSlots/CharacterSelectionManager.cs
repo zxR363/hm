@@ -62,17 +62,12 @@ public class CharacterSelectionManager : MonoBehaviour
         {
             if (slot.slotIndex < characterAreaIndex)
             {
-                string slotName = slot.gameObject.name; // örn: "CharacterSlot_3"
-                string prefabPath = $"GeneratedCharacters/{slotName}";
-
-                GameObject loadedPrefab = Resources.Load<GameObject>(prefabPath);
-                if (loadedPrefab != null)
+                // 🎯 v13: Sadece JSON var mı diye bak ve OnClick ile yükle
+                string jsonFile = slot.gameObject.name + ".json";
+                if (PersistenceManager.Exists(jsonFile))
                 {
-                    slot.characterInstance = loadedPrefab;
-                    slot.SetCharacter(loadedPrefab);
+                    slot.OnClick(); 
                 }
-
-                //slot.RefreshSlotVisual(); // prefab varsa göster, yoksa characterImage aktif kalsın
             }
         }
     }
@@ -128,7 +123,8 @@ public class CharacterSelectionManager : MonoBehaviour
 
             ResetOptionGridToDefault();
 
-            StartCoroutine(DelayedPreview(selectedSlot.characterInstance));
+            // 🔥 v17: Pass the actual slot so we can use its ID and fresh reconstruction
+            StartCoroutine(DelayedPreview(selectedSlot));
         }        
     }
 
@@ -209,11 +205,15 @@ public class CharacterSelectionManager : MonoBehaviour
     // ilgili prefab'ı eklemeye imkan tanıyor.
     // SetActive gibi bir durumdan kaynaklı olarak Hierarchy de gözükmüyor
     // o sebeple Coroutine ile yapıyoruz bu işlemi 1 sonraki frame de koyuyor.
-    IEnumerator DelayedPreview(GameObject prefab)
+    private IEnumerator DelayedPreview(CharacterSlot slot)
     {
-        characterCreationPanel.SetActive(true); // paneli aktif et
-
-        yield return null; // bir frame bekle → Unity aktifliği işlesin
+        // Panel aktif olana kadar bekle
+        float timeout = 0.5f;
+        while (!characterCreationPanel.activeInHierarchy && timeout > 0)
+        {
+            timeout -= Time.deltaTime;
+            yield return null;
+        }
 
         if (!previewArea.gameObject.activeInHierarchy)
         {
@@ -221,7 +221,14 @@ public class CharacterSelectionManager : MonoBehaviour
             yield break;
         }
 
-        GameObject previewInstance = Instantiate(prefab);
+        // 🔥 Perfect Cleanup (v16): Clear old previews immediately
+        for (int i = previewArea.childCount - 1; i >= 0; i--)
+        {
+            DestroyImmediate(previewArea.GetChild(i).gameObject);
+        }
+
+        // 🔥 v17 Reconstruction: Always start from base prefab
+        GameObject previewInstance = Instantiate(characterCreationController.characterPrefab);
         previewInstance.name = "CharacterPreview";
 
         // UI bağlama
@@ -229,23 +236,23 @@ public class CharacterSelectionManager : MonoBehaviour
         rt.SetParent(previewArea, false);
 
         // 🔧 Pozisyon ve layout ayarları
-        // 🔧 Pozisyon ve layout ayarları (Full Responsive Stretch)
-        rt.localScale = Vector3.one;
-        rt.anchorMin = Vector2.zero; // Sol Alt
-        rt.anchorMax = Vector2.one;  // Sağ Üst
+        rt.localScale = Vector3.one; 
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
         rt.pivot = new Vector2(0.5f, 0.5f);
-        
-        // Kenarlara 0 uzaklık (Tam kapla)
         rt.offsetMin = Vector2.zero; 
         rt.offsetMax = Vector2.zero;
 
-        if(characterCreationController != null) characterCreationController.SetCurrentCharacter(previewInstance);
-
-        // 3. Default kategoriye set et (örneğin “Skin”)
-        if(characterCreationController != null)
+        // 🔥 v17: Load JSON and apply to fresh base
+        if (slot != null && characterCreationController != null)
         {
-             characterCreationController.SetCurrentCharacter(previewInstance);
-             // characterCreationController.SetCategory(0); // Bu method private veya string bazlı oldu, gerekirse public açılmalı
+            string jsonFile = slot.gameObject.name + ".json";
+            CharacterSaveData data = PersistenceManager.Load<CharacterSaveData>(jsonFile);
+            if (data != null)
+            {
+                characterCreationController.modifier.ApplyVisualState(previewInstance, data);
+            }
+            characterCreationController.SetCurrentCharacter(previewInstance);
         }
     }
 
@@ -291,18 +298,18 @@ public class CharacterSelectionManager : MonoBehaviour
             return;
         }
 
-        // 🔥 Karakteri kaydet
-        SaveConfirmButtonCharacterPrefab();
+        // 🔥 1. JSON Olarak Kaydet (Unified Save)
+        string slotId = selectedSlot.gameObject.name;
+        CharacterSaveData data = characterCreationController.modifier.CaptureVisualState(characterCreationController.currentCharacter, slotId);
+        PersistenceManager.Save(slotId + ".json", data);
+        Debug.Log($"[Manager] Character recipe saved to JSON: {slotId}");
 
-        // 🔥 Preview’ı sahneden kaldır (Controller içindeki ref da boşa düşer ama sorun değil)
-        // Burada basitçe previewInstance üzerinden gidiyoruz
-        if (currentPreviewInstance != null) // Local değişken kullanmalıydık ama aşağıda manager ref var
-        {
-             // Düzeltme: Burada characterCreationManager.previewInstance yerine local veya SelectionManager'da tutulan ref kullanılmalı.
-             // Ancak metot içinde 'previewInstance' local değişkeni vardı. SaveConfirmButtonCharacterPrefab global bakıyor.
-             // HACK: Aşağıdaki logic'i Controller'a bağımlı olmadan düzeltiyorum.
-        }
+        // 🔥 2. Slotu JSON'dan Yeniden Yükle
+        selectedSlot.ClearSlot();
+        selectedSlot.OnClick(); 
 
+        // 🔥 3. Panel Geçişi
+        ConfirmButtonPanelSwitch();
     }
 
     public void BackButtonCharacter()
@@ -334,67 +341,7 @@ public class CharacterSelectionManager : MonoBehaviour
         characterSlotPanel.SetActive(true);
     }
 
-    //-------------PreviewArea'daki KARAKTER PREFAB KAYDETME ISLEMINI YAPIYOR------------
-    public void SaveConfirmButtonCharacterPrefab()
-    {
-        if (characterCreationController == null || characterCreationController.currentCharacter == null)
-        {
-            Debug.LogWarning("PreviewInstance (CurrentCharacter) bulunamadı");
-            return;
-        }
-
-        GameObject previewObj = characterCreationController.currentCharacter;
-
-        #if UNITY_EDITOR
-                // 🔥 Orijinal scale'ı sakla
-                Vector3 originalScale = previewObj.transform.localScale;
-
-                // 🔧 Küçültme işlemi
-                previewObj.transform.localScale = originalScale * characterScaleFactor;
-
-                // 🔧 Canvas bileşeni ekle (yoksa)
-                Canvas canvas = previewObj.GetComponent<Canvas>();
-                if (canvas == null)
-                    if (previewObj.GetComponent<Canvas>() == null)
-                    {
-                         // READ-ONLY
-                    }
-                
-                if (canvas != null)
-                {
-                    canvas.overrideSorting = true;
-                    canvas.sortingOrder = characterCanvasSortOrder;
-                }
-
-                // 🔥 Prefab olarak kaydet
-                string prefabName = selectedSlot.name;
-                string fullPath = prefabSavePath + prefabName + ".prefab";
-
-                PrefabUtility.SaveAsPrefabAsset(previewObj, fullPath);
-
-                // 🔄 Scale'ı geri al (sahne içi görünüm bozulmasın)
-                previewObj.transform.localScale = originalScale;
-
-                // 🔄 Prefab’ı tekrar yükle ve slot’a ata
-                string resourcePath = "GeneratedCharacters/" + prefabName;
-                GameObject loadedPrefab = Resources.Load<GameObject>(resourcePath);
-                if (loadedPrefab != null)
-                {
-                    allSlots[activeSlotIndex].SetCharacter(loadedPrefab);
-                    Debug.Log("ActiveSlot =" + activeSlotIndex);
-                    Debug.Log("CharacterArae=" + characterArea.slotIndex);
-                    characterArea.SetCharacter(loadedPrefab);
-                }
-                else
-                {
-                    Debug.LogError("Prefab yüklenemedi: " + resourcePath);
-                }
-
-        #else
-                Debug.LogWarning("Prefab kaydetme sadece Editor modunda çalışır");
-        #endif    
-
-    }
+    // v13: SaveConfirmButtonCharacterPrefab DELETED as part of Pure JSON Architecture.
 
     //Confirm mesajı sonrasında Paneller arası geçiş yapmamızı sağlayan fonksiyon
     //Confirm'butonunda fonksiyon olarak 

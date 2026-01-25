@@ -53,12 +53,17 @@ public class CharacterCreationController : MonoBehaviour
     /// </summary>
     public void SetCurrentCharacter(GameObject character)
     {
-        if (currentCharacter != null && currentCharacter != character) 
-        {
-             // Eski referans varsa temizle (gerekirse)
-        }
-        
         currentCharacter = character;
+        // 🔥 Bug Fix (v15): Don't call PreRegister here, it overwrites specific paths with defaults when editing existing characters.
+    }
+
+    private void PreRegisterInitialPaths()
+    {
+        string[] parts = { "Skin", "Hair", "Eyes", "EyeBrown", "Noise", "Freckles", "Mouth", "Clothes", "Hat", "Accessory" };
+        foreach (string p in parts)
+        {
+            modifier.RegisterPartPath(p, CharacterModifier.GetDefaultPath(p));
+        }
     }
 
     // Bu metod artik kullanilmiyor olabilir ama referans hatasi vermemesi icin tutuyoruz
@@ -363,6 +368,9 @@ public class CharacterCreationController : MonoBehaviour
         {
             string partName = GetPartNameFromCategory(category); 
             modifier.SetBodyPartSprite(currentCharacter, partName, spriteList[itemIndex]);
+            
+            // 🎯 v13: Exact path for JSON
+            modifier.RegisterPartPath(partName, path);
         });
     }
 
