@@ -77,6 +77,14 @@ public class CharacterSlot : MonoBehaviour
 
     public void OnClick()
     {
+        // 🔥 v25 Check: CharacterArea portalı kendi başına karakter üretemez/yükleyemez
+        if (CharacterSelectionManager.Instance != null && 
+            CharacterSelectionManager.Instance.characterArea == this)
+        {
+            CharacterSelectionManager.Instance.SelectSlot(this);
+            return;
+        }
+
         string slotName = gameObject.name; 
         string jsonFile = slotName + ".json";
         

@@ -32,7 +32,7 @@ public class CharacterSelectionManager : MonoBehaviour
     public CharacterSlot selectedSlot;
     public CharacterSlot[] allSlots; // 0–5 CharacterArea Yok
     public Transform previewArea; //
-    public int activeSlotIndex = -1; //Seçilmiş olunan slot indexi
+    private int activeSlotIndex = -1; //Seçilmiş olunan slot indexi
     private int characterAreaIndex;
 
     private GameObject currentPreviewInstance;
@@ -85,16 +85,26 @@ public class CharacterSelectionManager : MonoBehaviour
         else if(slot.slotIndex == characterAreaIndex)
         {
             //-------CharacterPreviewArea boş iken edit yapılamaz------
+            // 1. Safety Check (v25): Prevent crash on allSlots[activeSlotIndex]
+            if (activeSlotIndex == -1)
+            {
+                Debug.LogWarning("[SelectionManager] Blocked: No active index.");
+                return;
+            }
+
             bool controlFlag=false;
             foreach (Transform child in characterArea.transform)
             {
                 if (child.GetComponent<ICharacterPrefab>() != null)
                 {
                     controlFlag = true;
+                    break; // 🔥 Optimization: stop at first find
                 }
             }
+
             if(controlFlag == false)
             {
+                Debug.LogWarning("[SelectionManager] Blocked Access: CharacterArea is empty.");
                 return;
             }
             //-------CharacterPreviewArea boş iken edit yapılamaz------
@@ -355,22 +365,22 @@ public class CharacterSelectionManager : MonoBehaviour
         characterCreationPanel.SetActive(false);
         characterSlotPanel.SetActive(true);
 
-        // 🎯 AllSlots objesini bul
-        Transform allSlots = characterSlotPanel.transform.Find("AllSlots");
+        // 🎯 Unique Names to avoid Variable Shadowing (v25)
+        Transform slotsContainer = characterSlotPanel.transform.Find("AllSlots");
 
-        if (allSlots == null)
+        if (slotsContainer == null)
         {
-            Debug.LogWarning("AllSlots objesi bulunamadı!");
+            Debug.LogWarning("AllSlots container not found!");
             return;
         }
 
         // SlotPanel altındaki tüm CanvasGroup bileşenlerini topla
         CanvasGroup[] allGroups = characterSlotPanel.GetComponentsInChildren<CanvasGroup>(true);
-        List<CanvasGroup> fadeTargets = new List<CanvasGroup>(allGroups);
+        List<CanvasGroup> panelFadeTargets = new List<CanvasGroup>(allGroups);
 
         // Tüm GameObject’leri tarayıp eksik olanlara CanvasGroup ekle
-        Transform[] allChildren = characterSlotPanel.GetComponentsInChildren<Transform>(true);
-        foreach (Transform child in allChildren)
+        Transform[] panelChildren = characterSlotPanel.GetComponentsInChildren<Transform>(true);
+        foreach (Transform child in panelChildren)
         {
             if (child.name == "DeleteButton")
             {
@@ -396,7 +406,7 @@ public class CharacterSelectionManager : MonoBehaviour
             }            
         }
 
-        StartCoroutine(FadeInAllAtOnce(fadeTargets, 0.8f));
+        StartCoroutine(FadeInAllAtOnce(panelFadeTargets, 0.8f));
 
     }
 
