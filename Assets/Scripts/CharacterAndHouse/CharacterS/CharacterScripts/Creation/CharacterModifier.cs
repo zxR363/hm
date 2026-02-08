@@ -227,15 +227,23 @@ public class CharacterModifier : MonoBehaviour
         // 1. Ensure folder content is in cache
         if (!folderCache.ContainsKey(folderPath))
         {
-            Sprite[] allInFolder = Resources.LoadAll<Sprite>(folderPath);
-            if (allInFolder == null || allInFolder.Length == 0)
+            // 🔥 v29: Support for Disk-Based Custom Sprites
+            if (folderPath.Contains("CustomClothes"))
             {
-                Debug.LogWarning($"[Modifier] folderCache Fail: No sprites found (or folder missing) at Resources/{folderPath}");
-                folderCache[folderPath] = new Sprite[0];
+                LoadCustomSpritesFromDisk(folderPath);
             }
             else
             {
-                folderCache[folderPath] = allInFolder;
+                Sprite[] allInFolder = Resources.LoadAll<Sprite>(folderPath);
+                if (allInFolder == null || allInFolder.Length == 0)
+                {
+                    Debug.LogWarning($"[Modifier] folderCache Fail: No sprites found (or folder missing) at Resources/{folderPath}");
+                    folderCache[folderPath] = new Sprite[0];
+                }
+                else
+                {
+                    folderCache[folderPath] = allInFolder;
+                }
             }
         }
 
@@ -247,6 +255,54 @@ public class CharacterModifier : MonoBehaviour
         }
 
         return null;
+    }
+
+    // 🔥 v29: Runtime PNG to Sprite Loading
+    private void LoadCustomSpritesFromDisk(string folderPath)
+    {
+        try
+        {
+            // folderPath logic: It might be a persistentDataPath or a partial one.
+            // We assume ClothesExporter.BasePath and simplify.
+            string diskPath = folderPath; 
+            
+            // If it's a relative/convenience path, map it to absolute
+            if (!diskPath.Contains(":") && !diskPath.StartsWith("/"))
+            {
+                diskPath = System.IO.Path.Combine(Application.persistentDataPath, folderPath);
+            }
+
+            if (System.IO.Directory.Exists(diskPath))
+            {
+                string[] files = System.IO.Directory.GetFiles(diskPath, "*.png");
+                List<Sprite> sprites = new List<Sprite>();
+
+                foreach (string file in files)
+                {
+                    byte[] bytes = System.IO.File.ReadAllBytes(file);
+                    Texture2D tex = new Texture2D(2, 2);
+                    if (tex.LoadImage(bytes))
+                    {
+                        tex.name = System.IO.Path.GetFileNameWithoutExtension(file);
+                        Sprite s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+                        s.name = tex.name;
+                        sprites.Add(s);
+                    }
+                }
+                folderCache[folderPath] = sprites.ToArray();
+                Debug.Log($"[Modifier] Loaded {sprites.Count} custom sprites from {diskPath}");
+            }
+            else
+            {
+                folderCache[folderPath] = new Sprite[0];
+                Debug.LogWarning($"[Modifier] Custom directory not found: {diskPath}");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Modifier] Disk Load Error: {e.Message}");
+            folderCache[folderPath] = new Sprite[0];
+        }
     }
 
     public static string GetDefaultPath(string category)

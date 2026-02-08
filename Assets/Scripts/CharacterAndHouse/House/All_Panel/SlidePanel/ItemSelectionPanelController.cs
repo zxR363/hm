@@ -176,8 +176,6 @@ public class ItemSelectionPanelController : MonoBehaviour
         SelectTab(0); // Default first tab
 
         // Force UI update and register events immediately
-        ForceUpdateVisibility();
-        StartCoroutine(RefreshUIRoutine());
     }
 
     public void ClosePanel()
