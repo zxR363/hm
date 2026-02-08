@@ -33,6 +33,7 @@ public class CharacterSelectionManager : MonoBehaviour
     public CharacterSlot[] allSlots; // 0–5 CharacterArea Yok
     public Transform previewArea; //
     private int activeSlotIndex = -1; //Seçilmiş olunan slot indexi
+    public int ActiveSlotIndex => activeSlotIndex; // 🔥 v27: Expose for Sync
     private int characterAreaIndex;
 
     private GameObject currentPreviewInstance;
@@ -133,6 +134,12 @@ public class CharacterSelectionManager : MonoBehaviour
 
             ResetOptionGridToDefault();
 
+            // 🔥 v28: Always reset categories to default when opening the panel
+            if (characterCreationController != null)
+            {
+                characterCreationController.ResetToFirstCategory();
+            }
+
             // 🔥 v17: Pass the actual slot so we can use its ID and fresh reconstruction
             StartCoroutine(DelayedPreview(selectedSlot));
         }        
@@ -208,6 +215,17 @@ public class CharacterSelectionManager : MonoBehaviour
             {
                 Destroy(child.gameObject);
             }
+        }
+    }
+
+    // 🔥 v27: Targeted Sync - Only resets and clears if the DELETED slot was the one shown
+    public void NotifySlotDeleted(int index)
+    {
+        if (activeSlotIndex == index)
+        {
+            ClearCharacterArea();
+            activeSlotIndex = -1;
+            Debug.Log($"[SelectionManager] Preview cleared because its source slot (Index: {index}) was deleted.");
         }
     }
 

@@ -138,13 +138,19 @@ public class HoldToDeleteCharacter : MonoBehaviour, IPointerDownHandler, IPointe
                 }
             }
 
-            // 5. Sync with CharacterArea (v21)
-            if (CharacterSelectionManager.Instance != null && 
-                CharacterSelectionManager.Instance.selectedSlot != null && 
-                CharacterSelectionManager.Instance.selectedSlot.gameObject.name == slotName)
+            // 5. Sync with CharacterArea (v27 - Refined)
+            CharacterSlot slotComponent = slotRoot.GetComponent<CharacterSlot>();
+            if (CharacterSelectionManager.Instance != null && slotComponent != null)
             {
-                CharacterSelectionManager.Instance.ClearCharacterArea();
-                Debug.Log($"[Delete] Sync: Cleared CharacterArea because {slotName} was deleted.");
+                // 🔥 Notify with index for targeted sync
+                CharacterSelectionManager.Instance.NotifySlotDeleted(slotComponent.slotIndex);
+                
+                // Fallback for name-based sync (v21)
+                if (CharacterSelectionManager.Instance.selectedSlot != null && 
+                    CharacterSelectionManager.Instance.selectedSlot.gameObject.name == slotName)
+                {
+                    CharacterSelectionManager.Instance.ClearCharacterArea();
+                }
             }
 
             // 6. If there's an active character in the CreationArea (fallback cleanup)

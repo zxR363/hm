@@ -57,6 +57,13 @@ public class CharacterCreationController : MonoBehaviour
         // 🔥 Bug Fix (v15): Don't call PreRegister here, it overwrites specific paths with defaults when editing existing characters.
     }
 
+    // 🔥 v28: Ensure we always start from the first category (Skin)
+    public void ResetToFirstCategory()
+    {
+        Debug.Log("[Controller] Resetting to default category: Skin");
+        OnCategorySelected("Skin");
+    }
+
     private void PreRegisterInitialPaths()
     {
         string[] parts = { "Skin", "Hair", "Eyes", "EyeBrown", "Noise", "Freckles", "Mouth", "Clothes", "Hat", "Accessory" };
